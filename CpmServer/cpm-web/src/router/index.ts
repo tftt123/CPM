@@ -67,7 +67,26 @@ const router = createRouter({
           path: 'mfg/process',
           name: 'mfgProcess',
           component: () => import('@/views/mfg/MfgProcessManage.vue'),
-          meta: { title: '工艺管理' }
+          meta: { title: '工艺成本' }
+        },
+        // PM - Product Trace
+        {
+          path: 'pm/trace',
+          name: 'productTrace',
+          component: () => import('@/views/pm/ProductTraceList.vue'),
+          meta: { title: '产品跟踪' }
+        },
+        {
+          path: 'pm/trace/create',
+          name: 'productTraceCreate',
+          component: () => import('@/views/pm/ProductTraceDetail.vue'),
+          meta: { title: '创建产品跟踪' }
+        },
+        {
+          path: 'pm/trace/edit/:id',
+          name: 'productTraceEdit',
+          component: () => import('@/views/pm/ProductTraceDetail.vue'),
+          meta: { title: '编辑产品跟踪' }
         },
         // 旧路由重定向到系统设置
         {

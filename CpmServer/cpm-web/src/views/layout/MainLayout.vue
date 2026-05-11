@@ -126,6 +126,18 @@
               <el-icon size="18"><HomeFilled /></el-icon>
               <span>{{ t('nav.home') }}</span>
             </el-menu-item>
+          </el-menu>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">{{ t('nav.rfq') }}</div>
+          <el-menu
+            router
+            :default-active="$route.path"
+            class="nav-menu"
+            :collapse="false"
+            :collapse-transition="false"
+          >
             <el-menu-item index="/customer" class="nav-item">
               <el-icon size="18"><UserFilled /></el-icon>
               <span>{{ t('nav.customer') }}</span>
@@ -134,18 +146,6 @@
               <el-icon size="18"><Box /></el-icon>
               <span>{{ t('nav.product') }}</span>
             </el-menu-item>
-          </el-menu>
-        </div>
-
-        <div class="nav-section">
-          <div class="nav-section-title">{{ t('nav.quotation') }}</div>
-          <el-menu
-            router
-            :default-active="$route.path"
-            class="nav-menu"
-            :collapse="false"
-            :collapse-transition="false"
-          >
             <el-menu-item index="/opportunity" class="nav-item">
               <el-icon size="18"><FolderOpened /></el-icon>
               <span>{{ t('nav.opportunity') }}</span>
@@ -157,6 +157,22 @@
             <el-menu-item index="/mfg/process" class="nav-item">
               <el-icon size="18"><Setting /></el-icon>
               <span>{{ t('nav.mfgProcess') }}</span>
+            </el-menu-item>
+          </el-menu>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">{{ t('nav.pm') }}</div>
+          <el-menu
+            router
+            :default-active="$route.path"
+            class="nav-menu"
+            :collapse="false"
+            :collapse-transition="false"
+          >
+            <el-menu-item index="/pm/trace" class="nav-item">
+              <el-icon size="18"><TrendCharts /></el-icon>
+              <span>{{ t('nav.productTrace') }}</span>
             </el-menu-item>
           </el-menu>
         </div>

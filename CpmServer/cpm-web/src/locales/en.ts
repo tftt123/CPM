@@ -102,12 +102,15 @@ export default {
     product: 'Products',
     opportunity: 'Opportunities',
     quotation: 'Quotations',
+    rfq: 'RFQ',
+    pm: 'PM',
+    productTrace: 'Product Trace',
     approvalConfig: 'Approval Config',
     userManage: 'Users',
     roleManage: 'Roles',
     salesReport: 'Sales Reports',
     dataAnalysis: 'Data Analysis',
-    mfgProcess: 'Manufacturing Process'
+    mfgProcess: 'Process Cost'
   },
   customer: {
     pageTitle: 'Customer Management',
@@ -267,7 +270,7 @@ export default {
     minLength: '{field} must be at least {min} characters'
   },
   mfg: {
-    title: 'Manufacturing Process',
+    title: 'Process Cost',
     subtitle: 'Maintain process category, type, method and equipment mappings',
     category: 'Category',
     process: 'Process Type',
@@ -286,6 +289,37 @@ export default {
     manufacturer: 'Manufacturer',
     hourlyRate: 'Hourly Rate',
     equipments: 'Equipment List'
+  },
+  pmTrace: {
+    pageTitle: 'Product Trace',
+    createTitle: 'Create Product Trace',
+    editTitle: 'Edit Product Trace',
+    searchPlaceholder: 'Customer / Part No / Product Name',
+    customer: 'Customer',
+    partNo: 'Part No',
+    productName: 'Product Name',
+    plannedQty: 'Planned Qty',
+    startDate: 'Start Date',
+    displayWeeks: 'Display Weeks',
+    statusDraft: 'Draft',
+    statusRunning: 'Running',
+    statusCompleted: 'Completed',
+    planActual: 'Plan & Actual',
+    addStep: 'Add Step',
+    process: 'Process',
+    person: 'Person',
+    planDays: 'Plan Days',
+    planStart: 'Plan Start',
+    planEnd: 'Plan End',
+    actualStart: 'Actual Start',
+    actualDays: 'Actual Days',
+    actualEnd: 'Actual End',
+    ganttChart: 'Gantt Chart',
+    routeSummary: 'Route Summary',
+    cycleTime: 'Cycle Time (Sec)',
+    settingDays: 'Setting (Days)',
+    estimatedHours: 'Est. Hours',
+    new: 'New Trace'
   },
   mail: {
     title: 'Mail Configuration',

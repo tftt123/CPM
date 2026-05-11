@@ -45,6 +45,10 @@ public class CpmDbContext : DbContext
     // File Upload
     public DbSet<SysFileRecord> FileRecords => Set<SysFileRecord>();
 
+    // PM - Product Trace
+    public DbSet<PmProjectTrace> ProjectTraces => Set<PmProjectTrace>();
+    public DbSet<PmProjectTraceStep> ProjectTraceSteps => Set<PmProjectTraceStep>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<SysUserRole>()

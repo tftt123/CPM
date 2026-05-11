@@ -102,12 +102,15 @@ export default {
     product: '产品管理',
     opportunity: '商机管理',
     quotation: '报价单管理',
+    rfq: 'RFQ',
+    pm: 'PM',
+    productTrace: '产品跟踪',
     approvalConfig: '审批配置',
     userManage: '人员管理',
     roleManage: '角色管理',
     salesReport: '销售报表',
     dataAnalysis: '数据分析',
-    mfgProcess: '工艺管理'
+    mfgProcess: '工艺成本'
   },
   customer: {
     pageTitle: '客户管理',
@@ -269,7 +272,7 @@ export default {
     minLength: '{field}至少{min}位'
   },
   mfg: {
-    title: '工艺管理',
+    title: '工艺成本',
     subtitle: '维护工艺分类、工序类型、加工方式及设备型号的关联关系',
     category: '大类',
     process: '加工类型',
@@ -288,6 +291,37 @@ export default {
     manufacturer: '制造商',
     hourlyRate: '小时费率',
     equipments: '设备清单'
+  },
+  pmTrace: {
+    pageTitle: '产品跟踪',
+    createTitle: '创建产品跟踪',
+    editTitle: '编辑产品跟踪',
+    searchPlaceholder: '客户/零件号/产品名',
+    customer: '客户',
+    partNo: '零件号',
+    productName: '产品名称',
+    plannedQty: '计划投入数量',
+    startDate: '项目开始',
+    displayWeeks: '显示周数',
+    statusDraft: '草稿',
+    statusRunning: '进行中',
+    statusCompleted: '已完成',
+    planActual: '计划与实际',
+    addStep: '添加工序',
+    process: '工艺步骤',
+    person: '责任人',
+    planDays: '计划天数',
+    planStart: '计划开始',
+    planEnd: '计划结束',
+    actualStart: '实际开始',
+    actualDays: '实际天数',
+    actualEnd: '实际结束',
+    ganttChart: '甘特图',
+    routeSummary: '工艺路线汇总',
+    cycleTime: '节拍(Sec)',
+    settingDays: '设定(天)',
+    estimatedHours: '预计耗时',
+    new: '新建跟踪'
   },
   mail: {
     title: '邮件配置',
