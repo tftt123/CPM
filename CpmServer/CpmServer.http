@@ -1,6 +1,0 @@
-@CpmServer_HostAddress = http://localhost:5083
-
-GET {{CpmServer_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
