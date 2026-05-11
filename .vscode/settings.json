@@ -1,0 +1,33 @@
+{
+    "terminal.integrated.defaultProfile.windows": "Command Prompt",
+    "terminal.integrated.profiles.windows": {
+        "Backend Terminal": {
+            "path": "cmd.exe",
+            "args": [
+                "/K",
+                "cd /d ${workspaceFolder}\\CpmServer"
+            ]
+        },
+        "Frontend Terminal": {
+            "path": "cmd.exe",
+            "args": [
+                "/K",
+                "cd /d ${workspaceFolder}\\CpmServer\\cpm-web"
+            ]
+        }
+    },
+    "explorer.fileNesting.enabled": true,
+    "explorer.fileNesting.patterns": {
+        "*.csproj": "*.csproj.user, *.sln, *.slnx",
+        "appsettings.json": "appsettings.*.json",
+        "package.json": "package-lock.json, pnpm*, .yarnrc*, yarn*, .eslint*, eslint*, .oxlint*, oxlint*, .prettier*, prettier*, .editorconfig, vite.config.*, tsconfig*.json"
+    },
+    "editor.formatOnSave": true,
+    "files.exclude": {
+        "**/bin": true,
+        "**/obj": true,
+        "**/node_modules": true,
+        "**/.git": true
+    },
+    "dotnet.defaultSolution": "CpmServer/CpmServer.slnx"
+}

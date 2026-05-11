@@ -1,0 +1,13 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="CpmServer.csproj">
+    <Platform Solution="*|x86" Project="x86" />
+  </Project>
+  <Project Path="..\CpmServer.SharedKernel\CpmServer.SharedKernel.csproj" />
+  <Project Path="..\CpmServer.Core\CpmServer.Core.csproj" />
+  <Project Path="..\CpmServer.Modules.Approval\CpmServer.Modules.Approval.csproj" />
+  <Project Path="..\CpmServer.Modules.Quotation\CpmServer.Modules.Quotation.csproj" />
+</Solution>

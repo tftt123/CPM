@@ -1,0 +1,78 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TypeScriptToolsVersion>4.5</TypeScriptToolsVersion>
+    <UserSecretsId>7d3617c6-26ce-4e3f-b4af-c73e2e1415b7</UserSecretsId>
+    <Platforms>AnyCPU;x86</Platforms>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.8.23" />
+    <PackageReference Include="Hangfire.SqlServer" Version="1.8.23" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.26" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.26" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.26">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="StackExchange.Redis" Version="2.7.33" />
+    <PackageReference Include="MailKit" Version="4.7.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <!-- 排除前端文件夹 -->
+  <ItemGroup>
+    <Compile Remove="cpm-web\**" />
+  </ItemGroup>
+
+  <!-- 排除旧的 OeAppServerHelper（已迁移到 QadAuthBridge 桥接程序） -->
+  <ItemGroup>
+    <Compile Remove="Common\OeAppServerHelper.cs" />
+    <Compile Remove="Services\OeAppsvHelper.cs" />
+  </ItemGroup>
+
+  <!-- 排除已迁移到模块项目的文件（避免重复定义编译错误） -->
+  <ItemGroup>
+    <!-- SharedKernel -->
+    <Compile Remove="Common\ApiResult.cs" />
+    <Compile Remove="Common\PagedResult.cs" />
+    <Compile Remove="Common\BusinessException.cs" />
+    <Compile Remove="Services\ICurrentUser.cs" />
+    <Compile Remove="Services\CurrentUser.cs" />
+    <!-- Core -->
+    <Compile Remove="Data\**" />
+    <Compile Remove="Models\**" />
+    <!-- Approval 模块 -->
+    <Compile Remove="Services\ApprovalService.cs" />
+    <Compile Remove="Services\IApprovalService.cs" />
+    <Compile Remove="Services\Approvers\**" />
+    <Compile Remove="Controllers\ApprovalController.cs" />
+    <Compile Remove="DTOs\Quotation\ApprovalTemplateDto.cs" />
+    <Compile Remove="DTOs\Quotation\ApprovalActionDto.cs" />
+    <!-- Quotation 模块 -->
+    <Compile Remove="Services\QuotationService.cs" />
+    <Compile Remove="Services\IQuotationService.cs" />
+    <Compile Remove="Controllers\QuotationController.cs" />
+    <Compile Remove="DTOs\Quotation\OpportunityDto.cs" />
+    <Compile Remove="DTOs\Quotation\QuotationDto.cs" />
+    <!-- SharedKernel (Email 基础设施) -->
+    <Compile Remove="Services\IEmailService.cs" />
+    <Compile Remove="DTOs\Quotation\EmailConfigDto.cs" />
+    <!-- 迁移文件已移动到 CpmServer.Core -->
+    <Compile Remove="Migrations\**" />
+  </ItemGroup>
+
+  <!-- 模块项目引用 -->
+  <ItemGroup>
+    <ProjectReference Include="..\CpmServer.SharedKernel\CpmServer.SharedKernel.csproj" />
+    <ProjectReference Include="..\CpmServer.Core\CpmServer.Core.csproj" />
+    <ProjectReference Include="..\CpmServer.Modules.Approval\CpmServer.Modules.Approval.csproj" />
+    <ProjectReference Include="..\CpmServer.Modules.Quotation\CpmServer.Modules.Quotation.csproj" />
+  </ItemGroup>
+
+</Project>

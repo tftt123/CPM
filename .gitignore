@@ -1,0 +1,57 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+
+# Publish
+publish/
+out/
+
+# NuGet
+*.nupkg
+packages/
+
+# Logs
+*.log
+logs/
+
+# Secrets (keep these local)
+appsettings.Development.json
+appsettings.Production.json
+secrets.json
+
+# Vue / Node
+node_modules/
+dist/
+.vite/
+*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# Test results
+TestResults/
+coverage/
+
+# Bridge exe output (keep source only)
+QadAuthBridge/bin/
+QadAuthBridge/obj/
+QadAuthBridge/*.exe
+QadAuthBridge/*.config
+QadAuthBridge/*.pdb
+
+# Progress OpenEdge proprietary DLLs (not redistributable - obtain from your Progress install)
+CpmServer/Lib/Progress*.dll
+
+# User-uploaded business files (e.g., quotation attachments) - real data, not for VCS
+CpmServer/wwwroot/uploads/

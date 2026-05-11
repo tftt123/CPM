@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>事必得 CPM 系统 — 业务流程图</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif; background: #f0f4f8; color: #333; }
+
+  .page-header {
+    background: linear-gradient(135deg, #1a478a 0%, #2c6fbd 100%);
+    color: white; padding: 32px 40px 24px;
+  }
+  .page-header h1 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+  .page-header p { font-size: 13px; opacity: 0.85; }
+  .badge-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .badge { background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3);
+           border-radius: 20px; padding: 3px 12px; font-size: 12px; }
+
+  .nav-tabs { background: #fff; display: flex; overflow-x: auto;
+              border-bottom: 2px solid #e2e8f0; padding: 0 20px;
+              position: sticky; top: 0; z-index: 100;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .nav-tab { padding: 13px 14px; cursor: pointer; white-space: nowrap; font-size: 13px;
+             color: #64748b; border-bottom: 3px solid transparent;
+             transition: all 0.2s; font-weight: 500; flex-shrink: 0; }
+  .nav-tab:hover { color: #1a478a; background: #f8fafc; }
+  .nav-tab.active { color: #1a478a; border-bottom-color: #1a478a; background: #f0f6ff; }
+
+  .content { max-width: 1300px; margin: 0 auto; padding: 28px 20px; }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .flow-card {
+    background: white; border-radius: 14px; padding: 28px;
+    margin-bottom: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    border: 1px solid #e8f0fe;
+  }
+  .flow-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 18px; }
+  .flow-icon { width: 44px; height: 44px; border-radius: 10px; display: flex;
+               align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .flow-title { font-size: 18px; font-weight: 700; color: #1a478a; margin-bottom: 4px; }
+  .flow-desc { font-size: 13px; color: #64748b; line-height: 1.6; }
+
+  .pill-row { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+  .pill { border-radius: 8px; padding: 8px 12px; font-size: 12px; line-height: 1.6; max-width: 360px; }
+  .pill-pain { background: #fff5f5; border: 1px solid #feb2b2; color: #c53030; }
+  .pill-solve { background: #f0fff4; border: 1px solid #9ae6b4; color: #22543d; }
+  .pill b { display: block; margin-bottom: 2px; }
+
+  .diagram-box { background: #fafbff; border-radius: 10px; padding: 20px;
+                 border: 1px solid #e2e8f0; overflow-x: auto; }
+  .mermaid { min-width: 480px; }
+
+  /* Timeline */
+  .tl { display: flex; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0; margin-top: 4px; }
+  .tl-col { flex: 1; min-width: 150px; }
+  .tl-head { background: #1a478a; color: #fff; padding: 9px 12px;
+             font-size: 12px; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2); }
+  .tl-body { padding: 10px 12px; font-size: 12px; line-height: 1.9; color: #374151;
+             background: #f8fafc; border-right: 1px solid #e2e8f0; min-height: 110px; }
+  .tl-sub { font-size: 11px; color: #94a3b8; font-weight: 600; margin-bottom: 4px; }
+
+  /* Kanban mock */
+  .kb { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
+  .kb-col { min-width: 190px; background: #f8fafc; border-radius: 10px; padding: 10px; }
+  .kb-head { font-size: 12px; font-weight: 700; color: #1a478a; padding: 5px 8px;
+             background: #e8f0fe; border-radius: 6px; margin-bottom: 8px; text-align: center; }
+  .kb-card { background: #fff; border-radius: 8px; padding: 9px; margin-bottom: 7px;
+             border-left: 3px solid #3a7bd5; box-shadow: 0 1px 3px rgba(0,0,0,0.06); font-size: 11px; }
+  .kb-card.red { border-left-color: #e53e3e; }
+  .kb-card.green { border-left-color: #38a169; }
+  .kb-name { font-weight: 700; color: #222; margin-bottom: 3px; }
+  .kb-info { color: #555; line-height: 1.6; }
+  .tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-top: 3px; }
+  .tag-g { background: #f0fff4; color: #22543d; }
+  .tag-b { background: #ebf8ff; color: #2b6cb0; }
+  .tag-r { background: #fff5f5; color: #c53030; }
+
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+  .ftag { border-radius: 16px; padding: 5px 12px; font-size: 12px; border: 1px solid; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div style="text-align:left; font-size:20px; font-weight:500; letter-spacing:1px; opacity:0.9; margin-bottom:6px;">Customer Project Management</div>
+  <h1>事必得 CPM 业务流程图</h1>
+  <p>基于《事必得CPM需求沟通&amp;方案框架》 | Odoo 18 社区版 | 2026年4月</p>
+  <div class="badge-row">
+    <span class="badge">9大业务流程</span>
+    <span class="badge">50+ 用户</span>
+    <span class="badge">制造业定制</span>
+    <span class="badge">QAD 2016EE 集成</span>
+  </div>
+</div>
+
+<div class="nav-tabs">
+  <div class="nav-tab active"  onclick="go('overview',this)">总览</div>
+  <div class="nav-tab" onclick="go('q1',this)">① 项目报价</div>
+  <div class="nav-tab" onclick="go('q2',this)">② 样品申请</div>
+  <div class="nav-tab" onclick="go('q5',this)">③ 样品采购</div>
+  <div class="nav-tab" onclick="go('q3',this)">④ 批次评审</div>
+  <div class="nav-tab" onclick="go('q4',this)">⑤ 样品生产计划</div>
+  <div class="nav-tab" onclick="go('q6',this)">⑥ 催产变更</div>
+  <div class="nav-tab" onclick="go('q7',this)">⑦ 样品交付</div>
+  <div class="nav-tab" onclick="go('q8',this)">⑧ 送样流程</div>
+  <div class="nav-tab" onclick="go('kanban',this)">样品看板</div>
+</div>
+
+<div class="content">
+
+<!-- ===== OVERVIEW ===== -->
+<div class="section active" id="overview">
+  <div class="flow-card">
+    <div class="flow-header">
+      <div class="flow-icon" style="background:#e8f0fe">🗺</div>
+      <div>
+        <div class="flow-title">事必得 CPM 业务流程总览</div>
+        <div class="flow-desc">9大核心流程的关联关系与执行顺序，覆盖从商机获取到样品交付的完整销售周期（含原材料采购管控）</div>
+      </div>
+    </div>
+    <div class="diagram-box">
+<div class="mermaid">
+flowchart TD
+    A([客户]) --> B[创建商机]
+    B --> P1[流程一\n项目报价]
+    P1 --> P1a[技术评审]
+    P1a --> P1b[定价审批]
+    P1b --> P1c[报价发出]
+    P1c --> D{客户决策}
+    D -->|输单| X([输单关闭])
+    D -->|赢单进样品| E[进入样品阶段]
+    E --> P2[流程二\n样品制作申请]
+    P2 --> AP{主管审批}
+    AP -->|退回| P2
+    AP -->|批准| PU{"流程三 原材料采购\n是否需要采购\n对接QAD库存判断"}
+    PU -->|库存充足| P3[流程四\n批次拆分评审]
+    PU -->|需要采购| PO[提交采购申请\n采购主管审批\n等待到货]
+    PO --> PA{采购验收}
+    PA -->|验收合格| P3
+    PA -->|超期或异常| POWARN[采购超期/异常预警\n通知采购员和技术]
+    POWARN --> PO
+    P3 --> P4[流程五\n样品生产计划]
+    P4 --> CK{计划满足交期}
+    CK -->|不能| P6[流程六\n催产变更]
+    P6 --> OK{技术主管审批}
+    OK -->|无法压缩| NEG[销售与客户协商]
+    NEG --> P4
+    OK -->|批准| P4
+    CK -->|能| MFG[生产执行]
+    MFG --> P7[流程七\n样品交付单]
+    P7 --> QTY{实际超计划数量}
+    QTY -->|是| ALT[自动通知销售]
+    ALT --> ALTC[销售与客户确认\n超量处理方案]
+    ALTC --> P8
+    QTY -->|否| P8[流程八\n送样流程]
+    P8 --> Z([样品确认\n进入合同谈判])
+
+    style X fill:#fee2e2,stroke:#ef4444
+    style Z fill:#dcfce7,stroke:#22c55e
+    style ALT fill:#fef9c3,stroke:#eab308
+    style A fill:#dbeafe,stroke:#3b82f6
+    style POWARN fill:#fee2e2,stroke:#ef4444
+    style PO fill:#fef9c3,stroke:#eab308
+</div>
+    </div>
+  </div>
+
+  <div class="flow-card">
+    <div class="flow-header">
+      <div class="flow-icon" style="background:#f0fff4">📅</div>
+      <div>
+        <div class="flow-title">12周分阶段上线计划</div>
+        <div class="flow-desc">降低风险，快速见到业务价值</div>
+      </div>
+    </div>
+    <div class="tl">
+      <div class="tl-col"><div class="tl-head">Phase 0 · 第1-2周</div><div class="tl-body"><div class="tl-sub">基础准备</div>服务器搭建<br>Docker部署Odoo<br>QAD客户数据导入<br>基础模块配置</div></div>
+      <div class="tl-col"><div class="tl-head">Phase 1 · 第3-4周</div><div class="tl-body"><div class="tl-sub">报价流程</div>销售管道8阶段<br>时效自动化规则<br>商机自定义字段<br>种子用户试用</div></div>
+      <div class="tl-col"><div class="tl-head">Phase 2 · 第5-7周</div><div class="tl-body"><div class="tl-sub">样品基础</div>样品申请模块<br>批次管理<br>审批工作流<br>基础版看板</div></div>
+      <div class="tl-col"><div class="tl-head">Phase 3 · 第8-9周</div><div class="tl-body"><div class="tl-sub">样品完善</div>催产变更流程<br>交付单与预警<br>送样流程<br>完整版看板</div></div>
+      <div class="tl-col"><div class="tl-head">Phase 4 · 第10-11周</div><div class="tl-body"><div class="tl-sub">扩展集成</div>QAD产品同步<br>报表仪表盘<br>全员培训</div></div>
+      <div class="tl-col"><div class="tl-head">Phase 5 · 第12周</div><div class="tl-body"><div class="tl-sub">正式上线</div>全团队切换<br>运维文档交接<br>验收确认</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Q1 报价 ===== -->
+<div class="section" id="q1">
+  <div class="flow-card">
+    <div class="flow-header">
+      <div class="flow-icon" style="background:#fef3c7">💰</div>
+      <div>
+        <div class="flow-title">① 项目报价流程（含时效管控）</div>
+        <div class="flow-desc">解决报价截止时间靠线下沟通、无法管控单节点和整体时效的痛点</div>
+      </div>
+    </div>
+    <div class="pill-row">
+      <div class="pill pill-pain"><b>当前痛点</b>报价截止时间靠口头沟通，技术评审拖延无预警，截止日到期才发现</div>
+      <div class="pill pill-solve"><b>优化目标</b>单节点时效控制（技术24h / 审批8h）加整体截止日倒计时加自动提醒</div>
+    </div>
+    <div class="diagram-box">
+<div class="mermaid">
+flowchart TD
+    A([客户提出报价需求]) --> B[销售创建商机\n录入报价截止日期]
+    B --> C[技术评审\n评估可行性和成本]
+    C --> D[定价审批\n销售主管审核]
+    D --> E[报价单发出]
+    E --> F{"客户反馈"}
+    F -->|需修改| C
+    F -->|接受| G[商机进入客户评估阶段]
+    F -->|拒绝| H([商机标记输单])
+    G --> I{"是否进入样品阶段"}
+    I -->|是| J([触发样品申请流程])
+    I -->|否| K([直接进入合同谈判])
+    C -->|超24h自动触发| R1[提醒技术负责人\n通知销售经理]
+    D -->|超8h自动触发| R2[提醒审批人]
+    B -->|截止前3天| R3[自动提醒销售]
+    B -->|截止前1天| R4[紧急提醒\n通知经理]
+
+    style H fill:#fee2e2,stroke:#ef4444
+    style J fill:#dcfce7,stroke:#22c55e
+    style K fill:#dcfce7,stroke:#22c55e
+    style R1 fill:#fee2e2,stroke:#ef4444
+    style R2 fill:#fef9c3,stroke:#eab308
+    style R3 fill:#dbeafe,stroke:#3b82f6
+    style R4 fill:#fee2e2,stroke:#ef4444
+</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Q2 样品申请 ===== -->
+<div class="section" id="q2">
+  <div class="flow-card">
+    <div class="flow-header">
+      <div class="flow-icon" style="background:#f0fff4">🧪</div>
+      <div>
+        <div class="flow-title">② 样品制作申请流程</div>
+        <div class="flow-desc">将客户样品需求结构化传递给技术部门，替代线下口头沟通，含审批和可行性评估</div>
+      </div>
+    </div>
+    <div class="pill-row">
+      <div class="pill pill-pain"><b>当前痛点</b>客户样品需求、技术数量、截止时间靠口头传递，信息容易缺失或不准确</div>
+      <div class="pill pill-solve"><b>优化目标</b>系统内发起申请单带入项目信息，经审批后正式告知技术；技术在线评估给出批次建议</div>
+    </div>
+    <div class="diagram-box">
+<div class="mermaid">
+flowchart TD
+    A([客户提出样品需求]) --> B[销售在系统发起样品申请单\n关联已报价商机]
+    B --> C[录入关键信息\n需求数量 截止日期 技术要求]
+    C --> D[上传图纸规格书\n提交主管审批]
+    D --> E{"主管审核\n信息是否完整"}
+    E -->|信息不全| C
+    E -->|批准| F[通知技术部门负责人]
+    F --> FS[评估样品原材料库存情况\n对接QAD库存自动判断]
+    FS --> FQ{"库存是否充足"}
+    FQ -->|库存不足| FP([触发流程三\n样品采购流程])
+    FQ -->|库存充足| G[技术评估产能和订单情况]
+    G --> H{"能否满足需求"}
+    H -->|可全量满足| I[单批次方案
+填写计划完成日期]
+    H -->|需分批交付| J[多批次方案
+各批数量和交付周期]
+    I --> K[提交批次评估结果]
+    J --> K
+    K --> L[销售与客户确认批次方案]
+    L --> M{"客户是否接受"}
+    M -->|接受| N([确认批次时间
+进入批次评审流程])
+    M -->|不接受| O{"销售-技术-客户\n三方协商"}
+    O -->|调整产能方案| G
+    O -->|重新定义需求| C
+    O -->|无法达成一致| X([商机标记输单])
+
+    style N fill:#dcfce7,stroke:#22c55e
+    style E fill:#fef9c3,stroke:#eab308
+    style X fill:#fee2e2,stroke:#ef4444
+    style FP fill:#fef9c3,stroke:#eab308
+</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Q3 批次评审 ===== -->
+<div class="section" id="q3">
+  <div class="flow-card">
+    <div class="flow-header">
+      <div class="flow-icon" style="background:#ebf8ff">📦</div>
+      <div>
+        <div class="flow-title">④ 样品批次执行评审</div>
+        <div class="flow-desc">技术部门对样品生产做批次拆分和投产评审，超期批次自动预警并通知销售</div>
+      </div>
+    </div>
+    <div class="pill-row">
+      <div class="pill pill-pain"><b>当前痛点</b>批次拆分靠线下沟通，排产进展销售无从掌握，只能靠打电话追问</div>
+      <div class="pill pill-solve"><b>优化目标</b>批次在系统中拆分和评审，超期自动标红，看板实时同步给销售</div>
+    </div>
+    <div class="diagram-box">
+<div class="mermaid">
+flowchart TD
+    A([原材料采购已完成\n或库存充足可排产]) --> B[打开批次拆分向导\n查看总数量和截止日]
+    B --> C[为每批次填写\n计划数量 开始日 完成日]
+    C --> D{"各批次计划完成日\n是否满足客户截止日"}
+    D -->|全部满足| E[批次评审通过\n系统生成批次记录]
+    D -->|存在超期| F[标记超期预警\n批次标红]
+    F --> G[通知销售\n批次计划超期]
+    G --> H{"销售决策"}
+    H -->|发起催产| I([进入催产变更流程])
+    H -->|调整截止日| J[更新客户截止日期]
+    J --> C
+    E --> K[样品看板写入批次数据\n项目 客户 产品 批次 计划日期]
+    K --> L([进入生产排产流程])
+
+    style I fill:#fee2e2,stroke:#ef4444
+    style L fill:#dcfce7,stroke:#22c55e
+    style F fill:#fef9c3,stroke:#eab308
+</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Q4 生产计划 ===== -->
+<div class="section" id="q4">
+  <div class="flow-card">
+    <div class="flow-header">
+      <div class="flow-icon" style="background:#faf5ff">📅</div>
+      <div>
+        <div class="flow-title">⑤ 样品生产计划</div>
+        <div class="flow-desc">技术部门基于产能和订单做排产，看板实时同步让销售无需追问进展</div>
+      </div>
+    </div>
+    <div class="pill-row">
+      <div class="pill pill-pain"><b>当前痛点</b>对样品的排产做预估计划时，销售无法实时掌握进展</div>
+      <div class="pill pill-solve"><b>优化目标</b>技术填写排产后看板自动更新，超期自动推送预警，销售实时可见</div>
+    </div>
+    <div class="diagram-box">
+<div class="mermaid">
+flowchart TD
+    A([接收批次评审结果]) --> B[技术部门制定详细排产计划\n结合在手订单和设备产能]
+    B --> C[在系统填写各批次\n计划生产日期,数量和节拍]
+    C --> D{"计划完成日\n是否满足客户截止日"}
+    D -->|满足| E[看板更新为计划中\n绿色状态]
+    D -->|超期| F[系统自动标红\n推送预警给销售]
+    E --> G[销售实时查看看板\n无需追问进展]
+    F --> H{"销售决策"}
+    H -->|发起催产| I([进入催产变更流程])
+    H -->|调整客户预期| J[更新截止日\n重新排产]
+    J --> C
+
+    style F fill:#fee2e2,stroke:#ef4444
+    style G fill:#dcfce7,stroke:#22c55e
+    style I fill:#fef9c3,stroke:#eab308
+</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Q6 催产变更 ===== -->
+<div class="section" id="q6">
+  <div class="flow-card">
+    <div class="flow-header">
+      <div class="flow-icon" style="background:#fff5f5">🚨</div>
+      <div>
+        <div class="flow-title">⑥ 样品催产 / 变更流程</div>
+        <div class="flow-desc">当样品生产计划无法满足客户截止日期时，通过系统化流程处理，替代人为随意压缩计划</div>
+      </div>
+    </div>
+    <div class="pill-row">
+      <div class="pill pill-pain"><b>当前痛点</b>生产计划超出客户交期时靠口头压缩计划，没有系统记录，双方认知容易不一致</div>
+      <div class="pill pill-solve"><b>优化目标</b>销售发起催产申请，技术主管审批，批准后自动更新批次计划，全程可追溯</div>
+    </div>
+    <div class="diagram-box">
+<div class="mermaid">
+flowchart TD
+    A([看板超期预警\n或销售发现计划不满足]) --> B[销售在批次上发起催产申请]
+    B --> C[填写催产申请\n客户诉求 期望完成日 紧急程度]
+    C --> D[提交给技术主管]
+    D --> E{"技术主管评估"}
+    E -->|可以压缩| F[填写新计划完成日\n说明实现方式]
+    E -->|无法满足| G[说明无法满足原因\n建议最早可达日期]
+    F --> H[批准催产\n自动更新批次计划日期]
+    H --> I[看板实时刷新\n超期标记消除]
+    I --> J([销售确认新计划\n继续监控])
+    G --> K[拒绝催产\n自动通知销售]
+    K --> L{"销售决策"}
+    L -->|与客户协商| M[更新客户截止日期]
+    L -->|接受原计划| CC[客户书面/邮件确认\n留存确认凭证]
+    CC --> CCK{"客户是否书面确认"}
+    CCK -->|已确认| N([记录客户已知悉])
+    CCK -->|未确认| M
+
+    style A fill:#fee2e2,stroke:#ef4444
+    style J fill:#dcfce7,stroke:#22c55e
+    style N fill:#dcfce7,stroke:#22c55e
+    style K fill:#fef9c3,stroke:#eab308
+</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Q5 样品采购 ===== -->
+<div class="section" id="q5">
+  <div class="flow-card">
+    <div class="flow-header">
+      <div class="flow-icon" style="background:#faf5ff">🛒</div>
+      <div>
+        <div class="flow-title">③ 样品原材料采购管控</div>
+        <div class="flow-desc">样品申请批准后，先判断原材料库存是否充足；需要采购的则线上申请、采购主管审批、跟踪和到货验收，采购状态实时同步至样品看板，到货验收合格后方可进入批次评审</div>
+      </div>
+    </div>
+    <div class="pill-row">
+      <div class="pill pill-pain"><b>当前痛点</b>采购进度完全线下，销售和技术均不知道材料何时到货；采购延误导致生产无法启动，但看板仍显示"计划中"，销售误判交期</div>
+      <div class="pill pill-solve"><b>优化目标</b>采购申请在线审批，采购状态实时写入样品看板；到货前批次锁定不可排产，到货后自动解锁并通知技术负责人排产</div>
+    </div>
+    <div class="diagram-box">
+<div class="mermaid">
+flowchart TD
+    A([样品申请已批准]) --> B{"是否需要采购原材料\n系统对接QAD库存自动判断"}
+    B -->|库存充足\n无需采购| C[批次直接进入可排产\n状态自动解锁]
+    B -->|需要采购| D[技术人员填写物料清单\n发起采购申请]
+    D --> E[提交采购主管审批]
+    E --> F{审批结果}
+    F -->|退回修改| D
+    F -->|批准| G[系统自动生成采购订单\n发送给对应供应商]
+    G --> H[采购员填写计划到货日期\n跟踪采购进度]
+    H --> I{计划到货日\n是否超过生产开始日}
+    I -->|否| J[等待到货\n样品看板显示采购中]
+    I -->|是| K[超期预警\n自动通知采购员和技术主管]
+    K --> L[采购员与供应商协商\n更新到货日期]
+    L --> L2{协商结果}
+    L2 -->|可接受新日期| H
+    L2 -->|无法满足| L3{"销售决策\n跳出循环"}
+    L3 -->|换供应商| D
+    L3 -->|发起催产| CUI([进入催产变更流程])
+    L3 -->|与客户协商延期| L4[更新客户截止日\n重新排产]
+    L4 --> H
+    J --> M{采购员验收}
+    M -->|数量品质合格| N[采购状态更新为已到货\n批次解锁为可排产]
+    M -->|数量不足| M1[记录短缺数量\n要求供应商补货]
+    M1 --> H
+    M -->|品质不合格| M2[记录不合格原因\n发起退货换货]
+    M2 --> M3{处理方式}
+    M3 -->|供应商换货| H
+    M3 -->|更换供应商| D
+    N --> O[自动通知技术负责人\n原材料已到货可安排排产]
+    C --> P([进入流程四 批次拆分评审])
+    O --> P
+
+    style K fill:#fee2e2,stroke:#ef4444
+    style P fill:#dcfce7,stroke:#22c55e
+    style C fill:#dcfce7,stroke:#22c55e
+    style N fill:#f0fdf4,stroke:#22c55e
+    style L fill:#fef9c3,stroke:#eab308
+    style M1 fill:#fef9c3,stroke:#eab308
+    style M2 fill:#fee2e2,stroke:#ef4444
+    style CUI fill:#fee2e2,stroke:#ef4444
+</div>
+    </div>
+  </div>
+
+  <div class="flow-card">
+    <div class="flow-header">
+      <div class="flow-icon" style="background:#faf5ff">📋</div>
+      <div>
+        <div class="flow-title">采购状态与样品看板联动</div>
+        <div class="flow-desc">采购进度实时反映在样品看板，销售无需追问即可判断生产是否可以启动</div>
+      </div>
+    </div>
+    <div class="diagram-box">
+<div class="mermaid">
+flowchart TD
+    A([批次进入采购流程]) --> B[样品看板\n采购状态字段更新]
+    B --> S1[无需采购\n灰色]
+    B --> S2[待提交申请\n橙色]
+    B --> S3[采购中\n蓝色]
+    B --> S4[采购超期预警\n红色]
+    B --> S5[已到货 可排产\n绿色]
+    S1 --> END([批次直接可排产])
+    S5 --> END
+    S4 --> FIX[采购员更新供应商\n重新协商到货日]
+    FIX --> S3
+
+    style S4 fill:#fee2e2,stroke:#ef4444
+    style S5 fill:#dcfce7,stroke:#22c55e
+    style END fill:#dcfce7,stroke:#22c55e
+    style S3 fill:#dbeafe,stroke:#3b82f6
+    style S2 fill:#fef9c3,stroke:#eab308
+</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Q7 样品交付 ===== -->
+<div class="section" id="q7">
+  <div class="flow-card">
+    <div class="flow-header">
+      <div class="flow-icon" style="background:#f0fff4">📋</div>
+      <div>
+        <div class="flow-title">⑦ 样品交付单流程</div>
+        <div class="flow-desc">技术部门记录样品生产完工，更新看板实际数据，实际产量超计划时自动推送预警</div>
+      </div>
+    </div>
+    <div class="pill-row">
+      <div class="pill pill-pain"><b>当前痛点</b>销售无法掌握技术进度须频繁追问；实际产量超出计划时销售不知情</div>
+      <div class="pill pill-solve"><b>优化目标</b>技术填写交付单更新进度，看板自动同步；数量超计划时系统主动通知销售</div>
+    </div>
+    <div class="diagram-box">
+<div class="mermaid">
+flowchart TD
+    A([样品批次生产完成]) --> B[技术打开批次\n创建交付单]
+    B --> C[填写实际完成数量\n实际完成日期\n质检是否通过]
+    C --> D[上传质检报告和产品照片]
+    D --> QC{"质检是否通过"}
+    QC -->|不通过| RW[发起返工/重新生产\n记录不合格原因]
+    RW --> RWD{"返工决策"}
+    RWD -->|可返工| A
+    RWD -->|需重新生产| RWN[重新排产\n通知销售评估交期影响]
+    RWN --> A
+    QC -->|通过| E[提交交付单]
+    E --> F[批次状态更新\n生产中变为已完成]
+    F --> G[样品看板数据同步更新]
+    G --> H{"实际数量\n是否超过计划数量"}
+    H -->|否| I[正常更新\n看板绿色显示]
+    H -->|是| J[自动通知销售\n实际数量超出计划]
+    J --> K[销售与客户确认超量处理]
+    I --> L{"所有批次是否全部完成"}
+    K --> L
+    L -->|否| M([继续监控剩余批次])
+    L -->|是| N([触发送样流程])
+
+    style J fill:#fef9c3,stroke:#eab308
+    style N fill:#dcfce7,stroke:#22c55e
+    style M fill:#dbeafe,stroke:#3b82f6
+    style RW fill:#fee2e2,stroke:#ef4444
+    style RWN fill:#fef9c3,stroke:#eab308
+</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Q8 送样流程 ===== -->
+<div class="section" id="q8">
+  <div class="flow-card">
+    <div class="flow-header">
+      <div class="flow-icon" style="background:#fef3c7">🚚</div>
+      <div>
+        <div class="flow-title">⑧ 样品送样流程</div>
+        <div class="flow-desc">样品生产完成后与客户约定送样时间并确认费用，完成样品交付闭环</div>
+      </div>
+    </div>
+    <div class="pill-row">
+      <div class="pill pill-pain"><b>当前痛点</b>送样时间和费用确认依赖线下沟通，缺少记录，费用争议时难以追溯</div>
+      <div class="pill pill-solve"><b>优化目标</b>系统内创建送样单，记录确认时间和费用，客户反馈也在系统留存</div>
+    </div>
+    <div class="diagram-box">
+<div class="mermaid">
+flowchart TD
+    A([所有批次交付单已提交]) --> B[销售创建送样单\n关联样品申请单]
+    B --> C[联系客户约定送样时间\n记录送样日期和地址]
+    C --> D{"样品费用由谁承担"}
+    D -->|客户承担| E[记录费用金额\n发送费用确认邮件]
+    D -->|免费样品| F[备注免费样品]
+    E --> G{"客户确认费用"}
+    G -->|确认| H[记录确认时间和方式]
+    G -->|有异议| I[协商费用并更新]
+    I --> G
+    F --> H
+    H --> J[按约定时间送样]
+    J --> K{"送样方式"}
+    K -->|快递| L[记录快递单号\n通知客户查收]
+    K -->|上门或自取| M[记录签收信息]
+    L --> N[等待客户评估]
+    M --> N
+    N --> O{"客户评价"}
+    O -->|认可| P([样品通过\n进入合同谈判])
+    O -->|需修改| Q[记录修改意见\n重新发起样品申请]
+    O -->|不认可| R[记录不认可原因\n销售评估下一步]
+    R --> RD{"是否继续跟进"}
+    RD -->|客户愿意再试| Q
+    RD -->|放弃| LOST([商机标记输单\n归档客户反馈])
+
+    style P fill:#dcfce7,stroke:#22c55e
+    style Q fill:#fef9c3,stroke:#eab308
+    style LOST fill:#fee2e2,stroke:#ef4444
+</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== KANBAN ===== -->
+<div class="section" id="kanban">
+  <div class="flow-card">
+    <div class="flow-header">
+      <div class="flow-icon" style="background:#e8f0fe">📊</div>
+      <div>
+        <div class="flow-title">项目样品需求看板设计</div>
+        <div class="flow-desc">贯穿所有样品流程的核心数据视图，各节点更新后实时同步，销售无需追问即可掌握进展</div>
+      </div>
+    </div>
+    <div class="diagram-box" style="margin-bottom:24px">
+<div class="mermaid">
+flowchart TD
+    N1([流程二 样品申请确认\n写入项目 客户 产品 需求量 截止日]) --> KB[样品看板\n实时显示所有批次状态]
+    N2([流程四 批次评审完成\n写入批次编号和计划日期]) --> KB
+    N3([流程五 生产计划制定\n更新计划日期和数量]) --> KB
+    N4([流程六 催产批准\n更新计划完成日期]) --> KB
+    N5([流程七 交付单提交\n更新实际完成数量和日期]) --> KB
+    KB --> W1{"计划完成日\n超过客户截止日"}
+    KB --> W2{"实际产量\n超过计划数量"}
+    W1 -->|是| RED[批次标红\n超期预警推送给销售]
+    W1 -->|否| GRN[批次绿色\n正常状态]
+    W2 -->|是| ALT[自动通知销售\n确认超量处理]
+
+    style KB fill:#dbeafe,stroke:#3b82f6
+    style RED fill:#fee2e2,stroke:#ef4444
+    style GRN fill:#dcfce7,stroke:#22c55e
+    style ALT fill:#fef9c3,stroke:#eab308
+</div>
+    </div>
+
+    <div style="font-size:14px;font-weight:700;color:#1a478a;margin-bottom:12px">看板数据样例（支持按批次展开查询）</div>
+    <div class="kb">
+      <div class="kb-col">
+        <div class="kb-head">已完成批次</div>
+        <div class="kb-card green">
+          <div class="kb-name">A公司 . 产品A · A01</div>
+          <div class="kb-info">需求 500个 截止 04/30<br>计划 04/25 完成 04/24<br>已完成 300/300</div>
+          <span class="tag tag-g">按时完成</span>
+        </div>
+      </div>
+      <div class="kb-col">
+        <div class="kb-head">生产中</div>
+        <div class="kb-card">
+          <div class="kb-name">A公司 . 产品A · A02</div>
+          <div class="kb-info">需求 200个 截止 05/15<br>计划 05/10<br>已完成 0/200</div>
+          <span class="tag tag-b">生产中</span>
+        </div>
+        <div class="kb-card">
+          <div class="kb-name">C公司 . 产品C · C01</div>
+          <div class="kb-info">需求 200个 截止 05/20<br>计划 05/18<br>已完成 0/200</div>
+          <span class="tag tag-b">计划中</span>
+        </div>
+      </div>
+      <div class="kb-col">
+        <div class="kb-head">超期预警</div>
+        <div class="kb-card red">
+          <div class="kb-name">B公司 · 产品B · B01</div>
+          <div class="kb-info">需求 1000个 截止 04/28<br>计划 04/29 超期1天<br>已完成 0/1000</div>
+          <span class="tag tag-r">计划超期1天</span>
+        </div>
+      </div>
+      <div class="kb-col">
+        <div class="kb-head">数量超出</div>
+        <div class="kb-card red">
+          <div class="kb-name">D公司.产品D · D01</div>
+          <div class="kb-info">需求 100个 截止 05/05<br>计划量 100 完成 <b>120</b><br>超出20个</div>
+          <span class="tag tag-r">已通知销售确认</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;font-size:14px;font-weight:700;color:#1a478a;margin-bottom:10px">支持的筛选器</div>
+    <div class="filters">
+      <span class="ftag" style="background:#fff5f5;border-color:#feb2b2;color:#c53030">超期预警</span>
+      <span class="ftag" style="background:#dbeafe;border-color:#93c5fd;color:#1d4ed8">进行中</span>
+      <span class="ftag" style="background:#dcfce7;border-color:#86efac;color:#15803d">已完成</span>
+      <span class="ftag" style="background:#faf5ff;border-color:#d8b4fe;color:#6b21a8">我的项目</span>
+      <span class="ftag" style="background:#fefce8;border-color:#fde047;color:#854d0e">本月截止</span>
+      <span class="ftag" style="background:#f1f5f9;border-color:#cbd5e1;color:#475569">按批次展开</span>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+mermaid.initialize({
+  startOnLoad: false, // 禁用自动加载，手动控制渲染
+  theme: 'base',
+  themeVariables: {
+    primaryColor: '#dbeafe',
+    primaryTextColor: '#1e3a5f',
+    primaryBorderColor: '#3b82f6',
+    lineColor: '#3b82f6',
+    secondaryColor: '#f1f5f9',
+    tertiaryColor: '#f8fafc',
+    edgeLabelBackground: '#ffffff',
+    fontFamily: 'PingFang SC, Microsoft YaHei, Arial, sans-serif',
+    fontSize: '13px',
+    clusterBkg: '#f8fafc',
+    clusterBorder: '#94a3b8',
+  },
+  flowchart: {
+    curve: 'basis',
+    htmlLabels: true,
+    useMaxWidth: true,
+    padding: 20
+  }
+});
+
+// 页面加载时只渲染当前激活页面的图表
+window.addEventListener('DOMContentLoaded', function() {
+  if (window.mermaid) {
+    const activeSection = document.querySelector('.section.active');
+    if (activeSection) {
+      const mermaidElements = activeSection.querySelectorAll('.mermaid');
+      window.mermaid.init(undefined, mermaidElements);
+    }
+  }
+});
+
+function go(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  
+  // 触发Mermaid重新渲染，只渲染当前激活页面的图表
+  setTimeout(() => {
+    if (window.mermaid) {
+      const activeSection = document.querySelector('.section.active');
+      if (activeSection) {
+        const mermaidElements = activeSection.querySelectorAll('.mermaid');
+        window.mermaid.init(undefined, mermaidElements);
+      }
+    }
+  }, 300);
+}
+</script>
+</body>
+</html>
+                   
