@@ -167,7 +167,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Search, Plus } from '@element-plus/icons-vue'
 import { useI18n } from '@/composables/useI18n'
@@ -197,10 +197,13 @@ const searchForm = reactive({
 // 合并
 const traceSpanMap = ref<Map<number, { startRow: number; rowCount: number }>>(new Map())
 
+const processOptionMap = computed(() =>
+  new Map(processOptions.value.map(p => [p.label, p.owner]))
+)
+
 function getPersonInCharge(row: PmProjectTraceStepCycleTimeItem): string {
   if (row.personInCharge) return row.personInCharge
-  const matched = processOptions.value.find(p => p.label === row.processName)
-  return matched?.owner || '-'
+  return processOptionMap.value.get(row.processName) || '-'
 }
 
 // 弹窗

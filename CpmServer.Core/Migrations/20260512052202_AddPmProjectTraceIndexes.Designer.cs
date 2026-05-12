@@ -4,16 +4,19 @@ using CpmServer.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace CpmServer.Core.Migrations
+namespace CpmServer.Migrations
 {
     [DbContext(typeof(CpmDbContext))]
-    partial class CpmDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260512052202_AddPmProjectTraceIndexes")]
+    partial class AddPmProjectTraceIndexes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1232,38 +1235,6 @@ namespace CpmServer.Core.Migrations
                         .IsUnique();
 
                     b.ToTable("SysModuleTypeConfig");
-                });
-
-            modelBuilder.Entity("CpmServer.Models.SysRefreshToken", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsRevoked")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("ReplacedByToken")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Token")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("SysRefreshToken");
                 });
 
             modelBuilder.Entity("CpmServer.Models.SysRole", b =>

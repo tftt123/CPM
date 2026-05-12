@@ -110,3 +110,19 @@ QAD 集成依赖 Progress 公司的商用授权 DLL，**不随仓库分发**（�
 C:\Progress\OpenEdge\bin\Progress.Messages.dll
 C:\Progress\OpenEdge\bin\Progress.o4glrt.dll
 ```
+
+## OpenAPI / Swagger 导出
+
+如需重新生成前端 API 类型，可先导出 OpenAPI 静态 JSON：
+
+```bash
+# 1. 还原 dotnet 工具（首次）
+dotnet tool restore
+
+# 2. 生成 swagger.json
+./scripts/generate-openapi.ps1
+
+# 3. 在前端目录根据 swagger.json 生成类型（例如使用 openapi-typescript）
+cd CpmServer/cpm-web
+npx openapi-typescript ../../openapi/swagger.json -o src/api/schema.d.ts
+```

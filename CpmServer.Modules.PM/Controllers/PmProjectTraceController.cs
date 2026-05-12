@@ -7,7 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace CpmServer.Modules.PM.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
+[ApiVersion("1.0")]
 [Authorize]
 public class PmProjectTraceController : ControllerBase
 {
@@ -37,6 +38,7 @@ public class PmProjectTraceController : ControllerBase
     }
 
     [HttpPost("steps/actual-cycle-time/change-request")]
+    [Authorize(Policy = "CanApproveCycleTime")]
     public async Task<ApiResult<long>> SubmitCycleTimeChangeRequest([FromBody] SubmitCycleTimeChangeRequest dto)
     {
         var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "system";
