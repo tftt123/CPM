@@ -511,7 +511,7 @@ public class QuotationService : IQuotationService
 
         // 启动审批流程（Phase 1：使用 Site+ModuleType 自动匹配模板）
         var instance = await _approvalService.StartApprovalAsync(
-            "Quotation", quotationId, "QUOTATION", quotation.Site, userId);
+            "Quotation", quotationId, "Quotation", quotation.Site, userId);
 
         quotation.Status = 1; // 待评审
         quotation.CurrentStepId = instance.CurrentStepId;

@@ -39,6 +39,7 @@
         <el-table-column prop="processName" :label="t('mfg.process')" width="160" />
         <el-table-column prop="subCategoryName" :label="t('mfg.subCategory')" width="160" />
         <el-table-column prop="equipmentName" :label="t('mfg.equipment')" min-width="160" />
+        <el-table-column prop="owner" :label="t('mfg.owner')" width="120" />
         <el-table-column :label="t('mfg.hourlyRate')" width="120" align="right">
           <template #default="{ row }">
             <span v-if="row.costRate">{{ row.costRate }}</span>
@@ -128,6 +129,10 @@
             />
           </el-form-item>
 
+          <el-form-item :label="t('mfg.owner')">
+            <el-input v-model="form.owner" :placeholder="t('common.pleaseInput')" />
+          </el-form-item>
+
           <el-form-item :label="t('mfg.description')">
             <el-input v-model="form.description" type="textarea" :rows="2" :placeholder="t('common.pleaseInput')" />
           </el-form-item>
@@ -178,6 +183,7 @@ const defaultForm = () => ({
   processIdOrName: undefined as number | string | undefined,
   subCategoryIdOrName: undefined as number | string | undefined,
   equipmentName: '' as string,
+  owner: '' as string,
   description: '' as string,
   costRate: undefined as number | undefined,
   isActive: true as boolean
@@ -282,6 +288,7 @@ const handleEdit = (row: MfgProcessRecord) => {
     processIdOrName: row.processId,
     subCategoryIdOrName: row.subCategoryId,
     equipmentName: row.equipmentName,
+    owner: row.owner || '',
     description: row.description || '',
     costRate: row.costRate,
     isActive: row.isActive
@@ -344,6 +351,7 @@ const handleSubmit = async () => {
       subCategoryId: finalSubCategoryId,
       equipmentCode: undefined as string | undefined,
       equipmentName: form.value.equipmentName.trim(),
+      owner: form.value.owner || undefined,
       description: form.value.description || undefined,
       costRate: form.value.costRate
     }

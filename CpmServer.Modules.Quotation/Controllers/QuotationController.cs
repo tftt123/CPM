@@ -178,7 +178,7 @@ public class QuotationController : ControllerBase
     public async Task<ApiResult<List<ApprovalForecastStepDto>>> GetApprovalForecast(long id)
     {
         var userId = GetCurrentUserId();
-        var result = await _approvalService.ForecastApprovalAsync("QUOTATION", "Quotation", id, userId);
+        var result = await _approvalService.ForecastApprovalAsync("Quotation", "Quotation", id, userId);
         return ApiResult<List<ApprovalForecastStepDto>>.Success(result);
     }
 

@@ -79,6 +79,10 @@ public class ApprovalTaskDto
     public long Id { get; set; }
     public long InstanceId { get; set; }
     public long StepId { get; set; }
+    public string? BusinessType { get; set; }
+    public long BusinessId { get; set; }
+    public string? StepName { get; set; }
+    public string? TemplateName { get; set; }
     public long? AssigneeId { get; set; }
     public string? AssigneeName { get; set; }
     public string? AssigneeRole { get; set; }

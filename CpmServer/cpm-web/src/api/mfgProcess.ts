@@ -28,6 +28,7 @@ export interface MfgEquipmentCreate {
   model?: string
   spec?: string
   manufacturer?: string
+  owner?: string
   costRate?: number
 }
 
@@ -42,6 +43,7 @@ export interface MfgProcessRecord {
   model?: string
   spec?: string
   manufacturer?: string
+  owner?: string
   costRate?: number
   isActive: boolean
   processId: number
@@ -51,6 +53,7 @@ export interface MfgProcessRecord {
 export interface MfgCascadeOption {
   id: number
   label: string
+  owner?: string
 }
 
 export const mfgProcessApi = {

@@ -522,27 +522,26 @@ const addProduct = () => {
 }
 
 const addProcessRow = (index: number) => {
-  let inheritedProductId: number | null = null
-  let inheritedProductName = ''
-  let inheritedQty = 1
-  for (let i = index; i >= 0; i--) {
-    const item = form.value.items[i]
-    if (item.productId != null && !item.isProcessRow) {
-      inheritedProductId = item.productId
-      inheritedProductName = item.productName || ''
-      inheritedQty = item.qty || 1
-      break
-    }
+  let productIndex = index
+  while (productIndex >= 0 && form.value.items[productIndex].isProcessRow) {
+    productIndex--
   }
-  if (inheritedProductId == null) {
+  if (productIndex < 0 || form.value.items[productIndex].productId == null) {
     ElMessage.warning(t('quotation.productRequired'))
     return
   }
-  form.value.items.splice(index + 1, 0, {
+  const productRow = form.value.items[productIndex]
+
+  let insertIndex = productIndex + 1
+  while (insertIndex < form.value.items.length && form.value.items[insertIndex].isProcessRow) {
+    insertIndex++
+  }
+
+  form.value.items.splice(insertIndex, 0, {
     isProcessRow: true,
-    productId: inheritedProductId,
-    productName: inheritedProductName,
-    qty: inheritedQty,
+    productId: productRow.productId,
+    productName: productRow.productName || '',
+    qty: productRow.qty || 1,
     lineAmount: 0,
     processId: null, processType: '', subCategoryId: null, equipmentType: '',
     equipmentId: null, equipment: '', cycleTime: 0, hourlyRate: 0, cost: 0,
@@ -593,7 +592,7 @@ const onQtyChange = (index: number) => {
 
 const calcCost = (index: number) => {
   const item = form.value.items[index]
-  item.cost = (item.cycleTime || 0) * (item.hourlyRate || 0)
+  item.cost = (item.cycleTime || 0) / 3600 * (item.hourlyRate || 0)
   calcAmount(index)
 }
 

@@ -87,6 +87,32 @@ public class ApprovalController : ControllerBase
 
     #endregion
 
+    #region 审批操作（通用）
+
+    /// <summary>
+    /// 通过审批实例
+    /// </summary>
+    [HttpPost("instances/{instanceId}/approve")]
+    public async Task<ApiResult> Approve(long instanceId, [FromBody] GenericApprovalActionDto dto)
+    {
+        var userId = GetCurrentUserId();
+        await _approvalService.ApproveAsync(instanceId, userId, dto.Comment ?? string.Empty);
+        return ApiResult.Success();
+    }
+
+    /// <summary>
+    /// 驳回审批实例
+    /// </summary>
+    [HttpPost("instances/{instanceId}/reject")]
+    public async Task<ApiResult> Reject(long instanceId, [FromBody] GenericApprovalActionDto dto)
+    {
+        var userId = GetCurrentUserId();
+        await _approvalService.RejectAsync(instanceId, userId, dto.Comment ?? string.Empty);
+        return ApiResult.Success();
+    }
+
+    #endregion
+
     #region 审批预测（Forecast）
 
     /// <summary>

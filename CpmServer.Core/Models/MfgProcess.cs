@@ -21,6 +21,8 @@ public class MfgProcess
 
     public string? Site { get; set; }
 
+    public string? Owner { get; set; }
+
     public decimal? StdTimeMin { get; set; }
 
     public decimal? CostRate { get; set; }

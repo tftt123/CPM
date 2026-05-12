@@ -71,18 +71,27 @@ public class ApprovalService : IApprovalService
         return entity == null ? null : MapToDto(entity);
     }
 
+    private string GenerateTemplateCode(string moduleType)
+    {
+        var timestamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
+        var random = new Random();
+        var suffix = random.Next(1000, 9999).ToString("X");
+        return $"{moduleType}-{timestamp}-{suffix}";
+    }
+
     public async Task<long> CreateTemplateAsync(ApprovalTemplateDto dto)
     {
         var entity = new SysApprovalTemplate
         {
-            TemplateCode = dto.TemplateCode,
+            TemplateCode = GenerateTemplateCode(dto.ModuleType),
             TemplateName = dto.TemplateName,
             ModuleType = dto.ModuleType,
             Description = dto.Description,
             IsDefault = dto.IsDefault,
             IsActive = dto.IsActive,
             Site = !string.IsNullOrWhiteSpace(dto.Site) ? dto.Site : _currentUser.Site,
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.Now,
+            Steps = new List<SysApprovalStep>()
         };
 
         _db.ApprovalTemplates.Add(entity);
@@ -91,7 +100,7 @@ public class ApprovalService : IApprovalService
         {
             var stepEntity = new SysApprovalStep
             {
-                TemplateId = entity.Id,
+                Template = entity,
                 StepName = step.StepName,
                 StepOrder = step.StepOrder,
                 StepType = step.StepType,
@@ -103,15 +112,16 @@ public class ApprovalService : IApprovalService
                 NotifyEmailTemplate = step.NotifyEmailTemplate,
                 RejectBehavior = step.RejectBehavior,
                 RejectTargetStepId = step.RejectTargetStepId,
-                TimeoutHours = step.TimeoutHours
+                TimeoutHours = step.TimeoutHours,
+                Rules = new List<SysApprovalRule>(),
+                Conditions = new List<SysApprovalCondition>()
             };
-            _db.ApprovalSteps.Add(stepEntity);
+            entity.Steps.Add(stepEntity);
 
             foreach (var rule in step.Rules)
             {
-                _db.ApprovalRules.Add(new SysApprovalRule
+                stepEntity.Rules.Add(new SysApprovalRule
                 {
-                    StepId = stepEntity.Id,
                     RuleType = rule.RuleType,
                     RuleValue = rule.RuleValue,
                     Fallback = rule.Fallback,
@@ -122,9 +132,8 @@ public class ApprovalService : IApprovalService
 
             foreach (var cond in step.Conditions)
             {
-                _db.ApprovalConditions.Add(new SysApprovalCondition
+                stepEntity.Conditions.Add(new SysApprovalCondition
                 {
-                    StepId = stepEntity.Id,
                     ConditionName = cond.ConditionName,
                     Expression = cond.Expression,
                     TargetStepId = cond.TargetStepId,
@@ -147,7 +156,6 @@ public class ApprovalService : IApprovalService
 
         if (entity == null) return;
 
-        entity.TemplateCode = dto.TemplateCode;
         entity.TemplateName = dto.TemplateName;
         entity.ModuleType = dto.ModuleType;
         entity.Description = dto.Description;
@@ -528,6 +536,7 @@ public class ApprovalService : IApprovalService
         var tasks = await _db.ApprovalInstanceTasks
             .Include(t => t.Instance)
             .ThenInclude(i => i!.Template)
+            .ThenInclude(t => t!.Steps)
             .Include(t => t.Assignee)
             .Where(t => t.Status == 0 &&
                 (t.AssigneeId == userId || (t.AssigneeRole != null && userRoleNames.Contains(t.AssigneeRole))))
@@ -1603,6 +1612,10 @@ public class ApprovalService : IApprovalService
             Id = t.Id,
             InstanceId = t.InstanceId,
             StepId = t.StepId,
+            BusinessType = t.Instance?.BusinessType,
+            BusinessId = t.Instance?.BusinessId ?? 0,
+            StepName = t.Instance?.Template?.Steps.FirstOrDefault(s => s.Id == t.StepId)?.StepName,
+            TemplateName = t.Instance?.Template?.TemplateName,
             AssigneeId = t.AssigneeId,
             AssigneeName = t.Assignee?.RealName ?? t.Assignee?.Username,
             AssigneeRole = t.AssigneeRole,
