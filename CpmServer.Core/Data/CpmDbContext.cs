@@ -120,5 +120,12 @@ public class CpmDbContext : DbContext
 
         modelBuilder.Entity<MfgEquipment>()
             .HasIndex(e => e.Site);
+
+        // PM - Product Trace indexes
+        modelBuilder.Entity<PmProjectTrace>()
+            .HasIndex(e => new { e.CustomerName, e.ProductCode, e.Status, e.CreatedAt });
+
+        modelBuilder.Entity<PmStepCycleTimeChangeRequest>()
+            .HasIndex(e => new { e.StepId, e.ApprovalStatus });
     }
 }

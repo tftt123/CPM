@@ -4,8 +4,8 @@
       <h2>{{ t('nav.approvalCenter') }}</h2>
     </div>
 
-    <el-table :data="taskList" v-loading="loading" stripe>
-      <el-table-column type="index" label="#" width="50" align="center" />
+    <el-table :data="pagedTaskList" v-loading="loading" stripe>
+      <el-table-column type="index" :index="(idx: number) => idx + 1 + (currentPage - 1) * pageSize" label="#" width="50" align="center" />
       <el-table-column :label="t('approval.businessType')" width="120">
         <template #default="{ row }">
           <el-tag size="small">{{ row.businessType }}</el-tag>
@@ -43,6 +43,15 @@
       </el-table-column>
     </el-table>
 
+    <el-pagination
+      v-if="taskList.length > pageSize"
+      v-model:current-page="currentPage"
+      v-model:page-size="pageSize"
+      :total="taskList.length"
+      layout="prev, pager, next, jumper, total"
+      class="pagination"
+    />
+
     <!-- 审批弹窗 -->
     <el-dialog
       :title="dialogTitle"
@@ -78,11 +87,18 @@ const { t } = useI18n()
 
 const loading = ref(false)
 const taskList = ref<ApprovalTask[]>([])
+const currentPage = ref(1)
+const pageSize = ref(10)
 const dialogVisible = ref(false)
 const submitting = ref(false)
 const action = ref('APPROVE')
 const currentTask = ref<ApprovalTask | null>(null)
 const form = ref({ comment: '' })
+
+const pagedTaskList = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return taskList.value.slice(start, start + pageSize.value)
+})
 
 const dialogTitle = computed(() => {
   return action.value === 'APPROVE' ? t('common.approve') : t('common.reject')
@@ -98,6 +114,7 @@ async function loadData() {
   try {
     const res = await getMyPendingTasks()
     taskList.value = res.data
+    currentPage.value = 1
   } catch (e) {
     console.error(e)
     ElMessage.error(t('common.failed'))
@@ -153,5 +170,9 @@ loadData()
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+}
+.pagination {
+  margin-top: 16px;
+  justify-content: flex-end;
 }
 </style>

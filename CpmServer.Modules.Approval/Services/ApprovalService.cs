@@ -73,9 +73,8 @@ public class ApprovalService : IApprovalService
 
     private string GenerateTemplateCode(string moduleType)
     {
-        var timestamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
-        var random = new Random();
-        var suffix = random.Next(1000, 9999).ToString("X");
+        var timestamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss");
+        var suffix = Random.Shared.Next(1000, 9999).ToString("X");
         return $"{moduleType}-{timestamp}-{suffix}";
     }
 
@@ -90,7 +89,7 @@ public class ApprovalService : IApprovalService
             IsDefault = dto.IsDefault,
             IsActive = dto.IsActive,
             Site = !string.IsNullOrWhiteSpace(dto.Site) ? dto.Site : _currentUser.Site,
-            CreatedAt = DateTime.Now,
+            CreatedAt = DateTime.UtcNow,
             Steps = new List<SysApprovalStep>()
         };
 
@@ -424,7 +423,7 @@ public class ApprovalService : IApprovalService
             Status = 0,
             SubmitterId = submitterId,
             Variables = System.Text.Json.JsonSerializer.Serialize(variables),
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.UtcNow
         };
 
         _db.ApprovalInstances.Add(instance);
@@ -612,7 +611,7 @@ public class ApprovalService : IApprovalService
             Action = "APPROVE",
             Comment = comment,
             Site = instance.Site,
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.UtcNow
         });
 
         // 更新当前用户的待办任务为已处理
@@ -624,7 +623,7 @@ public class ApprovalService : IApprovalService
             myTask.Status = 1;
             myTask.Action = "APPROVE";
             myTask.Comment = comment;
-            myTask.CompletedAt = DateTime.Now;
+            myTask.CompletedAt = DateTime.UtcNow;
         }
 
         // 检查是否还有其他未处理的待办（会签场景）
@@ -649,7 +648,7 @@ public class ApprovalService : IApprovalService
                 task.Status = 1;
                 task.Action = "SKIP";
                 task.Comment = "或签模式，他人已审批";
-                task.CompletedAt = DateTime.Now;
+                task.CompletedAt = DateTime.UtcNow;
             }
         }
 
@@ -679,7 +678,7 @@ public class ApprovalService : IApprovalService
                 // 流程完成（没有下一步了）
                 instance.Status = 1;
                 instance.CurrentStepId = null;
-                instance.CompletedAt = DateTime.Now;
+                instance.CompletedAt = DateTime.UtcNow;
             }
         }
 
@@ -754,7 +753,7 @@ public class ApprovalService : IApprovalService
             Action = "REJECT",
             Comment = comment,
             Site = instance.Site,
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.UtcNow
         });
 
         // 更新任务状态
@@ -763,7 +762,7 @@ public class ApprovalService : IApprovalService
             task.Status = 1;
             task.Action = "REJECT";
             task.Comment = comment;
-            task.CompletedAt = DateTime.Now;
+            task.CompletedAt = DateTime.UtcNow;
         }
 
         // 驳回行为处理
@@ -837,7 +836,7 @@ public class ApprovalService : IApprovalService
             // REJECT_AND_CLOSE 或其他未匹配行为：关闭流程
             instance.Status = 2;
             instance.CurrentStepId = null;
-            instance.CompletedAt = DateTime.Now;
+            instance.CompletedAt = DateTime.UtcNow;
 
             await _db.SaveChangesAsync();
 
@@ -895,12 +894,12 @@ public class ApprovalService : IApprovalService
             fromTask.Status = 2; // 转交
             fromTask.Action = "TRANSFER";
             fromTask.Comment = comment;
-            fromTask.CompletedAt = DateTime.Now;
+            fromTask.CompletedAt = DateTime.UtcNow;
         }
 
         // 创建新待办任务给被转交人
         var dueDate = currentStep.TimeoutHours.HasValue
-            ? DateTime.Now.AddHours(currentStep.TimeoutHours.Value)
+            ? DateTime.UtcNow.AddHours(currentStep.TimeoutHours.Value)
             : (DateTime?)null;
 
         _db.ApprovalInstanceTasks.Add(new SysApprovalInstanceTask
@@ -910,7 +909,7 @@ public class ApprovalService : IApprovalService
             AssigneeId = toUserId,
             Status = 0,
             DueDate = dueDate,
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.UtcNow
         });
 
         // 记录转交
@@ -924,7 +923,7 @@ public class ApprovalService : IApprovalService
             Action = "TRANSFER",
             Comment = $"转交给:{toUser?.RealName ?? toUser?.Username}: {comment}",
             Site = instance.Site,
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.UtcNow
         });
 
         await _db.SaveChangesAsync();
@@ -1015,7 +1014,7 @@ public class ApprovalService : IApprovalService
     /// </summary>
     public async Task ScanTimeoutTasksAsync()
     {
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         var timeoutTasks = await _db.ApprovalInstanceTasks
             .Include(t => t.Instance)
             .ThenInclude(i => i!.Template)
@@ -1214,7 +1213,7 @@ public class ApprovalService : IApprovalService
             _logger.LogInformation("结束节点: InstanceId={InstanceId}, Step={StepName}", instance.Id, step.StepName);
             instance.Status = 1;
             instance.CurrentStepId = null;
-            instance.CompletedAt = DateTime.Now;
+            instance.CompletedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync();
             await NotifyCompleteAsync(instance, instance.BusinessType, instance.BusinessId, true);
             return;
@@ -1236,7 +1235,7 @@ public class ApprovalService : IApprovalService
         }
 
         var dueDate = step.TimeoutHours.HasValue
-            ? DateTime.Now.AddHours(step.TimeoutHours.Value)
+            ? DateTime.UtcNow.AddHours(step.TimeoutHours.Value)
             : (DateTime?)null;
 
         foreach (var approver in approvers)
@@ -1249,7 +1248,7 @@ public class ApprovalService : IApprovalService
                 AssigneeRole = approver.RoleCode,
                 Status = 0,
                 DueDate = dueDate,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.UtcNow
             };
             _db.ApprovalInstanceTasks.Add(task);
         }

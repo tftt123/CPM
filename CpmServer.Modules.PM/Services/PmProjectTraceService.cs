@@ -78,6 +78,14 @@ public class PmProjectTraceService : IPmProjectTraceService
                 (s.ProcessName != null && s.ProcessName.Contains(keyword)));
         }
 
+        var stepIds = await query.Select(s => s.Id).ToListAsync();
+
+        var pendingCounts = await _db.StepCycleTimeChangeRequests
+            .Where(r => stepIds.Contains(r.StepId) && r.ApprovalStatus == 0)
+            .GroupBy(r => r.StepId)
+            .Select(g => new { StepId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.StepId, x => x.Count);
+
         var steps = await query
             .OrderBy(s => s.ProjectTraceId)
             .ThenBy(s => s.StepOrder)
@@ -89,8 +97,6 @@ public class PmProjectTraceService : IPmProjectTraceService
                 .Where(a => a.Status == 0)
                 .OrderByDescending(a => a.RecordDate)
                 .FirstOrDefault();
-            var pendingCount = _db.StepCycleTimeChangeRequests
-                .Count(r => r.StepId == s.Id && r.ApprovalStatus == 0);
             return new PmProjectTraceStepCycleTimeListItemDto
             {
                 TraceId = s.ProjectTraceId,
@@ -104,7 +110,7 @@ public class PmProjectTraceService : IPmProjectTraceService
                 CycleTime = s.CycleTime,
                 LatestActualCycleTime = latest?.ActualCycleTime,
                 LatestRecordDate = latest?.RecordDate,
-                PendingRequestCount = pendingCount
+                PendingRequestCount = pendingCounts.GetValueOrDefault(s.Id)
             };
         }).ToList();
     }
@@ -116,6 +122,9 @@ public class PmProjectTraceService : IPmProjectTraceService
         string submitterName,
         List<PmStepCycleTimeChangeDetailDto> changes)
     {
+        if (!long.TryParse(submitterId, out var submitterIdLong))
+            throw new BusinessException("Invalid submitter ID");
+
         var step = await _db.ProjectTraceSteps
             .Include(s => s.ActualCycleTimes)
             .FirstOrDefaultAsync(s => s.Id == stepId);
@@ -128,7 +137,7 @@ public class PmProjectTraceService : IPmProjectTraceService
             TraceId = traceId,
             SubmitterId = submitterId,
             SubmitterName = submitterName,
-            SubmittedAt = DateTime.Now,
+            SubmittedAt = DateTime.UtcNow,
             ApprovalStatus = 0,
             Details = changes.Select(c => new PmStepCycleTimeChangeDetail
             {
@@ -137,35 +146,39 @@ public class PmProjectTraceService : IPmProjectTraceService
                 RecordDate = c.RecordDate,
                 ActualCycleTime = c.ActualCycleTime,
                 Remarks = c.Remarks,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.UtcNow
             }).ToList(),
-            CreatedAt = DateTime.Now,
-            UpdatedAt = DateTime.Now
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
 
-        _db.StepCycleTimeChangeRequests.Add(request);
-        await _db.SaveChangesAsync();
-
-        // 启动审批流程
+        await using var transaction = await _db.Database.BeginTransactionAsync();
         try
         {
-            var submitter = await _db.Users.FindAsync(long.Parse(submitterId));
+            _db.StepCycleTimeChangeRequests.Add(request);
+            await _db.SaveChangesAsync();
+
+            var submitter = await _db.Users.FindAsync(submitterIdLong);
             var site = submitter?.Site;
 
             var instance = await _approvalService.StartApprovalAsync(
-                "PmStepCycleTime", request.Id, "PmStepCycleTime", site, long.Parse(submitterId));
+                "PmStepCycleTime", request.Id, "PmStepCycleTime", site, submitterIdLong);
             request.ApprovalInstanceId = instance.Id;
             await _db.SaveChangesAsync();
+
+            await transaction.CommitAsync();
+            return request.Id;
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("未找到匹配的审批模板"))
         {
-            // 删除已保存的变更申请，确保不留下孤儿记录
-            _db.StepCycleTimeChangeRequests.Remove(request);
-            await _db.SaveChangesAsync();
+            await transaction.RollbackAsync();
             throw new InvalidOperationException("未找到匹配的审批模板，请检查 PmStepCycleTime 模块的审批模板配置是否正确。");
         }
-
-        return request.Id;
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
     public async Task ExecuteApprovedChangeRequestAsync(long requestId)
@@ -192,7 +205,7 @@ public class PmProjectTraceService : IPmProjectTraceService
                         foreach (var r in activeRecords)
                         {
                             r.Status = 1;
-                            r.UpdatedAt = DateTime.Now;
+                            r.UpdatedAt = DateTime.UtcNow;
                         }
                         // 插入新记录，状态=有效
                         step.ActualCycleTimes.Add(new PmProjectTraceStepActualCycleTime
@@ -202,8 +215,8 @@ public class PmProjectTraceService : IPmProjectTraceService
                             ActualCycleTime = detail.ActualCycleTime,
                             Remarks = detail.Remarks,
                             Status = 0,
-                            CreatedAt = DateTime.Now,
-                            UpdatedAt = DateTime.Now
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
                         });
                     }
                     break;
@@ -216,14 +229,14 @@ public class PmProjectTraceService : IPmProjectTraceService
 
                         // 原记录变过期
                         oldRecord.Status = 1;
-                        oldRecord.UpdatedAt = DateTime.Now;
+                        oldRecord.UpdatedAt = DateTime.UtcNow;
 
                         // 将所有有效记录标记为过期（确保只有一个有效）
                         var activeRecords = step.ActualCycleTimes.Where(a => a.Status == 0 && a.Id != oldRecord.Id).ToList();
                         foreach (var r in activeRecords)
                         {
                             r.Status = 1;
-                            r.UpdatedAt = DateTime.Now;
+                            r.UpdatedAt = DateTime.UtcNow;
                         }
 
                         // 插入修改后的记录，状态=有效
@@ -234,8 +247,8 @@ public class PmProjectTraceService : IPmProjectTraceService
                             ActualCycleTime = detail.ActualCycleTime,
                             Remarks = detail.Remarks,
                             Status = 0,
-                            CreatedAt = DateTime.Now,
-                            UpdatedAt = DateTime.Now
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
                         });
                     }
                     break;
@@ -247,14 +260,14 @@ public class PmProjectTraceService : IPmProjectTraceService
                         if (record == null) continue;
 
                         record.Status = 2; // 作废
-                        record.UpdatedAt = DateTime.Now;
+                        record.UpdatedAt = DateTime.UtcNow;
                     }
                     break;
             }
         }
 
         request.ApprovalStatus = 1;
-        request.UpdatedAt = DateTime.Now;
+        request.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
     }
 
@@ -267,7 +280,7 @@ public class PmProjectTraceService : IPmProjectTraceService
 
         request.ApprovalStatus = 2;
         request.Remarks = remarks;
-        request.UpdatedAt = DateTime.Now;
+        request.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
     }
 
@@ -343,8 +356,8 @@ public class PmProjectTraceService : IPmProjectTraceService
             ProjectStartDate = dto.ProjectStartDate,
             DisplayWeeks = dto.DisplayWeeks,
             Status = dto.Status,
-            CreatedAt = DateTime.Now,
-            UpdatedAt = DateTime.Now,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
             Steps = dto.Steps.Select((s, i) => new PmProjectTraceStep
             {
                 StepOrder = i + 1,
@@ -369,8 +382,8 @@ public class PmProjectTraceService : IPmProjectTraceService
                     RecordDate = a.RecordDate,
                     ActualCycleTime = a.ActualCycleTime,
                     Remarks = a.Remarks,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 }).ToList()
             }).ToList()
         };
@@ -396,7 +409,7 @@ public class PmProjectTraceService : IPmProjectTraceService
         trace.ProjectStartDate = dto.ProjectStartDate;
         trace.DisplayWeeks = dto.DisplayWeeks;
         trace.Status = dto.Status;
-        trace.UpdatedAt = DateTime.Now;
+        trace.UpdatedAt = DateTime.UtcNow;
 
         var existingSteps = trace.Steps.ToDictionary(s => s.Id);
         var dtoStepIds = dto.Steps.Where(s => s.Id.HasValue).Select(s => s.Id!.Value).ToHashSet();
