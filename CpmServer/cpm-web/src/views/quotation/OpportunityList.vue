@@ -46,7 +46,7 @@
             :prefix-icon="Search"
           />
         </el-form-item>
-        <el-form-item :label="t('common.stage')">
+        <el-form-item :label="t('opportunity.stage')">
           <el-select v-model="query.stage" :placeholder="t('common.all')" clearable style="width: 140px">
             <el-option :label="t('common.new')" value="NEW" />
             <el-option :label="t('common.qualified')" value="QUALIFIED" />
