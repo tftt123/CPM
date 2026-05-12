@@ -46,6 +46,9 @@ public class CpmDbContext : DbContext
     // File Upload
     public DbSet<SysFileRecord> FileRecords => Set<SysFileRecord>();
 
+    // Auth
+    public DbSet<SysRefreshToken> RefreshTokens => Set<SysRefreshToken>();
+
     // PM - Product Trace
     public DbSet<PmProjectTrace> ProjectTraces => Set<PmProjectTrace>();
     public DbSet<PmProjectTraceStep> ProjectTraceSteps => Set<PmProjectTraceStep>();

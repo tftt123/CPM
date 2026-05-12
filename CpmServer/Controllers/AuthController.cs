@@ -88,12 +88,15 @@ public class AuthController : ControllerBase
         if (!roleCodes.Any())
             roleCodes.Add("USER");
 
-        // 4. 生成 Token
+        // 4. 生成 Token 与 RefreshToken
         var token = _jwt.GenerateToken(user.Id, user.Username, roleCodes, user.Site ?? "NT01");
+        var refreshToken = await _authService.GenerateRefreshTokenAsync(user.Id);
 
         return ApiResult<LoginResponse>.Success(new LoginResponse
         {
             Token = token,
+            AccessToken = token,
+            RefreshToken = refreshToken,
             Username = user.Username,
             RealName = user.RealName,
             Site = user.Site,
@@ -136,5 +139,13 @@ public class AuthController : ControllerBase
             .OrderBy(s => s)
             .ToListAsync();
         return ApiResult<List<string>>.Success(sites);
+    }
+
+    [HttpPost("refresh")]
+    [AllowAnonymous]
+    public async Task<ApiResult<RefreshTokenDto>> RefreshToken([FromBody] RefreshTokenDto request)
+    {
+        var result = await _authService.RefreshTokenAsync(request.RefreshToken);
+        return ApiResult<RefreshTokenDto>.Success(result);
     }
 }

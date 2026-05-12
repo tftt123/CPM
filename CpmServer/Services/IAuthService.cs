@@ -7,4 +7,6 @@ public interface IAuthService
     Task<LoginResponse> LoginAsync(LoginRequest request);
     Task<List<string>> GetUserSitesAsync(long userId);
     Task<LoginResponse> SwitchSiteAsync(long userId, string site);
+    Task<RefreshTokenDto> RefreshTokenAsync(string refreshToken);
+    Task<string> GenerateRefreshTokenAsync(long userId);
 }

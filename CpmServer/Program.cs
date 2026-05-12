@@ -16,12 +16,41 @@ using Microsoft.IdentityModel.Tokens;
 using System.Reflection;
 using System.Security.Claims;
 using System.Text;
+using CpmServer.Authorization;
+using CpmServer.Core.Repositories;
+using CpmServer.Middleware;
+using Microsoft.AspNetCore.Mvc;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .WriteTo.Console(new Serilog.Formatting.Json.JsonFormatter())
+    .WriteTo.File("logs/cpm-.log", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+    });
+
+// 基于策略的授权
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(Policies.CanApproveQuotation, policy => policy.RequireRole("ADMIN", "APPROVER_QUOTATION"));
+    options.AddPolicy(Policies.CanApproveCycleTime, policy => policy.RequireRole("ADMIN", "APPROVER_CYCLETIME"));
+});
+
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddHealthChecks().AddDbContextCheck<CpmDbContext>();
 builder.Services.AddSwaggerGen(options =>
 {
     // 解决相同类名在不同命名空间下的冲突（模块拆分后可能出现）
@@ -110,6 +139,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 
+// Repository + UnitOfWork
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
 // 注册业务服务
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -119,6 +152,19 @@ builder.Services.AddScoped<IProductService, ProductService>();
 
 // P3 - 报价流程服务
 builder.Services.AddScoped<IEmailService, EmailService>();
+
+// Approval 模块 - 拆分后的专用服务
+builder.Services.AddScoped<ApprovalTemplateService>();
+builder.Services.AddScoped<ApprovalInstanceService>();
+builder.Services.AddScoped<ApprovalTaskService>();
+builder.Services.AddScoped<ApprovalActionService>();
+builder.Services.AddScoped<ApprovalNotificationService>();
+
+// Approval 模块 - 接口注册（facade 保持向后兼容）
+builder.Services.AddScoped<IApprovalTemplateService, ApprovalTemplateService>();
+builder.Services.AddScoped<IApprovalInstanceService, ApprovalInstanceService>();
+builder.Services.AddScoped<IApprovalTaskService, ApprovalTaskService>();
+builder.Services.AddScoped<IApprovalActionService, ApprovalActionService>();
 builder.Services.AddScoped<IApprovalService, ApprovalService>();
 builder.Services.AddScoped<IModuleTypeConfigService, ModuleTypeConfigService>();
 builder.Services.AddScoped<IQuotationService, QuotationService>();
@@ -152,34 +198,8 @@ builder.Services.AddHangfireServer();
 
 var app = builder.Build();
 
-// 全局异常处理中间件（必须放在管道最前面才能捕获后续所有中间件的异常）
-app.Use(async (context, next) =>
-{
-    try
-    {
-        await next();
-    }
-    catch (BusinessException ex)
-    {
-        context.Response.StatusCode = 400;
-        context.Response.ContentType = "application/json";
-        await context.Response.WriteAsJsonAsync(ApiResult.Error(ex.Message));
-    }
-    catch (UnauthorizedAccessException ex)
-    {
-        context.Response.StatusCode = 401;
-        context.Response.ContentType = "application/json";
-        await context.Response.WriteAsJsonAsync(ApiResult.Error(ex.Message));
-    }
-    catch (Exception ex)
-    {
-        var logger = context.RequestServices.GetService<ILogger<Program>>();
-        logger?.LogError(ex, "未处理异常: {Path}", context.Request.Path);
-        context.Response.StatusCode = 500;
-        context.Response.ContentType = "application/json";
-        await context.Response.WriteAsJsonAsync(ApiResult.Error($"服务器错误: {ex.Message}"));
-    }
-});
+app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
 // Hangfire 仪表盘（开发环境开放，生产环境建议加认证）
 app.UseHangfireDashboard("/hangfire", new DashboardOptions
@@ -205,6 +225,7 @@ app.UseStaticFiles();
 app.UseCors("AllowVueApp");
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapHealthChecks("/health");
 app.MapControllers();
 
 // 注册 Hangfire 定时任务：每 5 分钟扫描一次超时审批任务

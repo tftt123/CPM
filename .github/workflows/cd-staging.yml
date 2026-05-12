@@ -1,0 +1,50 @@
+name: CD Staging
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to ${{ inputs.environment }}
+    environment:
+      name: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Publish
+        run: dotnet publish CpmServer/CpmServer.csproj --configuration Release --output ./publish
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: CpmServer/cpm-web/package-lock.json
+
+      - name: Build Frontend
+        working-directory: CpmServer/cpm-web
+        run: |
+          npm ci
+          npm run build
+
+      # Add your deployment steps here (e.g., Azure Web App, IIS, Docker, etc.)
+      - name: Deploy placeholder
+        run: echo "Add deployment steps for ${{ inputs.environment }}"

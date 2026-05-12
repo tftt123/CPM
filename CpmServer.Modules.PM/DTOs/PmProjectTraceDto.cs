@@ -66,10 +66,16 @@ public class PmProjectTraceCreateRequest
 {
     public long? QuotationId { get; set; }
     public long CustomerId { get; set; }
+    [Required]
+    [StringLength(200)]
     public string CustomerName { get; set; } = string.Empty;
     public long? ProductId { get; set; }
+    [Required]
+    [StringLength(200)]
     public string ProductCode { get; set; } = string.Empty;
+    [StringLength(500)]
     public string? ProductName { get; set; }
+    [Range(1, int.MaxValue)]
     public int? PlannedQty { get; set; }
     public DateTime? ProjectStartDate { get; set; }
     public int? DisplayWeeks { get; set; }
@@ -79,9 +85,15 @@ public class PmProjectTraceCreateRequest
 
 public class PmProjectTraceUpdateRequest
 {
+    [Required]
+    [StringLength(200)]
     public string CustomerName { get; set; } = string.Empty;
+    [Required]
+    [StringLength(200)]
     public string ProductCode { get; set; } = string.Empty;
+    [StringLength(500)]
     public string? ProductName { get; set; }
+    [Range(1, int.MaxValue)]
     public int? PlannedQty { get; set; }
     public DateTime? ProjectStartDate { get; set; }
     public int? DisplayWeeks { get; set; }

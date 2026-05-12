@@ -1,5 +1,11 @@
 import request from './request'
 
+export interface ApiResponse<T> {
+  code: number
+  message: string
+  data: T
+}
+
 export interface PmProjectTraceStepActualCycleTime {
   id?: number
   projectTraceStepId?: number
@@ -46,28 +52,33 @@ export interface PmProjectTrace {
   steps: PmProjectTraceStep[]
 }
 
+export interface TraceListResult {
+  total: number
+  list: PmProjectTrace[]
+}
+
 export function getTraceList(params: {
   keyword?: string
   status?: number
   page?: number
   pageSize?: number
-}) {
+}): Promise<ApiResponse<TraceListResult>> {
   return request.get('/PmProjectTrace', { params })
 }
 
-export function getTraceDetail(id: number) {
+export function getTraceDetail(id: number): Promise<ApiResponse<PmProjectTrace>> {
   return request.get(`/PmProjectTrace/${id}`)
 }
 
-export function createTrace(data: PmProjectTrace) {
+export function createTrace(data: PmProjectTrace): Promise<ApiResponse<number>> {
   return request.post('/PmProjectTrace', data)
 }
 
-export function updateTrace(id: number, data: PmProjectTrace) {
+export function updateTrace(id: number, data: PmProjectTrace): Promise<ApiResponse<unknown>> {
   return request.put(`/PmProjectTrace/${id}`, data)
 }
 
-export function deleteTrace(id: number) {
+export function deleteTrace(id: number): Promise<ApiResponse<unknown>> {
   return request.delete(`/PmProjectTrace/${id}`)
 }
 
@@ -94,7 +105,7 @@ export interface PmStepCycleTimeChangeDetail {
   remarks?: string
 }
 
-export function getAllStepsActualCycleTime(params: { keyword?: string }) {
+export function getAllStepsActualCycleTime(params: { keyword?: string }): Promise<ApiResponse<PmProjectTraceStepCycleTimeItem[]>> {
   return request.get('/PmProjectTrace/steps/actual-cycle-time', { params })
 }
 
@@ -102,6 +113,6 @@ export function submitCycleTimeChangeRequest(data: {
   stepId: number
   traceId: number
   changes: PmStepCycleTimeChangeDetail[]
-}) {
+}): Promise<ApiResponse<number>> {
   return request.post('/PmProjectTrace/steps/actual-cycle-time/change-request', data)
 }
