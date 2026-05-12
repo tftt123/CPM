@@ -88,6 +88,18 @@ const router = createRouter({
           component: () => import('@/views/pm/ProductTraceDetail.vue'),
           meta: { title: '编辑产品跟踪' }
         },
+        {
+          path: 'pm/actual-cycle-time',
+          name: 'actualCycleTime',
+          component: () => import('@/views/pm/ActualCycleTimeManage.vue'),
+          meta: { title: '实际节拍维护' }
+        },
+        {
+          path: 'approval/center',
+          name: 'approvalCenter',
+          component: () => import('@/views/approval/ApprovalCenter.vue'),
+          meta: { title: '审批中心' }
+        },
         // 旧路由重定向到系统设置
         {
           path: 'approval/config',

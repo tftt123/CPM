@@ -31,6 +31,7 @@ public class CpmDbContext : DbContext
     public DbSet<SysApprovalInstance> ApprovalInstances => Set<SysApprovalInstance>();
     public DbSet<SysApprovalRecord> ApprovalRecords => Set<SysApprovalRecord>();
     public DbSet<SysApprovalInstanceTask> ApprovalInstanceTasks => Set<SysApprovalInstanceTask>();
+    public DbSet<SysModuleTypeConfig> ModuleTypeConfigs => Set<SysModuleTypeConfig>();
 
     // P3 - Email
     public DbSet<SysEmailTemplate> EmailTemplates => Set<SysEmailTemplate>();
@@ -48,6 +49,9 @@ public class CpmDbContext : DbContext
     // PM - Product Trace
     public DbSet<PmProjectTrace> ProjectTraces => Set<PmProjectTrace>();
     public DbSet<PmProjectTraceStep> ProjectTraceSteps => Set<PmProjectTraceStep>();
+    public DbSet<PmProjectTraceStepActualCycleTime> StepActualCycleTimes => Set<PmProjectTraceStepActualCycleTime>();
+    public DbSet<PmStepCycleTimeChangeRequest> StepCycleTimeChangeRequests => Set<PmStepCycleTimeChangeRequest>();
+    public DbSet<PmStepCycleTimeChangeDetail> StepCycleTimeChangeDetails => Set<PmStepCycleTimeChangeDetail>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -81,6 +85,10 @@ public class CpmDbContext : DbContext
 
         modelBuilder.Entity<SysApprovalTemplate>()
             .HasIndex(e => e.TemplateCode)
+            .IsUnique();
+
+        modelBuilder.Entity<SysModuleTypeConfig>()
+            .HasIndex(e => e.ModuleType)
             .IsUnique();
 
         modelBuilder.Entity<SysEmailTemplate>()

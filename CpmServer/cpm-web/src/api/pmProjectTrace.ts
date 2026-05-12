@@ -1,5 +1,14 @@
 import request from './request'
 
+export interface PmProjectTraceStepActualCycleTime {
+  id?: number
+  projectTraceStepId?: number
+  recordDate: string
+  actualCycleTime?: number
+  remarks?: string
+  status?: number
+}
+
 export interface PmProjectTraceStep {
   id?: number
   stepOrder: number
@@ -17,6 +26,7 @@ export interface PmProjectTraceStep {
   actualDurationDays?: number
   actualPlanDurationDays?: number
   actualEndDate?: string
+  actualCycleTimes: PmProjectTraceStepActualCycleTime[]
 }
 
 export interface PmProjectTrace {
@@ -59,4 +69,39 @@ export function updateTrace(id: number, data: PmProjectTrace) {
 
 export function deleteTrace(id: number) {
   return request.delete(`/PmProjectTrace/${id}`)
+}
+
+export interface PmProjectTraceStepCycleTimeItem {
+  traceId: number
+  customerName: string
+  productCode: string
+  productName?: string
+  stepId: number
+  stepOrder: number
+  processName: string
+  personInCharge?: string
+  cycleTime?: number
+  latestActualCycleTime?: number
+  latestRecordDate?: string
+  pendingRequestCount: number
+}
+
+export interface PmStepCycleTimeChangeDetail {
+  changeType: number
+  targetRecordId?: number
+  recordDate: string
+  actualCycleTime?: number
+  remarks?: string
+}
+
+export function getAllStepsActualCycleTime(params: { keyword?: string }) {
+  return request.get('/PmProjectTrace/steps/actual-cycle-time', { params })
+}
+
+export function submitCycleTimeChangeRequest(data: {
+  stepId: number
+  traceId: number
+  changes: PmStepCycleTimeChangeDetail[]
+}) {
+  return request.post('/PmProjectTrace/steps/actual-cycle-time/change-request', data)
 }

@@ -24,12 +24,7 @@
     <div class="content-card" style="padding: 0;">
       <el-table :data="tableData" v-loading="loading" stripe style="width: 100%">
         <el-table-column type="index" label="#" width="50" align="center" />
-        <el-table-column prop="templateCode" :label="t('approval.templateCode')" width="140">
-          <template #default="{ row }">
-            <span class="code-link">{{ row.templateCode }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="templateName" :label="t('approval.templateName')" min-width="160">
+        <el-table-column prop="templateName" :label="t('approval.templateDesc')" min-width="200">
           <template #default="{ row }">
             <span class="template-name">{{ row.templateName }}</span>
           </template>
@@ -91,30 +86,33 @@
         <el-form :model="form" label-width="100px" :rules="rules" ref="formRef" class="slds-form">
           <el-row :gutter="16">
             <el-col :span="12">
-              <el-form-item :label="t('approval.templateCode')" prop="templateCode">
-                <el-input v-model="form.templateCode" :placeholder="t('common.pleaseInput')" />
+              <el-form-item :label="t('approval.templateDesc')" prop="templateName">
+                <el-input v-model="form.templateName" :placeholder="t('common.pleaseInput')" />
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item :label="t('approval.templateName')" prop="templateName">
-                <el-input v-model="form.templateName" :placeholder="t('common.pleaseInput')" />
+              <el-form-item :label="t('approval.moduleType')" prop="moduleType">
+                <el-select v-model="form.moduleType" :placeholder="t('common.pleaseSelect')" style="width: 100%">
+                  <el-option
+                    v-for="item in moduleTypeList"
+                    :key="item.moduleType"
+                    :label="item.moduleName || item.moduleType"
+                    :value="item.moduleType"
+                  />
+                </el-select>
               </el-form-item>
             </el-col>
           </el-row>
 
           <el-row :gutter="16">
             <el-col :span="12">
-              <el-form-item :label="t('approval.moduleType')" prop="moduleType">
-                <el-select v-model="form.moduleType" :placeholder="t('common.pleaseSelect')" style="width: 100%">
-                  <el-option :label="t('nav.quotation')" value="Quotation" />
-                  <el-option label="Sample" value="Sample" />
-                  <el-option label="Procurement" value="Procurement" />
-                </el-select>
+              <el-form-item :label="t('approval.isDefault')">
+                <el-switch v-model="form.isDefault" />
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item :label="t('approval.isDefault')">
-                <el-switch v-model="form.isDefault" />
+              <el-form-item :label="t('common.status')">
+                <el-switch v-model="form.isActive" />
               </el-form-item>
             </el-col>
           </el-row>
@@ -313,6 +311,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { approvalApi } from '@/api/quotation'
 import { userApi } from '@/api/user'
 import { roleApi } from '@/api/role'
+import { getModuleTypeList } from '@/api/moduleTypeConfig'
 import { useI18n } from '@/composables/useI18n'
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 
@@ -325,6 +324,7 @@ const submitting = ref(false)
 const tableData = ref<any[]>([])
 const userList = ref<any[]>([])
 const roleList = ref<any[]>([])
+const moduleTypeList = ref<any[]>([])
 const editId = ref<number | null>(null)
 const formRef = ref()
 
@@ -333,7 +333,7 @@ const isEdit = computed(() => !!editId.value)
 const form = ref({
   templateCode: '',
   templateName: '',
-  moduleType: 'Quotation',
+  moduleType: '',
   description: '',
   isDefault: false,
   isActive: true,
@@ -341,8 +341,7 @@ const form = ref({
 })
 
 const rules = {
-  templateCode: [{ required: true, message: t('validation.required', { field: t('approval.templateCode') }), trigger: 'blur' }],
-  templateName: [{ required: true, message: t('validation.required', { field: t('approval.templateName') }), trigger: 'blur' }],
+  templateName: [{ required: true, message: t('validation.required', { field: t('approval.templateDesc') }), trigger: 'blur' }],
   moduleType: [{ required: true, message: t('validation.selectRequired', { field: t('approval.moduleType') }), trigger: 'change' }]
 }
 
@@ -374,12 +373,21 @@ const loadRoles = async () => {
   }
 }
 
+const loadModuleTypes = async () => {
+  try {
+    const res = await getModuleTypeList()
+    moduleTypeList.value = res.data || []
+  } catch {
+    moduleTypeList.value = []
+  }
+}
+
 const handleAdd = () => {
   editId.value = null
   form.value = {
     templateCode: '',
     templateName: '',
-    moduleType: 'Quotation',
+    moduleType: moduleTypeList.value[0]?.moduleType || '',
     description: '',
     isDefault: false,
     isActive: true,
@@ -550,6 +558,7 @@ onMounted(() => {
   loadData()
   loadUsers()
   loadRoles()
+  loadModuleTypes()
 })
 </script>
 

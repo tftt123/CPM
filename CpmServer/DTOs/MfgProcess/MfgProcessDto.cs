@@ -7,6 +7,7 @@ public class MfgProcessDto
     public string? ProcessCode { get; set; }
     public string ProcessName { get; set; } = string.Empty;
     public string? Description { get; set; }
+    public string? Owner { get; set; }
     public decimal? StdTimeMin { get; set; }
     public decimal? CostRate { get; set; }
     public int SortOrder { get; set; }
@@ -19,6 +20,7 @@ public class MfgProcessCreateDto
     public string? ProcessCode { get; set; }
     public string ProcessName { get; set; } = string.Empty;
     public string? Description { get; set; }
+    public string? Owner { get; set; }
     public decimal? StdTimeMin { get; set; }
     public decimal? CostRate { get; set; }
     public int SortOrder { get; set; }
@@ -63,6 +65,7 @@ public class MfgEquipmentDto
     public string? Model { get; set; }
     public string? Spec { get; set; }
     public string? Manufacturer { get; set; }
+    public string? Owner { get; set; }
     public decimal? CostRate { get; set; }
     public bool IsActive { get; set; }
 }
@@ -76,6 +79,7 @@ public class MfgEquipmentCreateDto
     public string? Model { get; set; }
     public string? Spec { get; set; }
     public string? Manufacturer { get; set; }
+    public string? Owner { get; set; }
     public decimal? CostRate { get; set; }
 }
 
@@ -92,6 +96,7 @@ public class MfgProcessRecordDto
     public string? Model { get; set; }
     public string? Spec { get; set; }
     public string? Manufacturer { get; set; }
+    public string? Owner { get; set; }
     public decimal? CostRate { get; set; }
     public bool IsActive { get; set; }
     public long ProcessId { get; set; }
@@ -103,4 +108,5 @@ public class MfgCascadeOption
 {
     public long Id { get; set; }
     public string Label { get; set; } = string.Empty;
+    public string? Owner { get; set; }
 }

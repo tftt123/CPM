@@ -1,4 +1,4 @@
-export default {
+﻿export default {
   common: {
     login: '登录',
     logout: '退出登录',
@@ -27,6 +27,10 @@ export default {
     phone: '电话',
     password: '密码',
     action: '操作',
+    approve: '通过',
+    reject: '驳回',
+    remark: '备注',
+    createTime: '创建时间',
     total: '合计',
     close: '关闭',
     detail: '详情',
@@ -105,6 +109,9 @@ export default {
     rfq: 'RFQ',
     pm: 'PM',
     productTrace: '产品跟踪',
+    actualCycleTime: '实际节拍维护',
+    approval: '审批中心',
+    approvalCenter: '我的待办',
     approvalConfig: '审批配置',
     userManage: '人员管理',
     roleManage: '角色管理',
@@ -175,7 +182,7 @@ export default {
     processType: '加工类型',
     equipmentType: '设备类型',
     equipment: '设备',
-    cycleTime: '节拍',
+    cycleTime: '节拍(秒)',
     hourlyRate: '小时费率',
     processingFee: '加工费',
     packaging: '包装',
@@ -209,6 +216,9 @@ export default {
     roleListSubtitle: '管理系统角色，分配权限标识',
     approvalConfigTitle: '审批流程配置',
     approvalConfigSubtitle: '自定义业务审批环节与审批人',
+    moduleTypeConfig: '业务模块配置',
+    moduleType: '模块编码',
+    moduleName: '模块名称',
     totalUsers: '用户总数',
     activeUsers: '已启用',
     inactiveUsers: '已禁用',
@@ -219,7 +229,9 @@ export default {
     passwordMinLength: '密码至少6位'
   },
   approval: {
+    businessType: '业务类型',
     templateCode: '模板编码',
+    templateDesc: '模板描述',
     templateName: '模板名称',
     moduleType: '业务模块',
     steps: '审批步骤',
@@ -307,6 +319,8 @@ export default {
     statusRunning: '进行中',
     statusCompleted: '已完成',
     planActual: '计划与实际',
+    planInfo: '计划信息',
+    actualInfo: '实际信息',
     addStep: '添加工序',
     process: '工艺步骤',
     person: '责任人',
@@ -319,9 +333,24 @@ export default {
     ganttChart: '甘特图',
     routeSummary: '工艺路线汇总',
     cycleTime: '节拍(Sec)',
+    actualCycleTime: '实际节拍',
+    recordDate: '记录日期',
+    addCycleTime: '添加记录',
     settingDays: '设定(天)',
     estimatedHours: '预计耗时',
-    new: '新建跟踪'
+    remarks: '备注',
+    new: '新建跟踪',
+    actualCycleTimeTitle: '实际节拍维护',
+    actualCycleTimeSubtitle: '汇总查看所有工序的最新实际节拍记录',
+    latestActualCycleTime: '最新实际节拍',
+    latestRecordDate: '最新记录日期',
+    pendingApproval: '待审批',
+    submitApproval: '提交审批',
+    submitApprovalSuccess: '变更申请已提交，等待审批',
+    noChanges: '没有检测到变更',
+    statusActive: '有效',
+    statusExpired: '过期',
+    statusInvalidated: '作废'
   },
   mail: {
     title: '邮件配置',
@@ -371,6 +400,8 @@ export default {
     deleteConfirm: '确认删除该记录？',
     logoutConfirm: '确认退出登录？',
     noPermission: '没有权限执行此操作',
-    switchSiteSuccess: '已切换到 Workspace: {site}'
+    switchSiteSuccess: '已切换到 Workspace: {site}',
+    approveSuccess: '审批通过',
+    rejectSuccess: '审批驳回'
   }
 }

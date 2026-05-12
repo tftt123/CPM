@@ -1,4 +1,4 @@
-using CpmServer.Common;
+﻿using CpmServer.Common;
 using CpmServer.Data;
 using CpmServer.Models;
 using CpmServer.Services;
@@ -7,6 +7,8 @@ using CpmServer.Modules.Approval.Services;
 using CpmServer.Modules.Approval.Services.Approvers;
 using CpmServer.Modules.Quotation.Contracts;
 using CpmServer.Modules.Quotation.Services;
+using CpmServer.Modules.PM.Contracts;
+using CpmServer.Modules.PM.Services;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -118,12 +120,15 @@ builder.Services.AddScoped<IProductService, ProductService>();
 // P3 - 报价流程服务
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IApprovalService, ApprovalService>();
+builder.Services.AddScoped<IModuleTypeConfigService, ModuleTypeConfigService>();
 builder.Services.AddScoped<IQuotationService, QuotationService>();
+builder.Services.AddScoped<IPmProjectTraceService, PmProjectTraceService>();
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 
-// 审批引擎 - 业务变量提供者和状态更新器（解耦 Approval 与 Quotation）
+// 审批引擎 - 业务变量提供者和状态更新器（解耦 Approval 与业务模块）
 builder.Services.AddScoped<IBusinessVariableProvider, QuotationBusinessVariableProvider>();
 builder.Services.AddScoped<IBusinessStatusUpdater, QuotationBusinessStatusUpdater>();
+builder.Services.AddScoped<IBusinessStatusUpdater, PmStepCycleTimeBusinessStatusUpdater>();
 
 // Phase 1 - 审批人解析策略
 builder.Services.AddScoped<IApproverResolver, FixedRoleResolver>();

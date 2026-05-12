@@ -44,7 +44,7 @@
           <el-tag :type="statusType(row.status)">{{ statusLabel(row.status) }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column :label="t('common.operation')" width="180" fixed="right">
+      <el-table-column :label="t('common.action')" width="180" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="handleEdit(row)">
             {{ t('common.edit') }}

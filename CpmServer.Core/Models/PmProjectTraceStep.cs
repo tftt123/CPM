@@ -66,6 +66,9 @@ public class PmProjectTraceStep
     /// <summary>实际结束日期 - 手工</summary>
     public DateTime? ActualEndDate { get; set; }
 
+    /// <summary>实际节拍历史记录</summary>
+    public List<PmProjectTraceStepActualCycleTime> ActualCycleTimes { get; set; } = new();
+
     [ForeignKey("ProjectTraceId")]
     public PmProjectTrace? ProjectTrace { get; set; }
 }

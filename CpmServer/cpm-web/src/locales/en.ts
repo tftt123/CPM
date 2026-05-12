@@ -1,4 +1,4 @@
-export default {
+﻿export default {
   common: {
     login: 'Login',
     logout: 'Logout',
@@ -27,6 +27,10 @@ export default {
     phone: 'Phone',
     password: 'Password',
     action: 'Action',
+    approve: 'Approve',
+    reject: 'Reject',
+    remark: 'Remark',
+    createTime: 'Created',
     total: 'Total',
     close: 'Close',
     detail: 'Detail',
@@ -105,6 +109,9 @@ export default {
     rfq: 'RFQ',
     pm: 'PM',
     productTrace: 'Product Trace',
+    actualCycleTime: 'Actual Cycle Time',
+    approval: 'Approval',
+    approvalCenter: 'My Tasks',
     approvalConfig: 'Approval Config',
     userManage: 'Users',
     roleManage: 'Roles',
@@ -175,7 +182,7 @@ export default {
     processType: 'Process Type',
     equipmentType: 'Equipment Type',
     equipment: 'Equipment',
-    cycleTime: 'Cycle Time',
+    cycleTime: 'Cycle Time (Sec)',
     hourlyRate: 'Hourly Rate',
     processingFee: 'Processing Fee',
     packaging: 'Packaging',
@@ -209,6 +216,9 @@ export default {
     roleListSubtitle: 'Manage system roles and permission identifiers',
     approvalConfigTitle: 'Approval Configuration',
     approvalConfigSubtitle: 'Customize business approval steps and approvers',
+    moduleTypeConfig: 'Module Type Config',
+    moduleType: 'Module Code',
+    moduleName: 'Module Name',
     totalUsers: 'Total Users',
     activeUsers: 'Active',
     inactiveUsers: 'Inactive',
@@ -219,7 +229,9 @@ export default {
     passwordMinLength: 'Password must be at least 6 characters'
   },
   approval: {
+    businessType: 'Business Type',
     templateCode: 'Template Code',
+    templateDesc: 'Template Description',
     templateName: 'Template Name',
     moduleType: 'Module',
     steps: 'Approval Steps',
@@ -305,6 +317,8 @@ export default {
     statusRunning: 'Running',
     statusCompleted: 'Completed',
     planActual: 'Plan & Actual',
+    planInfo: 'Plan Info',
+    actualInfo: 'Actual Info',
     addStep: 'Add Step',
     process: 'Process',
     person: 'Person',
@@ -317,9 +331,24 @@ export default {
     ganttChart: 'Gantt Chart',
     routeSummary: 'Route Summary',
     cycleTime: 'Cycle Time (Sec)',
+    actualCycleTime: 'Actual Cycle Time',
+    recordDate: 'Record Date',
+    addCycleTime: 'Add Record',
     settingDays: 'Setting (Days)',
     estimatedHours: 'Est. Hours',
-    new: 'New Trace'
+    remarks: 'Remarks',
+    new: 'New Trace',
+    actualCycleTimeTitle: 'Actual Cycle Time',
+    actualCycleTimeSubtitle: 'View latest actual cycle time for all process steps',
+    latestActualCycleTime: 'Latest Actual Cycle Time',
+    latestRecordDate: 'Latest Record Date',
+    pendingApproval: 'Pending',
+    submitApproval: 'Submit for Approval',
+    submitApprovalSuccess: 'Change request submitted, awaiting approval',
+    noChanges: 'No changes detected',
+    statusActive: 'Active',
+    statusExpired: 'Expired',
+    statusInvalidated: 'Invalidated'
   },
   mail: {
     title: 'Mail Configuration',
@@ -369,6 +398,8 @@ export default {
     deleteConfirm: 'Are you sure you want to delete this record?',
     logoutConfirm: 'Are you sure you want to logout?',
     noPermission: 'No permission to perform this operation',
-    switchSiteSuccess: 'Switched to Workspace: {site}'
+    switchSiteSuccess: 'Switched to Workspace: {site}',
+    approveSuccess: 'Approved',
+    rejectSuccess: 'Rejected'
   }
 }

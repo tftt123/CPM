@@ -59,3 +59,5 @@ CpmServer/wwwroot/uploads/
 "CpmPlan/*.xlsx" 
 "CpmPlan/*.xlsm" 
 "CpmPlan/~$*" 
+CpmPlan/Project Status Tracking List.xlsx
+CpmPlan/人工工时波动监控表_模板(1).xlsx

@@ -170,6 +170,10 @@
             :collapse="false"
             :collapse-transition="false"
           >
+            <el-menu-item index="/pm/actual-cycle-time" class="nav-item">
+              <el-icon size="18"><Timer /></el-icon>
+              <span>{{ t('nav.actualCycleTime') }}</span>
+            </el-menu-item>
             <el-menu-item index="/pm/trace" class="nav-item">
               <el-icon size="18"><TrendCharts /></el-icon>
               <span>{{ t('nav.productTrace') }}</span>
@@ -178,9 +182,25 @@
         </div>
 
         <div class="nav-section">
+          <div class="nav-section-title">{{ t('nav.approval') }}</div>
+          <el-menu
+            router
+            :default-active="$route.path"
+            class="nav-menu"
+            :collapse="false"
+            :collapse-transition="false"
+          >
+            <el-menu-item index="/approval/center" class="nav-item">
+              <el-icon size="18"><CircleCheck /></el-icon>
+              <span>{{ t('nav.approvalCenter') }}</span>
+            </el-menu-item>
+          </el-menu>
+        </div>
+
+        <div class="nav-section">
           <div class="nav-section-title">{{ t('nav.salesReport') }}</div>
           <el-menu class="nav-menu">
-            <el-menu-item class="nav-item">
+            <el-menu-item index="/report/analysis" class="nav-item">
               <el-icon size="18"><DataAnalysis /></el-icon>
               <span>{{ t('nav.dataAnalysis') }}</span>
             </el-menu-item>
@@ -219,7 +239,8 @@ import {
   FolderOpened,
   OfficeBuilding,
   CircleCheck,
-  MapLocation
+  MapLocation,
+  Timer
 } from '@element-plus/icons-vue'
 import { authApi } from '@/api/auth'
 import { ElMessage } from 'element-plus'

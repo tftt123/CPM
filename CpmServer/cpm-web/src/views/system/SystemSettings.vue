@@ -21,6 +21,9 @@
       <el-tab-pane :label="t('approval.steps')" name="approval">
         <ApprovalConfig embedded />
       </el-tab-pane>
+      <el-tab-pane :label="t('system.moduleTypeConfig')" name="moduleTypes">
+        <ModuleTypeConfig />
+      </el-tab-pane>
       <el-tab-pane :label="t('mail.title')" name="mail">
         <MailConfig />
       </el-tab-pane>
@@ -34,6 +37,7 @@ import { useI18n } from '@/composables/useI18n'
 import UserList from './UserList.vue'
 import RoleList from './RoleList.vue'
 import ApprovalConfig from '../approval/ApprovalConfig.vue'
+import ModuleTypeConfig from './ModuleTypeConfig.vue'
 import MailConfig from './MailConfig.vue'
 
 const { t } = useI18n()

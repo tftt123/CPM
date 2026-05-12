@@ -26,6 +26,8 @@ public class MfgEquipment
 
     public string? Manufacturer { get; set; }
 
+    public string? Owner { get; set; }
+
     public decimal? CostRate { get; set; }
 
     public bool IsActive { get; set; } = true;

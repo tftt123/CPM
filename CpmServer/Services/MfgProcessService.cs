@@ -53,7 +53,8 @@ public class MfgProcessService : IMfgProcessService
             .Select(p => new MfgCascadeOption
             {
                 Id = p.Id,
-                Label = p.ProcessName
+                Label = p.ProcessName,
+                Owner = p.Owner
             })
             .ToListAsync();
     }
@@ -95,6 +96,7 @@ public class MfgProcessService : IMfgProcessService
                 ProcessCode = p.ProcessCode,
                 ProcessName = p.ProcessName,
                 Description = p.Description,
+                Owner = p.Owner,
                 StdTimeMin = p.StdTimeMin,
                 CostRate = p.CostRate,
                 SortOrder = p.SortOrder,
@@ -111,6 +113,7 @@ public class MfgProcessService : IMfgProcessService
             ProcessCode = dto.ProcessCode,
             ProcessName = dto.ProcessName,
             Description = dto.Description,
+            Owner = dto.Owner,
             Site = CurrentSite,
             StdTimeMin = dto.StdTimeMin,
             CostRate = dto.CostRate,
@@ -132,6 +135,7 @@ public class MfgProcessService : IMfgProcessService
         entity.ProcessCode = dto.ProcessCode;
         entity.ProcessName = dto.ProcessName;
         entity.Description = dto.Description;
+        entity.Owner = dto.Owner;
         entity.StdTimeMin = dto.StdTimeMin;
         entity.CostRate = dto.CostRate;
         entity.SortOrder = dto.SortOrder;
@@ -190,6 +194,7 @@ public class MfgProcessService : IMfgProcessService
                     Model = e.Model,
                     Spec = e.Spec,
                     Manufacturer = e.Manufacturer,
+                    Owner = e.Owner,
                     CostRate = e.CostRate,
                     IsActive = e.IsActive
                 }).ToList()
@@ -226,6 +231,7 @@ public class MfgProcessService : IMfgProcessService
                 Model = eqDto.Model,
                 Spec = eqDto.Spec,
                 Manufacturer = eqDto.Manufacturer,
+                Owner = eqDto.Owner,
                 CostRate = eqDto.CostRate,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
@@ -264,6 +270,7 @@ public class MfgProcessService : IMfgProcessService
                 Model = eqDto.Model,
                 Spec = eqDto.Spec,
                 Manufacturer = eqDto.Manufacturer,
+                Owner = eqDto.Owner,
                 CostRate = eqDto.CostRate,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
@@ -312,6 +319,7 @@ public class MfgProcessService : IMfgProcessService
                 Model = e.Model,
                 Spec = e.Spec,
                 Manufacturer = e.Manufacturer,
+                Owner = e.Owner,
                 CostRate = e.CostRate,
                 IsActive = e.IsActive
             })
@@ -330,6 +338,7 @@ public class MfgProcessService : IMfgProcessService
             Model = dto.Model,
             Spec = dto.Spec,
             Manufacturer = dto.Manufacturer,
+            Owner = dto.Owner,
             CostRate = dto.CostRate,
             CreatedAt = DateTime.Now,
             UpdatedAt = DateTime.Now
@@ -351,6 +360,7 @@ public class MfgProcessService : IMfgProcessService
         entity.Model = dto.Model;
         entity.Spec = dto.Spec;
         entity.Manufacturer = dto.Manufacturer;
+        entity.Owner = dto.Owner;
         entity.CostRate = dto.CostRate;
         entity.UpdatedAt = DateTime.Now;
         await _db.SaveChangesAsync();
@@ -404,6 +414,7 @@ public class MfgProcessService : IMfgProcessService
                 Model = e.Model,
                 Spec = e.Spec,
                 Manufacturer = e.Manufacturer,
+                Owner = e.Owner,
                 CostRate = e.CostRate,
                 IsActive = e.IsActive,
                 ProcessId = e.SubCategory != null && e.SubCategory.Process != null ? e.SubCategory.Process.Id : 0,

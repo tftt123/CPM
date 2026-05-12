@@ -88,7 +88,7 @@
             <el-table-column prop="processType" label="加工类型" width="90" />
             <el-table-column prop="equipmentType" label="设备类型" width="90" />
             <el-table-column prop="equipment" label="设备" width="100" />
-            <el-table-column prop="cycleTime" label="节拍" width="80" align="right">
+            <el-table-column prop="cycleTime" :label="t('quotation.cycleTime')" width="80" align="right">
               <template #default="{ row }">
                 {{ row.cycleTime?.toFixed(4) || '-' }}
               </template>
@@ -354,7 +354,7 @@ const loadDetail = async () => {
     const recordsRes = await quotationApi.getApprovalRecords(id)
     approvalRecords.value = recordsRes.data
 
-    const currentStep = approvalSteps.value.find((s: any) => s.isCurrent)
+    const currentStep = approvalSteps.value.find((s: any) => s.status === 0)
     if (currentStep && (detail.value?.status === 1 || detail.value?.status === 2)) {
       try {
         const permRes = await quotationApi.canApprove(id)

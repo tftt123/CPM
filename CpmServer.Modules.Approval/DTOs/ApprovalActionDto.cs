@@ -9,6 +9,11 @@ public class ApprovalActionDto
     public decimal? ReviewCost { get; set; }
 }
 
+public class GenericApprovalActionDto
+{
+    public string? Comment { get; set; }
+}
+
 public class ApprovalRecordDto
 {
     public long Id { get; set; }
