@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="page-container">
     <!-- Page Header -->
     <div class="page-header-section">
@@ -53,7 +53,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="material" :label="t('product.material')" width="120">
+        <el-table-column prop="material" :label="t('product.material')" min-width="120">
           <template #default="{ row }">
             <span class="badge badge-success">{{ row.material || '-' }}</span>
           </template>
@@ -66,7 +66,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column :label="t('common.action')" width="150" align="right" fixed="right">
+        <el-table-column :label="t('common.action')" min-width="150" align="right" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" :icon="Edit" @click="handleEdit(row)">
               {{ t('common.edit') }}

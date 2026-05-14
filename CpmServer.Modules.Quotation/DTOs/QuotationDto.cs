@@ -47,6 +47,7 @@ public class QuotationItemDto
     public decimal? CycleTime { get; set; }
     public decimal? HourlyRate { get; set; }
     public decimal? Cost { get; set; }
+    public bool IsProcessRow { get; set; }
 }
 
 public class QuotationSubmitDto

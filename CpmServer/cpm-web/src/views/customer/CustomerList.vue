@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="page-container">
     <!-- Page Header -->
     <div class="page-header-section">
@@ -53,12 +53,12 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="industry" :label="t('customer.industry')" width="120">
+        <el-table-column prop="industry" :label="t('customer.industry')" min-width="120">
           <template #default="{ row }">
             <span class="badge badge-primary">{{ row.industry || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="contactName" :label="t('customer.contactName')" width="120">
+        <el-table-column prop="contactName" :label="t('customer.contactName')" min-width="120">
           <template #default="{ row }">
             <div class="contact-cell">
               <el-icon size="14"><User /></el-icon>
@@ -66,7 +66,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column :label="t('common.action')" width="150" align="right" fixed="right">
+        <el-table-column :label="t('common.action')" min-width="150" align="right" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" :icon="Edit" @click="handleEdit(row)">
               {{ t('common.edit') }}

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="module-type-config">
     <div class="toolbar">
       <el-button type="primary" :icon="Plus" @click="handleAdd">{{ t('common.create') }}</el-button>
@@ -13,12 +13,12 @@
           {{ row.description || '-' }}
         </template>
       </el-table-column>
-      <el-table-column prop="isActive" :label="t('common.status')" width="80" align="center">
+      <el-table-column prop="isActive" :label="t('common.status')" min-width="80" align="center">
         <template #default="{ row }">
           <el-switch v-model="row.isActive" disabled size="small" />
         </template>
       </el-table-column>
-      <el-table-column :label="t('common.action')" width="150" align="right">
+      <el-table-column :label="t('common.action')" min-width="150" align="right">
         <template #default="{ row }">
           <el-button link type="primary" size="small" :icon="Edit" @click="handleEdit(row)">
             {{ t('common.edit') }}

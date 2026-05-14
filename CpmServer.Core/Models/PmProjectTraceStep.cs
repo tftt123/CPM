@@ -21,6 +21,9 @@ public class PmProjectTraceStep
     /// <summary>工艺步骤名</summary>
     public string ProcessName { get; set; } = string.Empty;
 
+    /// <summary>设备/机器</summary>
+    public string? Equipment { get; set; }
+
     /// <summary>责任人</summary>
     public string? PersonInCharge { get; set; }
 

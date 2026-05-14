@@ -1,4 +1,4 @@
-using CpmServer.Models;
+﻿using CpmServer.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace CpmServer.Data;
@@ -32,6 +32,7 @@ public class CpmDbContext : DbContext
     public DbSet<SysApprovalRecord> ApprovalRecords => Set<SysApprovalRecord>();
     public DbSet<SysApprovalInstanceTask> ApprovalInstanceTasks => Set<SysApprovalInstanceTask>();
     public DbSet<SysModuleTypeConfig> ModuleTypeConfigs => Set<SysModuleTypeConfig>();
+    public DbSet<SysSiteSettings> SiteSettings => Set<SysSiteSettings>();
 
     // P3 - Email
     public DbSet<SysEmailTemplate> EmailTemplates => Set<SysEmailTemplate>();
@@ -64,14 +65,14 @@ public class CpmDbContext : DbContext
         modelBuilder.Entity<SysUserSite>()
             .HasKey(e => new { e.UserId, e.Site });
 
-        // SysDept - Manager 关系
+        // SysDept - Manager 鍏崇郴
         modelBuilder.Entity<SysDept>()
             .HasOne(d => d.Manager)
             .WithMany()
             .HasForeignKey(d => d.ManagerId)
             .OnDelete(DeleteBehavior.SetNull);
 
-        // SysUser - Dept 关系
+        // SysUser - Dept 鍏崇郴
         modelBuilder.Entity<SysUser>()
             .HasOne(u => u.Dept)
             .WithMany()

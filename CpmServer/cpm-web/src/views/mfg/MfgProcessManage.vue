@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="page-container">
     <div class="page-header-section">
       <el-page-header @back="$router.push('/home')">
@@ -39,21 +39,21 @@
         <el-table-column prop="processName" :label="t('mfg.process')" width="160" />
         <el-table-column prop="subCategoryName" :label="t('mfg.subCategory')" width="160" />
         <el-table-column prop="equipmentName" :label="t('mfg.equipment')" min-width="160" />
-        <el-table-column prop="owner" :label="t('mfg.owner')" width="120" />
-        <el-table-column :label="t('mfg.hourlyRate')" width="120" align="right">
+        <el-table-column prop="owner" :label="t('mfg.owner')" min-width="120" />
+        <el-table-column :label="t('mfg.hourlyRate')" min-width="120" align="right">
           <template #default="{ row }">
             <span v-if="row.costRate">{{ row.costRate }}</span>
-            <span v-else class="text-muted">—</span>
+            <span v-else class="text-muted">-</span>
           </template>
         </el-table-column>
-        <el-table-column :label="t('common.status')" width="90" align="center">
+        <el-table-column :label="t('common.status')" min-width="90" align="center">
           <template #default="{ row }">
             <el-tag size="small" :type="row.isActive ? 'success' : 'info'">
               {{ row.isActive ? t('common.active') : t('common.inactive') }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column :label="t('common.action')" width="140" align="center" fixed="right">
+        <el-table-column :label="t('common.action')" min-width="160" align="center" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" :icon="Edit" @click="handleEdit(row)">
               {{ t('common.edit') }}
@@ -324,7 +324,7 @@ const handleSubmit = async () => {
     let finalProcessId: number
     if (typeof form.value.processIdOrName === 'string') {
       const res = await mfgProcessApi.createProcess({
-        category: '通用',
+        category: '閫氱敤',
         processName: form.value.processIdOrName.trim(),
         sortOrder: 0
       })
@@ -441,3 +441,4 @@ onMounted(loadData)
   gap: 12px;
 }
 </style>
+

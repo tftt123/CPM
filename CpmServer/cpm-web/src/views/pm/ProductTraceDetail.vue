@@ -176,15 +176,20 @@
       </template>
       <el-table :data="form.steps" border stripe size="small">
         <el-table-column type="index" width="50" align="center" />
-        <el-table-column :label="t('pmTrace.process')" width="120">
+        <el-table-column :label="t('pmTrace.process')" min-width="120">
           <template #default="{ row }">{{ row.processName }}</template>
         </el-table-column>
-        <el-table-column :label="t('pmTrace.person')" width="100">
+        <el-table-column :label="t('mfg.equipment')" min-width="120">
+          <template #default="{ row }">
+            <el-input v-model="row.equipment" size="small" />
+          </template>
+        </el-table-column>
+        <el-table-column :label="t('pmTrace.person')" min-width="100">
           <template #default="{ row }">
             <el-input v-model="row.personInCharge" size="small" disabled />
           </template>
         </el-table-column>
-        <el-table-column :label="t('pmTrace.cycleTime')" width="100" align="center">
+        <el-table-column :label="t('pmTrace.cycleTime')" min-width="100" align="center">
           <template #default="{ row }">
             <el-input-number v-model="row.cycleTime" :min="0" size="small" controls-position="right" style="width: 80px" />
           </template>
@@ -196,12 +201,12 @@
             </span>
           </template>
         </el-table-column>
-        <el-table-column :label="t('pmTrace.settingDays')" width="100" align="center">
+        <el-table-column :label="t('pmTrace.settingDays')" min-width="100" align="center">
           <template #default="{ row }">
             <el-input-number v-model="row.settingDays" :min="0" size="small" controls-position="right" style="width: 80px" />
           </template>
         </el-table-column>
-        <el-table-column :label="t('pmTrace.estimatedHours')" width="110" align="center">
+        <el-table-column :label="t('pmTrace.estimatedHours')" min-width="110" align="center">
           <template #default="{ row }">
             <el-input-number v-model="row.estimatedHours" :min="0" size="small" controls-position="right" style="width: 80px" />
           </template>

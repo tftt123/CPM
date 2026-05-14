@@ -33,7 +33,7 @@
     createTime: '创建时间',
     total: '合计',
     close: '关闭',
-    detail: '详情',
+    detail: '查看',
     list: '列表',
     setting: '设置',
     success: '成功',
@@ -71,32 +71,52 @@
     refresh: '刷新数据'
   },
   login: {
-    title: 'CPM 系统',
-    subtitle: '客户与产品管理平台',
+    title: 'S I P',
+    subtitle: 'Spindex Integrated Platform',
     welcome: '欢迎回来',
     desc: '登录您的账户以继续',
     username: '用户名',
     password: '密码',
     usernamePlaceholder: '请输入用户名',
     passwordPlaceholder: '请输入密码',
-    sitePlaceholder: '请选择工厂站点',
+    domainPlaceholder: '选择 Domain',
     rememberMe: '记住我',
     forgotPassword: '忘记密码？',
     loginBtn: '登录',
     qadLogin: 'QAD 登录',
     localLogin: '本地登录',
-    domain: '域',
-    domainPlaceholder: '请输入域',
+    domain: '站点/Domain',
     feature1: '智能客户管理',
     feature2: '全生命周期产品追踪',
     feature3: '数据驱动决策分析',
-    copyright: ' CPM System. All rights reserved.',
+    copyright: ' SIP System. All rights reserved.',
     loginSuccess: '登录成功',
     inputRequired: '请输入用户名和密码',
-    selectSite: '请选择工厂站点'
+    selectSite: '请选择工厂站点',
+    loginType: '登录类型',
+    loginTypePlaceholder: '请选择登录类型'
+  },
+  uiControl: {
+    title: 'UI控制',
+    subtitle: '自定义界面样式',
+    tableActionTitle: '表格操作按钮',
+    tableActionDesc: '调整表格中 View / Create / Edit / Delete 按钮的样式',
+    buttonWidth: '按钮宽度',
+    buttonHeight: '按钮高度',
+    buttonFontSize: '按钮字体',
+    preview: '预览效果',
+    fontSize: '字体大小',
+    fontSizeDesc: '调整界面基础字体大小',
+    baseFontSize: '基础字体',
+    fontPreviewText: '这是字体大小预览文本，调整滑块可实时查看效果。',
+    headerTriggerTitle: 'Header 下拉框',
+    headerTriggerDesc: '调整顶部站点和语言下拉框的大小',
+    headerTriggerWidth: '下拉框宽度',
+    headerTriggerHeight: '下拉框高度',
+    headerTriggerFontSize: '下拉框字体',
   },
   layout: {
-    appName: 'CPM',
+    appName: 'SIP',
     appFullName: 'Customer Project Management',
     searchPlaceholder: '全局搜索...'
   },
@@ -302,7 +322,8 @@
     spec: '规格',
     manufacturer: '制造商',
     hourlyRate: '小时费率',
-    equipments: '设备清单'
+    equipments: '设备清单',
+    owner: '责任人'
   },
   pmTrace: {
     pageTitle: '产品跟踪',
@@ -332,7 +353,7 @@
     actualEnd: '实际结束',
     ganttChart: '甘特图',
     routeSummary: '工艺路线汇总',
-    cycleTime: '节拍(Sec)',
+    cycleTime: '节拍(秒)',
     actualCycleTime: '实际节拍',
     recordDate: '记录日期',
     addCycleTime: '添加记录',
@@ -352,6 +373,16 @@
     statusExpired: '过期',
     statusInvalidated: '作废'
   },
+  siteSetup: {
+    title: '站点设置',
+    site: '站点',
+    siteTip: '与顶部导航栏当前站点一致',
+    currency: '货币',
+    currencyRequired: '请选择货币',
+    description: '公司名称',
+    descriptionPlaceholder: '请输入公司名称',
+  },
+
   mail: {
     title: '邮件配置',
     subtitle: 'SMTP 邮件服务器设置与测试',
@@ -405,3 +436,9 @@
     rejectSuccess: '审批驳回'
   }
 }
+
+
+
+
+
+

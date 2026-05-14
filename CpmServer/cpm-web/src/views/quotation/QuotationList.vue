@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="page-container">
     <div class="page-header-section">
       <el-page-header @back="$router.push('/home')">
@@ -89,26 +89,26 @@
             <span class="amount">{{ row.totalAmount ? '¥' + row.totalAmount.toLocaleString() : '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="status" :label="t('common.status')" width="100">
+        <el-table-column prop="status" :label="t('common.status')" min-width="100">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)" size="small" effect="light">
               {{ getStatusLabel(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="currentStepName" :label="t('approval.stepName')" width="110">
+        <el-table-column prop="currentStepName" :label="t('approval.stepName')" min-width="110">
           <template #default="{ row }">
             <span class="step-name">{{ row.currentStepName || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="createdByName" :label="t('common.user')" width="100">
+        <el-table-column prop="createdByName" :label="t('common.user')" min-width="100">
           <template #default="{ row }">
             <span class="text-secondary">{{ row.createdByName }}</span>
           </template>
         </el-table-column>
-        <el-table-column :label="t('common.action')" width="150" align="right" fixed="right">
+        <el-table-column :label="t('common.action')" min-width="200" align="right" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" size="small" :icon="View" @click="$router.push(`/quotation/detail/${row.id}`)">
+            <el-button link type="info" size="small" :icon="View" @click="$router.push(`/quotation/detail/${row.id}`)">
               {{ t('common.detail') }}
             </el-button>
             <el-button link type="primary" size="small" :icon="Edit" @click="handleEdit(row)" v-if="row.status === 0">
@@ -172,8 +172,7 @@ const loadData = async () => {
     const res = await quotationApi.list(query.value)
     tableData.value = res.data.list
     total.value = res.data.total
-    // 重置状态统计
-    Object.keys(statusCount).forEach(key => delete statusCount[Number(key)])
+    // 閲嶇疆鐘舵€佺粺璁?    Object.keys(statusCount).forEach(key => delete statusCount[Number(key)])
     tableData.value.forEach((item: any) => {
       statusCount[item.status] = (statusCount[item.status] || 0) + 1
     })
@@ -277,8 +276,7 @@ onMounted(loadData)
   font-size: var(--slds-font-size-sm);
   color: var(--slds-text-secondary);
   margin-top: var(--slds-spacing-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .search-area {
@@ -360,3 +358,4 @@ onMounted(loadData)
   color: var(--slds-text-secondary);
 }
 </style>
+

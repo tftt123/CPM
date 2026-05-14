@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="page-container">
     <div class="page-header-section">
       <el-page-header @back="$router.push('/home')">
@@ -91,7 +91,7 @@
             <span class="amount">{{ row.expectedAmount ? '¥' + row.expectedAmount.toLocaleString() : '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="stage" :label="t('opportunity.stage')" width="110">
+        <el-table-column prop="stage" :label="t('opportunity.stage')" min-width="110">
           <template #default="{ row }">
             <el-tag :type="getStageType(row.stage)" size="small" effect="light">
               {{ getStageLabel(row.stage) }}
@@ -103,7 +103,7 @@
             <span class="date-text">{{ row.quoteDeadline ? formatDate(row.quoteDeadline) : '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="ownerName" :label="t('opportunity.owner')" width="100">
+        <el-table-column prop="ownerName" :label="t('opportunity.owner')" min-width="100">
           <template #default="{ row }">
             <div class="owner-cell">
               <el-icon size="14"><User /></el-icon>
@@ -111,12 +111,12 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column :label="t('common.action')" width="200" align="right" fixed="right">
+        <el-table-column :label="t('common.action')" min-width="200" align="right" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" :icon="Edit" @click="handleEdit(row)">
               {{ t('common.edit') }}
             </el-button>
-            <el-button link type="primary" size="small" :icon="Document" @click="handleCreateQuotation(row)">
+            <el-button link type="success" size="small" :icon="Document" @click="handleCreateQuotation(row)">
               {{ t('common.create') }}
             </el-button>
             <el-button link type="danger" size="small" :icon="Delete" @click="handleDelete(row)">
@@ -307,8 +307,7 @@ onMounted(loadData)
   font-size: var(--slds-font-size-sm);
   color: var(--slds-text-secondary);
   margin-top: var(--slds-spacing-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .search-area {
@@ -398,3 +397,4 @@ onMounted(loadData)
   color: var(--slds-text-secondary);
 }
 </style>
+

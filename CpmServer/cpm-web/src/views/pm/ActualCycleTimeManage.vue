@@ -30,6 +30,11 @@
     </el-card>
 
     <el-table :data="tableData" v-loading="loading" stripe :span-method="objectSpanMethod">
+      <el-table-column prop="quotationNo" :label="t('quotation.quotationNo')" min-width="140">
+        <template #default="{ row }">
+          <span v-if="isFirstRowOfTrace(row)">{{ row.quotationNo }}</span>
+        </template>
+      </el-table-column>
       <el-table-column prop="customerName" :label="t('pmTrace.customer')" min-width="140">
         <template #default="{ row }">
           <span v-if="isFirstRowOfTrace(row)">{{ row.customerName }}</span>
@@ -45,6 +50,7 @@
           <span v-if="isFirstRowOfTrace(row)">{{ row.productName }}</span>
         </template>
       </el-table-column>
+
       <el-table-column prop="stepOrder" :label="t('pmTrace.process')" width="240" align="left">
         <template #default="{ row }">
           {{ row.stepOrder }}.{{ row.processName }}

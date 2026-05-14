@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -6,8 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <TypeScriptToolsVersion>4.5</TypeScriptToolsVersion>
     <UserSecretsId>7d3617c6-26ce-4e3f-b4af-c73e2e1415b7</UserSecretsId>
-    <Platforms>AnyCPU;x86</Platforms>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,18 +29,18 @@
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
   </ItemGroup>
 
-  <!-- 排除前端文件夹 -->
+  <!-- �ų�ǰ���ļ��� -->
   <ItemGroup>
     <Compile Remove="cpm-web\**" />
   </ItemGroup>
 
-  <!-- 排除旧的 OeAppServerHelper（已迁移到 QadAuthBridge 桥接程序） -->
+  <!-- �ų��ɵ� OeAppServerHelper����Ǩ�Ƶ� QadAuthBridge �Žӳ��� -->
   <ItemGroup>
     <Compile Remove="Common\OeAppServerHelper.cs" />
     <Compile Remove="Services\OeAppsvHelper.cs" />
   </ItemGroup>
 
-  <!-- 排除已迁移到模块项目的文件（避免重复定义编译错误） -->
+  <!-- �ų���Ǩ�Ƶ�ģ����Ŀ���ļ��������ظ����������� -->
   <ItemGroup>
     <!-- SharedKernel -->
     <Compile Remove="Common\ApiResult.cs" />
@@ -52,29 +51,29 @@
     <!-- Core -->
     <Compile Remove="Data\**" />
     <Compile Remove="Models\**" />
-    <!-- Approval 模块 -->
+    <!-- Approval ģ�� -->
     <Compile Remove="Services\ApprovalService.cs" />
     <Compile Remove="Services\IApprovalService.cs" />
     <Compile Remove="Services\Approvers\**" />
     <Compile Remove="Controllers\ApprovalController.cs" />
     <Compile Remove="DTOs\Quotation\ApprovalTemplateDto.cs" />
     <Compile Remove="DTOs\Quotation\ApprovalActionDto.cs" />
-    <!-- Quotation 模块 -->
+    <!-- Quotation ģ�� -->
     <Compile Remove="Services\QuotationService.cs" />
     <Compile Remove="Services\IQuotationService.cs" />
     <Compile Remove="Controllers\QuotationController.cs" />
     <Compile Remove="DTOs\Quotation\OpportunityDto.cs" />
     <Compile Remove="DTOs\Quotation\QuotationDto.cs" />
-    <!-- PM 模块 -->
+    <!-- PM ģ�� -->
     <Compile Remove="Controllers\PmProjectTraceController.cs" />
-    <!-- SharedKernel (Email 基础设施) -->
+    <!-- SharedKernel (Email ������ʩ) -->
     <Compile Remove="Services\IEmailService.cs" />
     <Compile Remove="DTOs\Quotation\EmailConfigDto.cs" />
-    <!-- 迁移文件已移动到 CpmServer.Core -->
+    <!-- Ǩ���ļ����ƶ��� CpmServer.Core -->
     <Compile Remove="Migrations\**" />
   </ItemGroup>
 
-  <!-- 模块项目引用 -->
+  <!-- ģ����Ŀ���� -->
   <ItemGroup>
     <ProjectReference Include="..\CpmServer.SharedKernel\CpmServer.SharedKernel.csproj" />
     <ProjectReference Include="..\CpmServer.Core\CpmServer.Core.csproj" />

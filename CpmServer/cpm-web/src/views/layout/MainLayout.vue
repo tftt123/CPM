@@ -1,19 +1,38 @@
-<template>
+﻿<template>
   <el-container style="height: 100vh; background: var(--slds-bg-page);">
-    <!-- 顶部 Global Header -->
+    <!-- 椤堕儴 Global Header -->
     <el-header class="global-header">
       <div class="header-left">
         <div class="app-logo">
-          <el-icon size="24" color="#0176D3"><Cloudy /></el-icon>
-          <span class="app-name">{{ t('layout.appName') }}</span>
+          <img src="/spxlogo/SPINDEX_HRZ_FA.png" class="app-logo-img" alt="logo" />
         </div>
         <div class="app-divider"></div>
-        <div class="current-app">
-          <el-icon size="16"><Grid /></el-icon>
-          <span>{{ t('layout.appFullName') }}</span>
-        </div>
-      </div>
 
+        <el-dropdown @command="handleSwitchApp" trigger="click">
+          <div class="current-app">
+            <el-icon size="16"><Grid /></el-icon>
+            <span>{{ currentAppLabel }}</span>
+            <el-icon class="dropdown-arrow"><ArrowDown /></el-icon>
+          </div>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="cpm" :class="{ 'is-active': currentApp === 'cpm' }">
+                <el-icon v-if="currentApp === 'cpm'"><CircleCheck /></el-icon>
+                <span v-else style="display:inline-block;width:16px"></span>
+                {{ t('app.cpm') }}
+              </el-dropdown-item>
+              <el-dropdown-item command="sp" disabled>
+                <el-icon><Lock /></el-icon>
+                {{ t('app.sp') }} ({{ t('app.comingSoon') }})
+              </el-dropdown-item>
+              <el-dropdown-item command="mes" disabled>
+                <el-icon><Lock /></el-icon>
+                {{ t('app.mes') }} ({{ t('app.comingSoon') }})
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
       <div class="header-center">
         <el-input
           v-model="searchQuery"
@@ -25,7 +44,7 @@
       </div>
 
       <div class="header-right">
-        <!-- Workspace 切换器 -->
+        <!-- Workspace 鍒囨崲鍣?-->
         <div class="workspace-selector" v-if="userStore.siteList.length > 0">
           <el-dropdown @command="handleSwitchSite" trigger="click">
             <div class="workspace-trigger">
@@ -52,7 +71,7 @@
 
         <div class="header-divider"></div>
 
-        <!-- Language 切换器 -->
+        <!-- Language 鍒囨崲鍣?-->
         <div class="language-selector">
           <el-dropdown @command="handleSwitchLanguage" trigger="click">
             <div class="lang-trigger">
@@ -65,8 +84,7 @@
                 <el-dropdown-item command="zh" :class="{ 'is-active': locale === 'zh' }">
                   <el-icon v-if="locale === 'zh'"><CircleCheck /></el-icon>
                   <span v-else style="display:inline-block;width:16px"></span>
-                  简体中文
-                </el-dropdown-item>
+                  简体中文                </el-dropdown-item>
                 <el-dropdown-item command="en" :class="{ 'is-active': locale === 'en' }">
                   <el-icon v-if="locale === 'en'"><CircleCheck /></el-icon>
                   <span v-else style="display:inline-block;width:16px"></span>
@@ -111,7 +129,7 @@
     </el-header>
 
     <el-container style="flex: 1; overflow: hidden;">
-      <!-- 左侧导航栏 -->
+      <!-- 宸︿晶瀵艰埅鏍?-->
       <el-aside width="240px" class="sidebar">
         <div class="nav-section">
           <div class="nav-section-title">{{ t('nav.home') }}</div>
@@ -208,7 +226,7 @@
         </div>
       </el-aside>
 
-      <!-- 主内容区域 -->
+      <!-- 涓诲唴瀹瑰尯鍩?-->
       <el-main class="main-content">
         <router-view />
       </el-main>
@@ -225,7 +243,6 @@ import {
   HomeFilled,
   UserFilled,
   Box,
-  Cloudy,
   Grid,
   Search,
   Bell,
@@ -240,7 +257,8 @@ import {
   OfficeBuilding,
   CircleCheck,
   MapLocation,
-  Timer
+  Timer,
+  Lock
 } from '@element-plus/icons-vue'
 import { authApi } from '@/api/auth'
 import { ElMessage } from 'element-plus'
@@ -250,6 +268,17 @@ const userStore = useUserStore()
 const { t, locale, setLocale } = useI18n()
 const searchQuery = ref('')
 
+
+// Current App / Subsystem
+const currentApp = ref('cpm')
+const currentAppLabel = computed(() => {
+  const map: Record<string, string> = {
+    cpm: t('app.cpm'),
+    sp: t('app.sp'),
+    mes: t('app.mes'),
+  }
+  return map[currentApp.value] || currentApp.value
+})
 const currentLangLabel = computed(() => locale.value === 'zh' ? 'CH' : 'EN')
 
 const isAdmin = computed(() => userStore.roles.some(r => r.toUpperCase() === 'ADMIN'))
@@ -287,6 +316,16 @@ const handleSwitchLanguage = (lang: 'zh' | 'en') => {
   setLocale(lang)
   window.location.reload()
 }
+
+const handleSwitchApp = (command: string) => {
+  if (command === currentApp.value) return
+  if (command === 'cpm') {
+    currentApp.value = command
+    router.push('/home')
+  } else {
+    ElMessage.info(t('app.comingSoon'))
+  }
+}
 </script>
 
 <style scoped>
@@ -309,17 +348,27 @@ const handleSwitchLanguage = (lang: 'zh' | 'en') => {
   gap: var(--slds-spacing-md);
 }
 
+
+
 .app-logo {
   display: flex;
   align-items: center;
   gap: var(--slds-spacing-sm);
 }
 
+.app-logo-img {
+  height: 30px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
 .app-name {
-  font-size: var(--slds-font-size-lg);
-  font-weight: 700;
+  font-size: calc(var(--slds-font-size-lg) + 2px);
+  font-weight: 900;
   color: var(--slds-brand-primary);
-  letter-spacing: -0.5px;
+  letter-spacing: -0.3px;
+  -webkit-text-stroke: 0.3px currentColor;
 }
 
 .app-divider {
@@ -338,11 +387,13 @@ const handleSwitchLanguage = (lang: 'zh' | 'en') => {
   cursor: pointer;
   padding: var(--slds-spacing-sm) var(--slds-spacing-md);
   border-radius: var(--slds-border-radius);
+  border: 1px solid transparent;
   transition: background 0.2s;
 }
 
 .current-app:hover {
   background: var(--slds-bg-hover);
+  border-color: var(--slds-border-color-light);
 }
 
 :deep(.el-dropdown-menu__item.is-active) {
@@ -380,7 +431,7 @@ const handleSwitchLanguage = (lang: 'zh' | 'en') => {
   margin: 0 var(--slds-spacing-xs);
 }
 
-/* Workspace 切换器 - 右上角 */
+/* Workspace 鍒囨崲鍣?- 鍙充笂瑙?*/
 .workspace-selector {
   display: flex;
   align-items: center;
@@ -389,14 +440,14 @@ const handleSwitchLanguage = (lang: 'zh' | 'en') => {
 .workspace-trigger {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: var(--slds-spacing-sm) var(--slds-spacing-md);
   border-radius: var(--slds-border-radius);
   background: transparent;
   border: 1px solid var(--slds-border-color);
   cursor: pointer;
   transition: all 0.2s;
-  height: 34px;
 }
 
 .workspace-trigger:hover {
@@ -409,9 +460,18 @@ const handleSwitchLanguage = (lang: 'zh' | 'en') => {
   font-weight: 600;
   color: var(--slds-text-primary);
   letter-spacing: 0.5px;
+  flex: 0 0 auto;
+  text-align: center;
 }
 
-/* Language 切换器 */
+.workspace-trigger .el-icon:first-child,
+.workspace-trigger .dropdown-arrow {
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* Language 鍒囨崲鍣?*/
 .language-selector {
   display: flex;
   align-items: center;
@@ -420,14 +480,14 @@ const handleSwitchLanguage = (lang: 'zh' | 'en') => {
 .lang-trigger {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  padding: 6px 10px;
+  padding: var(--slds-spacing-sm) var(--slds-spacing-md);
   border-radius: var(--slds-border-radius);
   background: transparent;
   border: 1px solid var(--slds-border-color);
   cursor: pointer;
   transition: all 0.2s;
-  height: 34px;
 }
 
 .lang-trigger:hover {
@@ -441,6 +501,14 @@ const handleSwitchLanguage = (lang: 'zh' | 'en') => {
   color: var(--slds-text-primary);
   min-width: 18px;
   text-align: center;
+  flex: 0 0 auto;
+}
+
+.lang-trigger .el-icon:first-child,
+.lang-trigger .dropdown-arrow {
+  width: 14px;
+  text-align: center;
+  flex-shrink: 0;
 }
 
 .notification-badge :deep(.el-badge__content) {
@@ -517,8 +585,7 @@ const handleSwitchLanguage = (lang: 'zh' | 'en') => {
   color: rgba(255, 255, 255, 0.5);
   font-size: 10px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   padding: var(--slds-spacing-sm) var(--slds-spacing-lg);
 }
 
@@ -570,3 +637,4 @@ const handleSwitchLanguage = (lang: 'zh' | 'en') => {
   padding-left: var(--slds-spacing-lg) !important;
 }
 </style>
+

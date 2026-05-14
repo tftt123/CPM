@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="page-container">
     <div class="page-header">
       <h2>{{ t('nav.approvalCenter') }}</h2>
@@ -6,7 +6,7 @@
 
     <el-table :data="pagedTaskList" v-loading="loading" stripe>
       <el-table-column type="index" :index="(idx: number) => idx + 1 + (currentPage - 1) * pageSize" label="#" width="50" align="center" />
-      <el-table-column :label="t('approval.businessType')" width="120">
+      <el-table-column :label="t('approval.businessType')" min-width="120">
         <template #default="{ row }">
           <el-tag size="small">{{ row.businessType }}</el-tag>
         </template>
@@ -16,12 +16,12 @@
           {{ row.templateName || '-' }}
         </template>
       </el-table-column>
-      <el-table-column :label="t('approval.stepName')" width="120">
+      <el-table-column :label="t('approval.stepName')" min-width="120">
         <template #default="{ row }">
           {{ row.stepName || '-' }}
         </template>
       </el-table-column>
-      <el-table-column :label="t('approval.approverRole')" width="120">
+      <el-table-column :label="t('approval.approverRole')" min-width="120">
         <template #default="{ row }">
           {{ row.assigneeName || row.assigneeRole || '-' }}
         </template>
@@ -31,12 +31,12 @@
           {{ formatDate(row.createdAt) }}
         </template>
       </el-table-column>
-      <el-table-column :label="t('common.action')" width="180" align="center" fixed="right">
+      <el-table-column :label="t('common.action')" min-width="180" align="center" fixed="right">
         <template #default="{ row }">
-          <el-button type="success" size="small" @click="openApproveDialog(row, 'APPROVE')">
+          <el-button link type="success" size="small" :icon="Check" @click="openApproveDialog(row, 'APPROVE')">
             {{ t('common.approve') }}
           </el-button>
-          <el-button type="danger" size="small" @click="openApproveDialog(row, 'REJECT')">
+          <el-button link type="danger" size="small" :icon="Close" @click="openApproveDialog(row, 'REJECT')">
             {{ t('common.reject') }}
           </el-button>
         </template>
@@ -52,7 +52,7 @@
       class="pagination"
     />
 
-    <!-- 审批弹窗 -->
+    <!-- 瀹℃壒寮圭獥 -->
     <el-dialog
       :title="dialogTitle"
       v-model="dialogVisible"
@@ -82,6 +82,7 @@ import { ElMessage } from 'element-plus'
 import { useI18n } from '@/composables/useI18n'
 import { getMyPendingTasks, approveInstance, rejectInstance } from '@/api/approval'
 import type { ApprovalTask } from '@/api/approval'
+import { Check, Close } from '@element-plus/icons-vue'
 
 const { t } = useI18n()
 
@@ -156,23 +157,26 @@ loadData()
 
 <style scoped>
 .page-container {
-  padding: 20px;
+  padding: var(--cpm-space-6);
 }
 .page-header {
-  margin-bottom: 16px;
+  margin-bottom: var(--cpm-space-4);
 }
 .page-header h2 {
   margin: 0;
-  font-size: 20px;
-  font-weight: 600;
+  font-size: var(--cpm-text-display);
+  font-weight: 700;
+  color: var(--cpm-text-primary);
+  letter-spacing: -0.5px;
+  line-height: 1.2;
 }
 .dialog-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
+  gap: var(--cpm-space-3);
 }
 .pagination {
-  margin-top: 16px;
+  margin-top: var(--cpm-space-4);
   justify-content: flex-end;
 }
 </style>

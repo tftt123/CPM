@@ -7,7 +7,7 @@
     save: 'Save',
     create: 'Create',
     edit: 'Edit',
-    delete: 'Delete',
+    delete: 'Del',
     search: 'Search',
     reset: 'Reset',
     add: 'Add',
@@ -71,32 +71,52 @@
     refresh: 'Refresh Data'
   },
   login: {
-    title: 'CPM System',
-    subtitle: 'Customer & Product Management',
+    title: 'S I P',
+    subtitle: 'Spindex Integrated Platform',
     welcome: 'Welcome Back',
     desc: 'Sign in to your account to continue',
     username: 'Username',
     password: 'Password',
     usernamePlaceholder: 'Enter username',
     passwordPlaceholder: 'Enter password',
-    sitePlaceholder: 'Select site',
+    domainPlaceholder: 'Select Domain',
     rememberMe: 'Remember me',
     forgotPassword: 'Forgot password?',
     loginBtn: 'Sign In',
-    qadLogin: 'QAD Login',
+    qadLogin: 'Qad Login',
     localLogin: 'Local Login',
     domain: 'Domain',
-    domainPlaceholder: 'Enter domain',
     feature1: 'Smart Customer Management',
     feature2: 'Full Lifecycle Product Tracking',
     feature3: 'Data-Driven Decision Analysis',
-    copyright: ' CPM System. All rights reserved.',
+    copyright: ' SIP System. All rights reserved.',
     loginSuccess: 'Login successful',
     inputRequired: 'Please enter username and password',
-    selectSite: 'Please select a site'
+    selectSite: 'Please select a site',
+    loginType: 'Login Type',
+    loginTypePlaceholder: 'Select login type'
+  },
+  uiControl: {
+    title: 'UI Control',
+    subtitle: 'Customize interface styles',
+    tableActionTitle: 'Table Action Buttons',
+    tableActionDesc: 'Adjust View / Create / Edit / Delete button styles in tables',
+    buttonWidth: 'Button Width',
+    buttonHeight: 'Button Height',
+    buttonFontSize: 'Button Font',
+    preview: 'Preview',
+    fontSize: 'Font Size',
+    fontSizeDesc: 'Adjust interface base font size',
+    baseFontSize: 'Base Font',
+    fontPreviewText: 'This is a font size preview. Adjust the slider to see changes in real time.',
+    headerTriggerTitle: 'Header Dropdowns',
+    headerTriggerDesc: 'Adjust site and language dropdown size in header',
+    headerTriggerWidth: 'Dropdown Width',
+    headerTriggerHeight: 'Dropdown Height',
+    headerTriggerFontSize: 'Dropdown Font',
   },
   layout: {
-    appName: 'CPM',
+    appName: 'SIP',
     appFullName: 'Customer Project Management',
     searchPlaceholder: 'Global search...'
   },
@@ -143,10 +163,10 @@
   },
   opportunity: {
     pageTitle: 'Opportunity Management',
-    opportunityNo: 'Opportunity No',
+    opportunityNo: 'RFQ No',
     title: 'Title',
-    expectedAmount: 'Expected Amount',
-    quoteDeadline: 'Quote Deadline',
+    expectedAmount: 'Expected AMT',
+    quoteDeadline: 'Due Day',
     stage: 'Stage',
     owner: 'Owner'
   },
@@ -300,7 +320,8 @@
     spec: 'Specification',
     manufacturer: 'Manufacturer',
     hourlyRate: 'Hourly Rate',
-    equipments: 'Equipment List'
+    equipments: 'Equipment List',
+    owner: 'Owner'
   },
   pmTrace: {
     pageTitle: 'Product Trace',
@@ -310,7 +331,7 @@
     customer: 'Customer',
     partNo: 'Part No',
     productName: 'Product Name',
-    plannedQty: 'Planned Qty',
+    plannedQty: 'Planned QTY',
     startDate: 'Start Date',
     displayWeeks: 'Display Weeks',
     statusDraft: 'Draft',
@@ -330,7 +351,7 @@
     actualEnd: 'Actual End',
     ganttChart: 'Gantt Chart',
     routeSummary: 'Route Summary',
-    cycleTime: 'Cycle Time (Sec)',
+    cycleTime: 'CT (Sec)',
     actualCycleTime: 'Actual Cycle Time',
     recordDate: 'Record Date',
     addCycleTime: 'Add Record',
@@ -340,8 +361,8 @@
     new: 'New Trace',
     actualCycleTimeTitle: 'Actual Cycle Time',
     actualCycleTimeSubtitle: 'View latest actual cycle time for all process steps',
-    latestActualCycleTime: 'Latest Actual Cycle Time',
-    latestRecordDate: 'Latest Record Date',
+    latestActualCycleTime: 'Latest CT',
+    latestRecordDate: 'Latest Date',
     pendingApproval: 'Pending',
     submitApproval: 'Submit for Approval',
     submitApprovalSuccess: 'Change request submitted, awaiting approval',
@@ -350,6 +371,16 @@
     statusExpired: 'Expired',
     statusInvalidated: 'Invalidated'
   },
+  siteSetup: {
+    title: 'Site Setup',
+    site: 'Site',
+    siteTip: 'Matches the current site in header',
+    currency: 'Currency',
+    currencyRequired: 'Please select currency',
+    description: 'Company Name',
+    descriptionPlaceholder: 'Enter company name',
+  },
+
   mail: {
     title: 'Mail Configuration',
     subtitle: 'SMTP server settings and testing',
@@ -403,3 +434,9 @@
     rejectSuccess: 'Rejected'
   }
 }
+
+
+
+
+
+

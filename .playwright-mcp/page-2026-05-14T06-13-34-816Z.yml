@@ -1,0 +1,180 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - img "logo" [ref=e7]
+      - button "app.cpm" [ref=e10] [cursor=pointer]:
+        - img [ref=e12]
+        - generic [ref=e14]: app.cpm
+        - img [ref=e16]
+    - generic [ref=e20]:
+      - img [ref=e23]
+      - textbox "全局搜索..." [ref=e25]
+    - generic [ref=e26]:
+      - button "NT01" [ref=e29] [cursor=pointer]:
+        - img [ref=e31]
+        - generic [ref=e35]: NT01
+        - img [ref=e37]
+      - button "CH" [ref=e42] [cursor=pointer]:
+        - img [ref=e44]
+        - generic [ref=e47]: CH
+        - img [ref=e49]
+      - generic [ref=e52]:
+        - button [ref=e53] [cursor=pointer]:
+          - img [ref=e55]
+        - superscript [ref=e59]: "3"
+      - button "Admin ADMIN" [ref=e61] [cursor=pointer]:
+        - img [ref=e64]
+        - generic [ref=e66]:
+          - generic [ref=e67]: Admin
+          - generic [ref=e68]: ADMIN
+        - img [ref=e70]
+  - generic [ref=e72]:
+    - complementary [ref=e73]:
+      - generic [ref=e74]:
+        - generic [ref=e75]: 首页
+        - menubar [ref=e76]:
+          - menuitem "首页" [ref=e77] [cursor=pointer]:
+            - img [ref=e79]
+            - generic [ref=e81]: 首页
+      - generic [ref=e82]:
+        - generic [ref=e83]: RFQ
+        - menubar [ref=e84]:
+          - menuitem "客户管理" [ref=e85] [cursor=pointer]:
+            - img [ref=e87]
+            - generic [ref=e89]: 客户管理
+          - menuitem "产品管理" [ref=e90] [cursor=pointer]:
+            - img [ref=e92]
+            - generic [ref=e96]: 产品管理
+          - menuitem "商机管理" [ref=e97] [cursor=pointer]:
+            - img [ref=e99]
+            - generic [ref=e101]: 商机管理
+          - menuitem "报价单管理" [ref=e102] [cursor=pointer]:
+            - img [ref=e104]
+            - generic [ref=e106]: 报价单管理
+          - menuitem "工艺成本" [ref=e107] [cursor=pointer]:
+            - img [ref=e109]
+            - generic [ref=e111]: 工艺成本
+      - generic [ref=e112]:
+        - generic [ref=e113]: PM
+        - menubar [ref=e114]:
+          - menuitem "实际节拍维护" [ref=e115] [cursor=pointer]:
+            - img [ref=e117]
+            - generic [ref=e121]: 实际节拍维护
+          - menuitem "产品跟踪" [ref=e122] [cursor=pointer]:
+            - img [ref=e124]
+            - generic [ref=e126]: 产品跟踪
+      - generic [ref=e127]:
+        - generic [ref=e128]: 审批中心
+        - menubar [ref=e129]:
+          - menuitem "我的待办" [ref=e130] [cursor=pointer]:
+            - img [ref=e132]
+            - generic [ref=e135]: 我的待办
+      - generic [ref=e136]:
+        - generic [ref=e137]: 销售报表
+        - menubar [ref=e138]:
+          - menuitem "数据分析" [ref=e139] [cursor=pointer]:
+            - img [ref=e141]
+            - generic [ref=e143]: 数据分析
+    - main [ref=e144]:
+      - generic [ref=e145]:
+        - generic [ref=e146]:
+          - generic [ref=e147]:
+            - heading "app.cpm, Admin" [level=1] [ref=e148]
+            - paragraph [ref=e149]: 登录您的账户以继续
+          - button "刷新数据" [ref=e151] [cursor=pointer]:
+            - img [ref=e153]
+            - generic [ref=e155]: 刷新数据
+        - generic [ref=e156]:
+          - generic [ref=e157]:
+            - img [ref=e160]
+            - generic [ref=e162]:
+              - generic [ref=e163]: "2"
+              - generic [ref=e164]: 客户管理
+            - generic [ref=e165]:
+              - img [ref=e167]
+              - generic [ref=e169]: +12%
+          - generic [ref=e170]:
+            - img [ref=e173]
+            - generic [ref=e177]:
+              - generic [ref=e178]: "2"
+              - generic [ref=e179]: 产品管理
+            - generic [ref=e180]:
+              - img [ref=e182]
+              - generic [ref=e184]: +8%
+          - generic [ref=e185]:
+            - img [ref=e188]
+            - generic [ref=e190]:
+              - generic [ref=e191]: "0"
+              - generic [ref=e192]: 销售报表
+            - generic [ref=e193]:
+              - img [ref=e195]
+              - generic [ref=e197]: "-3%"
+          - generic [ref=e198]:
+            - img [ref=e201]
+            - generic [ref=e205]:
+              - generic [ref=e206]: "0"
+              - generic [ref=e207]: 待处理
+            - generic [ref=e208]:
+              - img [ref=e210]
+              - generic [ref=e212]: "+5"
+        - generic [ref=e213]:
+          - generic [ref=e214]:
+            - heading "快捷入口" [level=3] [ref=e216]:
+              - img [ref=e218]
+              - text: 快捷入口
+            - generic [ref=e220]:
+              - generic [ref=e221] [cursor=pointer]:
+                - img [ref=e224]
+                - generic [ref=e226]: 客户管理
+              - generic [ref=e227] [cursor=pointer]:
+                - img [ref=e230]
+                - generic [ref=e234]: 产品管理
+              - generic [ref=e235] [cursor=pointer]:
+                - img [ref=e238]
+                - generic [ref=e240]: 销售报表
+              - generic [ref=e241] [cursor=pointer]:
+                - img [ref=e244]
+                - generic [ref=e246]: 系统设置
+          - generic [ref=e247]:
+            - generic [ref=e248]:
+              - heading "最近动态" [level=3] [ref=e249]:
+                - img [ref=e251]
+                - text: 最近动态
+              - generic [ref=e256] [cursor=pointer]: 查看全部
+            - generic [ref=e257]:
+              - generic [ref=e260]:
+                - paragraph [ref=e261]: New customer "Huawei Technologies"
+                - text: 2 hours ago
+              - generic [ref=e264]:
+                - paragraph [ref=e265]: Updated product "SUS304 Stainless Steel Sheet"
+                - text: 4 hours ago
+              - generic [ref=e268]:
+                - paragraph [ref=e269]: Deleted customer "Test Customer 001"
+                - text: Yesterday
+              - generic [ref=e272]:
+                - paragraph [ref=e273]: System backup completed
+                - text: Yesterday
+              - generic [ref=e276]:
+                - paragraph [ref=e277]: New product "AL6061 Aluminum Profile"
+                - text: 3 days ago
+        - generic [ref=e278]:
+          - heading "系统状态" [level=3] [ref=e280]:
+            - img [ref=e282]
+            - text: 系统状态
+          - generic [ref=e284]:
+            - generic [ref=e285]:
+              - img [ref=e287]
+              - generic [ref=e289]: 后端服务
+              - generic [ref=e290]: 正常运行
+            - generic [ref=e291]:
+              - img [ref=e293]
+              - generic [ref=e295]: 数据库连接
+              - generic [ref=e296]: 已连接
+            - generic [ref=e297]:
+              - img [ref=e299]
+              - generic [ref=e301]: 系统版本
+              - generic [ref=e302]: v1.0.0
+            - generic [ref=e303]:
+              - img [ref=e305]
+              - generic [ref=e307]: 当前日期
+              - generic [ref=e308]: 2026/5/14

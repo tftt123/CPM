@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="page-container">
     <div class="page-header-section" v-if="!embedded">
       <el-page-header @back="$router.push('/home')">
@@ -29,7 +29,7 @@
             <span class="template-name">{{ row.templateName }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="moduleType" :label="t('approval.moduleType')" width="110">
+        <el-table-column prop="moduleType" :label="t('approval.moduleType')" min-width="110">
           <template #default="{ row }">
             <el-tag size="small" effect="light">{{ row.moduleType }}</el-tag>
           </template>
@@ -49,18 +49,18 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="isDefault" :label="t('approval.isDefault')" width="80" align="center">
+        <el-table-column prop="isDefault" :label="t('approval.isDefault')" min-width="80" align="center">
           <template #default="{ row }">
             <el-tag v-if="row.isDefault" type="success" size="small">{{ t('common.yes') }}</el-tag>
             <span v-else class="text-secondary">-</span>
           </template>
         </el-table-column>
-        <el-table-column prop="isActive" :label="t('common.status')" width="80" align="center">
+        <el-table-column prop="isActive" :label="t('common.status')" min-width="80" align="center">
           <template #default="{ row }">
             <el-switch v-model="row.isActive" disabled size="small" />
           </template>
         </el-table-column>
-        <el-table-column :label="t('common.action')" width="150" align="right" fixed="right">
+        <el-table-column :label="t('common.action')" min-width="150" align="right" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" :icon="Edit" @click="handleEdit(row)">
               {{ t('common.edit') }}
@@ -218,7 +218,7 @@
                 </div>
               </div>
 
-              <!-- 条件分支 & 审批规则 -->
+              <!-- 鏉′欢鍒嗘敮 & 瀹℃壒瑙勫垯 -->
               <el-collapse v-model="step._collapse" class="step-collapse">
                 <el-collapse-item :title="t('approval.conditions')" name="conditions">
                   <div v-for="(cond, cIdx) in step.conditions" :key="cIdx" class="sub-item-row">
@@ -474,7 +474,7 @@ const removeRule = (stepIndex: number, ruleIndex: number | string) => {
   form.value.steps[stepIndex].rules.splice(Number(ruleIndex), 1)
 }
 
-// 步骤目标选项（用于驳回目标、条件分支目标）
+// 姝ラ鐩爣閫夐」锛堢敤浜庨┏鍥炵洰鏍囥€佹潯浠跺垎鏀洰鏍囷級
 const stepRejectTargetOptions = (currentStepIndex: number) => {
   return form.value.steps
     .filter((_, i) => i !== currentStepIndex && (_.stepName || _.id))
@@ -487,7 +487,7 @@ const stepTargetOptions = (currentStepIndex: number) => {
     .map(s => ({ label: s.stepName || `Step ${s.stepOrder}`, value: s.id }))
 }
 
-// 规则值选项（根据规则类型提供建议）
+// 瑙勫垯鍊奸€夐」锛堟牴鎹鍒欑被鍨嬫彁渚涘缓璁級
 const ruleValueOptions = (ruleType: string) => {
   if (ruleType === 'FIXED_ROLE') {
     return roleList.value.map(r => ({ label: r.roleName, value: r.roleCode }))
@@ -722,13 +722,13 @@ onMounted(() => {
   margin: 0;
 }
 
-/* 统一审批步骤表单控件高度为 32px */
+/* 缁熶竴瀹℃壒姝ラ琛ㄥ崟鎺т欢楂樺害涓?32px */
 .step-grid :deep(.el-input),
 .step-grid :deep(.el-select) {
   width: 100%;
 }
 
-/* 强制覆盖 Element Plus 默认样式，统一 wrapper 高度和 padding */
+/* 寮哄埗瑕嗙洊 Element Plus 榛樿鏍峰紡锛岀粺涓€ wrapper 楂樺害鍜?padding */
 .slds-form :deep(.el-input__wrapper),
 .step-grid :deep(.el-input__wrapper) {
   height: 32px !important;
@@ -743,21 +743,21 @@ onMounted(() => {
   padding: 1px 11px !important;
 }
 
-/* 统一内部输入框高度 */
+/* 缁熶竴鍐呴儴杈撳叆妗嗛珮搴?*/
 .slds-form :deep(.el-input__inner),
 .step-grid :deep(.el-input__inner) {
   height: 30px !important;
   line-height: 30px !important;
 }
 
-/* el-select 内部 input（filterable 模式时） */
+/* el-select 鍐呴儴 input锛坒ilterable 妯″紡鏃讹級 */
 .slds-form :deep(.el-select .el-input__inner),
 .step-grid :deep(.el-select .el-input__inner) {
   height: 30px !important;
   line-height: 30px !important;
 }
 
-/* 统一 placeholder 行高 */
+/* 缁熶竴 placeholder 琛岄珮 */
 .slds-form :deep(.el-select__placeholder),
 .step-grid :deep(.el-select__placeholder) {
   line-height: 30px !important;

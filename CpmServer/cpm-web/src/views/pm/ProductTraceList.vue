@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="page-container">
     <div class="page-header">
       <h2>{{ t('pmTrace.pageTitle') }}</h2>
@@ -33,23 +33,23 @@
       <el-table-column prop="customerName" :label="t('pmTrace.customer')" min-width="140" />
       <el-table-column prop="productCode" :label="t('pmTrace.partNo')" min-width="140" />
       <el-table-column prop="productName" :label="t('pmTrace.productName')" min-width="160" />
-      <el-table-column prop="plannedQty" :label="t('pmTrace.plannedQty')" width="100" align="center" />
-      <el-table-column prop="projectStartDate" :label="t('pmTrace.startDate')" width="120">
+      <el-table-column prop="plannedQty" :label="t('pmTrace.plannedQty')" min-width="100" align="center" />
+      <el-table-column prop="projectStartDate" :label="t('pmTrace.startDate')" min-width="120">
         <template #default="{ row }">
           {{ formatDate(row.projectStartDate) }}
         </template>
       </el-table-column>
-      <el-table-column prop="status" :label="t('common.status')" width="100">
+      <el-table-column prop="status" :label="t('common.status')" min-width="100">
         <template #default="{ row }">
           <el-tag :type="statusType(row.status)">{{ statusLabel(row.status) }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column :label="t('common.action')" width="180" fixed="right">
+      <el-table-column :label="t('common.action')" min-width="180" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="handleEdit(row)">
+          <el-button link type="primary" size="small" :icon="Edit" @click="handleEdit(row)">
             {{ t('common.edit') }}
           </el-button>
-          <el-button link type="danger" @click="handleDelete(row)">
+          <el-button link type="danger" size="small" :icon="Delete" @click="handleDelete(row)">
             {{ t('common.delete') }}
           </el-button>
         </template>
@@ -72,7 +72,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Search } from '@element-plus/icons-vue'
+import { Plus, Search, Edit, Delete } from '@element-plus/icons-vue'
 import { useI18n } from '@/composables/useI18n'
 import { getTraceList, deleteTrace } from '@/api/pmProjectTrace'
 import type { PmProjectTrace } from '@/api/pmProjectTrace'

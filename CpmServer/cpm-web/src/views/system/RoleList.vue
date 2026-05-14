@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="page-container">
     <div v-if="!embedded" class="page-header-section">
       <el-page-header @back="$router.push('/home')">
@@ -30,12 +30,12 @@
           </template>
         </el-table-column>
         <el-table-column prop="roleName" :label="t('approval.templateName')" min-width="160" />
-        <el-table-column prop="site" :label="t('common.site')" width="100">
+        <el-table-column prop="site" :label="t('common.site')" min-width="100">
           <template #default="{ row }">
             <span class="text-secondary">{{ row.site || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column :label="t('common.action')" width="150" align="right" fixed="right">
+        <el-table-column :label="t('common.action')" min-width="150" align="right" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" :icon="Edit" @click="handleEdit(row)">
               {{ t('common.edit') }}

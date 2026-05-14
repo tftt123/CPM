@@ -84,6 +84,7 @@ export function deleteTrace(id: number): Promise<ApiResponse<unknown>> {
 
 export interface PmProjectTraceStepCycleTimeItem {
   traceId: number
+  quotationNo?: string
   customerName: string
   productCode: string
   productName?: string

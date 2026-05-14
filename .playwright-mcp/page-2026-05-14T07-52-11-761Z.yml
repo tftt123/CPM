@@ -1,0 +1,307 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - img "logo" [ref=e7]
+      - button "app.cpm" [ref=e10] [cursor=pointer]:
+        - img [ref=e12]
+        - generic [ref=e14]: app.cpm
+        - img [ref=e16]
+    - generic [ref=e20]:
+      - img [ref=e23]
+      - textbox "全局搜索..." [ref=e25]
+    - generic [ref=e26]:
+      - button "NT01" [ref=e29] [cursor=pointer]:
+        - img [ref=e31]
+        - generic [ref=e35]: NT01
+        - img [ref=e37]
+      - button "CH" [ref=e42] [cursor=pointer]:
+        - img [ref=e44]
+        - generic [ref=e47]: CH
+        - img [ref=e49]
+      - generic [ref=e52]:
+        - button [ref=e53] [cursor=pointer]:
+          - img [ref=e55]
+        - superscript [ref=e59]: "3"
+      - button "Admin ADMIN" [ref=e61] [cursor=pointer]:
+        - img [ref=e64]
+        - generic [ref=e66]:
+          - generic [ref=e67]: Admin
+          - generic [ref=e68]: ADMIN
+        - img [ref=e70]
+  - generic [ref=e72]:
+    - complementary [ref=e73]:
+      - generic [ref=e74]:
+        - generic [ref=e75]: 首页
+        - menubar [ref=e76]:
+          - menuitem "首页" [ref=e77] [cursor=pointer]:
+            - img [ref=e79]
+            - generic [ref=e81]: 首页
+      - generic [ref=e82]:
+        - generic [ref=e83]: RFQ
+        - menubar [ref=e84]:
+          - menuitem "客户管理" [ref=e85] [cursor=pointer]:
+            - img [ref=e87]
+            - generic [ref=e89]: 客户管理
+          - menuitem "产品管理" [ref=e90] [cursor=pointer]:
+            - img [ref=e92]
+            - generic [ref=e96]: 产品管理
+          - menuitem "商机管理" [ref=e97] [cursor=pointer]:
+            - img [ref=e99]
+            - generic [ref=e101]: 商机管理
+          - menuitem "报价单管理" [ref=e102] [cursor=pointer]:
+            - img [ref=e104]
+            - generic [ref=e106]: 报价单管理
+          - menuitem "工艺成本" [ref=e107] [cursor=pointer]:
+            - img [ref=e109]
+            - generic [ref=e111]: 工艺成本
+      - generic [ref=e112]:
+        - generic [ref=e113]: PM
+        - menubar [ref=e114]:
+          - menuitem "实际节拍维护" [ref=e115] [cursor=pointer]:
+            - img [ref=e117]
+            - generic [ref=e121]: 实际节拍维护
+          - menuitem "产品跟踪" [ref=e122] [cursor=pointer]:
+            - img [ref=e124]
+            - generic [ref=e126]: 产品跟踪
+      - generic [ref=e127]:
+        - generic [ref=e128]: 审批中心
+        - menubar [ref=e129]:
+          - menuitem "我的待办" [ref=e130] [cursor=pointer]:
+            - img [ref=e132]
+            - generic [ref=e135]: 我的待办
+      - generic [ref=e136]:
+        - generic [ref=e137]: 销售报表
+        - menubar [ref=e138]:
+          - menuitem "数据分析" [ref=e139] [cursor=pointer]:
+            - img [ref=e141]
+            - generic [ref=e143]: 数据分析
+    - main [ref=e144]:
+      - generic [ref=e145]:
+        - generic [ref=e148]:
+          - generic [ref=e149]:
+            - button "返回 返回" [ref=e150] [cursor=pointer]:
+              - generic "返回" [ref=e151]:
+                - img [ref=e153]
+              - generic [ref=e156]: 返回
+            - separator [ref=e157]
+            - generic [ref=e159]:
+              - heading "报价单管理" [level=1] [ref=e160]
+              - generic [ref=e161]: 报价单详情
+          - button "创建" [ref=e163] [cursor=pointer]:
+            - img [ref=e165]
+            - generic [ref=e167]: 创建
+        - generic [ref=e168]:
+          - generic [ref=e169]:
+            - generic [ref=e170]: "0"
+            - generic [ref=e171]: 合计
+          - generic [ref=e172]:
+            - generic [ref=e173]: "0"
+            - generic [ref=e174]: 草稿
+          - generic [ref=e175]:
+            - generic [ref=e176]: "0"
+            - generic [ref=e177]: 待评审
+          - generic [ref=e178]:
+            - generic [ref=e179]: "0"
+            - generic [ref=e180]: 已发布
+        - generic [ref=e182]:
+          - generic [ref=e183]:
+            - generic [ref=e184]: 搜索
+            - generic [ref=e187]:
+              - img [ref=e190]
+              - textbox "搜索" [ref=e192]:
+                - /placeholder: 请输入
+          - generic [ref=e194]:
+            - generic [ref=e195]: 状态
+            - generic [ref=e198] [cursor=pointer]:
+              - generic:
+                - combobox "状态" [ref=e200]
+                - generic [ref=e201]: 全部
+              - img [ref=e204]
+          - generic [ref=e207]:
+            - button "搜索" [ref=e208] [cursor=pointer]:
+              - img [ref=e210]
+              - generic [ref=e212]: 搜索
+            - button "重置" [ref=e213] [cursor=pointer]:
+              - img [ref=e215]
+              - generic [ref=e217]: 重置
+        - generic [ref=e218]:
+          - generic [ref=e220]:
+            - table [ref=e222]:
+              - rowgroup [ref=e233]:
+                - row "# 报价单号 标题 客户 总金额 状态 步骤名称 用户 操作" [ref=e234]:
+                  - columnheader "#" [ref=e235]:
+                    - generic [ref=e236]: "#"
+                  - columnheader "报价单号" [ref=e237]:
+                    - generic [ref=e238]: 报价单号
+                  - columnheader "标题" [ref=e239]:
+                    - generic [ref=e240]: 标题
+                  - columnheader "客户" [ref=e241]:
+                    - generic [ref=e242]: 客户
+                  - columnheader "总金额" [ref=e243]:
+                    - generic [ref=e244]: 总金额
+                  - columnheader "状态" [ref=e245]:
+                    - generic [ref=e246]: 状态
+                  - columnheader "步骤名称" [ref=e247]:
+                    - generic [ref=e248]: 步骤名称
+                  - columnheader "用户" [ref=e249]:
+                    - generic [ref=e250]: 用户
+                  - columnheader "操作" [ref=e251]:
+                    - generic [ref=e252]: 操作
+            - generic [ref=e256]:
+              - table:
+                - rowgroup
+              - generic [ref=e258]: 暂无数据
+          - generic [ref=e259]:
+            - generic [ref=e260]: 合计 0
+            - generic [ref=e261]:
+              - button "上一页" [disabled] [ref=e262]:
+                - generic:
+                  - img
+              - list [ref=e263]:
+                - listitem "第 1 页" [ref=e264]: "1"
+              - button "下一页" [disabled] [ref=e265]:
+                - generic:
+                  - img
+              - generic [ref=e268] [cursor=pointer]:
+                - generic:
+                  - combobox [ref=e270]
+                  - generic [ref=e271]: 10条/页
+                - img [ref=e274]
+        - dialog "创建" [ref=e277]:
+          - generic [ref=e278]:
+            - generic [ref=e279]:
+              - generic [ref=e280]:
+                - generic [ref=e281]: 创建
+                - generic [ref=e282]:
+                  - button "最大化" [ref=e283] [cursor=pointer]:
+                    - img [ref=e285]
+                    - generic [ref=e287]: 最大化
+                  - button [ref=e288] [cursor=pointer]:
+                    - img [ref=e290]
+              - button "关闭此对话框" [ref=e292] [cursor=pointer]:
+                - img [ref=e294]
+            - generic [ref=e298]:
+              - generic [ref=e299]:
+                - generic [ref=e300]: "* 标题"
+                - generic [ref=e303]:
+                  - generic:
+                    - combobox "* 标题" [ref=e305]
+                    - generic [ref=e306]: 请选择
+                  - img [ref=e309] [cursor=pointer]
+              - generic [ref=e311]:
+                - generic [ref=e312]: "* 客户"
+                - generic [ref=e315]:
+                  - generic:
+                    - combobox "* 客户" [ref=e317]
+                    - generic [ref=e318]: 请选择
+                  - img [ref=e321] [cursor=pointer]
+              - generic [ref=e323]:
+                - generic [ref=e324]:
+                  - generic [ref=e325]: 报价明细
+                  - button "新增产品" [active] [ref=e326] [cursor=pointer]:
+                    - img [ref=e328]
+                    - generic [ref=e330]: 新增产品
+                - generic [ref=e332]:
+                  - table [ref=e334]:
+                    - rowgroup [ref=e346]:
+                      - row "产品名称 数量 加工类型 设备类型 设备 节拍(秒) 小时费率 加工费 金额 操作" [ref=e347]:
+                        - columnheader "产品名称" [ref=e348]:
+                          - generic [ref=e349]: 产品名称
+                        - columnheader "数量" [ref=e350]:
+                          - generic [ref=e351]: 数量
+                        - columnheader "加工类型" [ref=e352]:
+                          - generic [ref=e353]: 加工类型
+                        - columnheader "设备类型" [ref=e354]:
+                          - generic [ref=e355]: 设备类型
+                        - columnheader "设备" [ref=e356]:
+                          - generic [ref=e357]: 设备
+                        - columnheader "节拍(秒)" [ref=e358]:
+                          - generic [ref=e359]: 节拍(秒)
+                        - columnheader "小时费率" [ref=e360]:
+                          - generic [ref=e361]: 小时费率
+                        - columnheader "加工费" [ref=e362]:
+                          - generic [ref=e363]: 加工费
+                        - columnheader "金额" [ref=e364]:
+                          - generic [ref=e365]: 金额
+                        - columnheader "操作" [ref=e366]:
+                          - generic [ref=e367]: 操作
+                  - table [ref=e408]:
+                    - rowgroup [ref=e420]:
+                      - row "请选择 1 请选择 请选择 请选择 减少数值 增加数值 0 减少数值 增加数值 0 ¥0.00 ¥0.00" [ref=e421]:
+                        - cell "请选择" [ref=e422]:
+                          - generic [ref=e425]:
+                            - generic:
+                              - combobox [ref=e427]
+                              - generic [ref=e428]: 请选择
+                            - img [ref=e431] [cursor=pointer]
+                        - cell "1" [ref=e433]:
+                          - textbox [ref=e437]: "1"
+                        - cell "请选择" [ref=e438]:
+                          - generic [ref=e441]:
+                            - generic:
+                              - combobox [ref=e443]
+                              - generic [ref=e444]: 请选择
+                            - img [ref=e447] [cursor=pointer]
+                        - cell "请选择" [ref=e449]:
+                          - generic [ref=e452]:
+                            - generic:
+                              - combobox [disabled] [ref=e454]
+                              - generic [ref=e455]: 请选择
+                            - generic:
+                              - generic:
+                                - img
+                        - cell "请选择" [ref=e456]:
+                          - generic [ref=e459]:
+                            - generic:
+                              - combobox [disabled] [ref=e461]
+                              - generic [ref=e462]: 请选择
+                            - generic:
+                              - generic:
+                                - img
+                        - cell "减少数值 增加数值 0" [ref=e463]:
+                          - generic [ref=e465]:
+                            - button "减少数值" [ref=e466]:
+                              - img [ref=e468]
+                            - button "增加数值" [ref=e470] [cursor=pointer]:
+                              - img [ref=e472]
+                            - spinbutton [ref=e476]: "0.00"
+                        - cell "减少数值 增加数值 0" [ref=e477]:
+                          - generic [ref=e479]:
+                            - button "减少数值" [ref=e480]:
+                              - img [ref=e482]
+                            - button "增加数值" [ref=e484] [cursor=pointer]:
+                              - img [ref=e486]
+                            - spinbutton [ref=e490]: "0.00"
+                        - cell "¥0.00" [ref=e491]:
+                          - generic [ref=e492]: ¥0.00
+                        - cell "¥0.00" [ref=e493]:
+                          - generic [ref=e494]: ¥0.00
+                        - cell [ref=e495]:
+                          - button [ref=e497] [cursor=pointer]:
+                            - img [ref=e499]
+                - generic [ref=e374]:
+                  - generic [ref=e375]:
+                    - generic [ref=e376]: "包装:"
+                    - textbox [ref=e379]: "0"
+                  - generic [ref=e380]:
+                    - generic [ref=e381]: "运输:"
+                    - textbox [ref=e384]: "0"
+                - generic [ref=e385]:
+                  - generic [ref=e386]: "总金额:"
+                  - generic [ref=e387]: ¥0.00
+              - generic [ref=e388]:
+                - generic [ref=e389]:
+                  - img [ref=e391]
+                  - generic [ref=e393]: 附件
+                - generic [ref=e394]:
+                  - button "上传附件" [ref=e395] [cursor=pointer]:
+                    - button "上传附件" [ref=e396]:
+                      - img [ref=e398]
+                      - generic [ref=e400]: 上传附件
+                  - generic [ref=e401]: 支持多个文件，单个文件不超过 50MB
+                  - list
+            - generic [ref=e403]:
+              - button "取消" [ref=e404] [cursor=pointer]:
+                - generic [ref=e405]: 取消
+              - button "创建" [ref=e406] [cursor=pointer]:
+                - generic [ref=e407]: 创建

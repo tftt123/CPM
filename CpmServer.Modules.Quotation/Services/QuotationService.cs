@@ -264,7 +264,8 @@ public class QuotationService : IQuotationService
                     Equipment = i.Equipment,
                     CycleTime = i.CycleTime,
                     HourlyRate = i.HourlyRate,
-                    Cost = i.Cost
+                    Cost = i.Cost,
+                    IsProcessRow = i.IsProcessRow
                 }).ToList() ?? new List<QuotationItemDto>()
             });
         }
@@ -327,7 +328,8 @@ public class QuotationService : IQuotationService
                 Equipment = i.Equipment,
                 CycleTime = i.CycleTime,
                 HourlyRate = i.HourlyRate,
-                Cost = i.Cost
+                Cost = i.Cost,
+                IsProcessRow = i.IsProcessRow
             }).ToList()
         };
     }
@@ -369,7 +371,7 @@ public class QuotationService : IQuotationService
         foreach (var item in validItems)
         {
             var cost = item.CycleTime.HasValue && item.HourlyRate.HasValue
-                ? item.CycleTime.Value * item.HourlyRate.Value
+                ? item.CycleTime.Value / 3600m * item.HourlyRate.Value
                 : item.Cost;
             _db.QuotationItems.Add(new QuoQuotationItem
             {
@@ -382,7 +384,8 @@ public class QuotationService : IQuotationService
                 Equipment = item.Equipment,
                 CycleTime = item.CycleTime,
                 HourlyRate = item.HourlyRate,
-                Cost = cost
+                Cost = cost,
+                IsProcessRow = item.IsProcessRow
             });
         }
 
@@ -435,7 +438,7 @@ public class QuotationService : IQuotationService
         {
             lineTotal += item.LineAmount ?? 0;
             var cost = item.CycleTime.HasValue && item.HourlyRate.HasValue
-                ? item.CycleTime.Value * item.HourlyRate.Value
+                ? item.CycleTime.Value / 3600m * item.HourlyRate.Value
                 : item.Cost;
             _db.QuotationItems.Add(new QuoQuotationItem
             {
@@ -448,7 +451,8 @@ public class QuotationService : IQuotationService
                 Equipment = item.Equipment,
                 CycleTime = item.CycleTime,
                 HourlyRate = item.HourlyRate,
-                Cost = cost
+                Cost = cost,
+                IsProcessRow = item.IsProcessRow
             });
         }
 

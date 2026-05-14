@@ -358,6 +358,9 @@ namespace CpmServer.Core.Migrations
                     b.Property<decimal?>("CycleTime")
                         .HasColumnType("decimal(18,4)");
 
+                    b.Property<string>("Equipment")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal?>("EstimatedHours")
                         .HasColumnType("decimal(18,4)");
 
@@ -648,6 +651,9 @@ namespace CpmServer.Core.Migrations
 
                     b.Property<decimal?>("HourlyRate")
                         .HasColumnType("decimal(18,4)");
+
+                    b.Property<bool>("IsProcessRow")
+                        .HasColumnType("bit");
 
                     b.Property<decimal?>("LineAmount")
                         .HasColumnType("decimal(18,2)");
@@ -1288,6 +1294,39 @@ namespace CpmServer.Core.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("SysRole");
+                });
+
+            modelBuilder.Entity("CpmServer.Models.SysSiteSettings", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Site")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SysSiteSettings");
                 });
 
             modelBuilder.Entity("CpmServer.Models.SysUser", b =>

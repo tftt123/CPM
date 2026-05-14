@@ -92,7 +92,7 @@
                 <span v-else></span>
               </template>
             </el-table-column>
-            <el-table-column :label="t('quotation.qty')" width="80">
+            <el-table-column :label="t('quotation.qty')" min-width="80">
               <template #default="{ row, $index }">
                 <el-input
                   v-if="!row.isProcessRow"
@@ -163,37 +163,43 @@
                 </el-select>
               </template>
             </el-table-column>
-            <el-table-column :label="t('quotation.cycleTime')" width="80">
+            <el-table-column :label="t('quotation.cycleTime')" min-width="80">
               <template #default="{ row, $index }">
-                <el-input
+                <el-input-number
                   v-model="row.cycleTime"
+                  :min="0"
+                  :precision="2"
                   size="small"
                   style="width: 100%"
-                  @blur="() => { row.cycleTime = Number(row.cycleTime) || 0; calcCost($index) }"
+                  controls-position="right"
+                  @change="() => calcCost($index)"
                 />
               </template>
             </el-table-column>
-            <el-table-column :label="t('quotation.hourlyRate')" width="90">
+            <el-table-column :label="t('quotation.hourlyRate')" min-width="90">
               <template #default="{ row, $index }">
-                <el-input
+                <el-input-number
                   v-model="row.hourlyRate"
+                  :min="0"
+                  :precision="2"
                   size="small"
                   style="width: 100%"
-                  @blur="() => { row.hourlyRate = Number(row.hourlyRate) || 0; calcCost($index) }"
+                  controls-position="right"
+                  @change="() => calcCost($index)"
                 />
               </template>
             </el-table-column>
-            <el-table-column :label="t('quotation.processingFee')" width="90">
+            <el-table-column :label="t('quotation.processingFee')" min-width="90">
               <template #default="{ row }">
                 <span class="line-cost">{{ formatCurrency(row.cost || 0) }}</span>
               </template>
             </el-table-column>
-            <el-table-column :label="t('quotation.lineAmount')" width="90">
+            <el-table-column :label="t('quotation.lineAmount')" min-width="90">
               <template #default="{ row }">
                 <span class="line-amount">{{ formatCurrency(Number(row.lineAmount) || 0) }}</span>
               </template>
             </el-table-column>
-            <el-table-column :label="t('common.action')" width="80" align="center">
+            <el-table-column :label="t('common.action')" min-width="80" align="center">
               <template #default="{ row, $index }">
                 <el-button
                   v-if="!row.isProcessRow && row.productId"
@@ -678,7 +684,8 @@ const handleSubmit = async () => {
         equipment: i.equipment,
         cycleTime: i.cycleTime,
         hourlyRate: i.hourlyRate,
-        cost: i.cost
+        cost: i.cost,
+        isProcessRow: i.isProcessRow
       }))
     }
     if (isEdit.value) {

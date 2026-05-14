@@ -23,7 +23,7 @@
     </div>
 
     <div class="detail-grid" v-loading="loading">
-      <!-- Left: Quotation Info -->
+      <!-- Left: Quotation Info + Product Groups -->
       <div class="detail-left">
         <div class="content-card info-card">
           <div class="card-header">
@@ -53,7 +53,7 @@
             </div>
             <div class="info-item">
               <div class="info-label">{{ t('quotation.totalAmount') }}</div>
-              <div class="info-value amount">¥{{ detail?.totalAmount?.toLocaleString() || '0.00' }}</div>
+              <div class="info-value amount">{{ formatCurrency(detail?.totalAmount || 0) }}</div>
             </div>
             <div class="info-item">
               <div class="info-label">{{ t('common.user') }}</div>
@@ -66,49 +66,89 @@
           </div>
         </div>
 
+        <!-- Product Groups: grouped card style -->
         <div class="content-card items-card">
           <div class="card-header">
             <el-icon size="18"><Tickets /></el-icon>
             <span>{{ t('quotation.items') }}</span>
+            <span class="items-count" v-if="productGroups.length > 0">
+              {{ productGroups.length }} {{ t('quotation.products') }}, {{ totalProcessCount }} {{ t('quotation.processes') }}
+            </span>
           </div>
-          <el-table :data="detail?.items" size="small">
-            <el-table-column type="index" label="#" width="50" align="center" />
-            <el-table-column prop="productName" :label="t('quotation.productName')" min-width="140" />
-            <el-table-column prop="qty" :label="t('quotation.qty')" width="60" align="center" />
-            <el-table-column prop="unitPrice" :label="t('quotation.unitPrice')" width="100" align="right">
-              <template #default="{ row }">
-                ¥{{ row.unitPrice?.toFixed(2) }}
-              </template>
-            </el-table-column>
-            <el-table-column prop="lineAmount" :label="t('quotation.lineAmount')" width="100" align="right">
-              <template #default="{ row }">
-                <span class="amount">¥{{ row.lineAmount?.toFixed(2) }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column prop="processType" label="加工类型" width="90" />
-            <el-table-column prop="equipmentType" label="设备类型" width="90" />
-            <el-table-column prop="equipment" label="设备" width="100" />
-            <el-table-column prop="cycleTime" :label="t('quotation.cycleTime')" width="80" align="right">
-              <template #default="{ row }">
-                {{ row.cycleTime?.toFixed(4) || '-' }}
-              </template>
-            </el-table-column>
-            <el-table-column prop="hourlyRate" label="小时费率" width="90" align="right">
-              <template #default="{ row }">
-                {{ row.hourlyRate?.toFixed(4) || '-' }}
-              </template>
-            </el-table-column>
-            <el-table-column prop="cost" label="成本" width="100" align="right">
-              <template #default="{ row }">
-                <span class="cost">¥{{ row.cost?.toFixed(4) || '0.0000' }}</span>
-              </template>
-            </el-table-column>
-          </el-table>
-          <div class="items-total">
-            <span>{{ t('common.total') }}：</span>
-            <span class="total-amount">¥{{ detail?.totalAmount?.toFixed(2) || '0.00' }}</span>
-            <span style="margin-left: 24px;">成本合计：</span>
-            <span class="total-cost">¥{{ totalItemCost.toFixed(4) }}</span>
+
+          <div class="product-groups" v-if="productGroups.length > 0">
+            <div
+              v-for="(group, groupIndex) in productGroups"
+              :key="group.productId || groupIndex"
+              class="product-group"
+            >
+              <!-- Group Header: Product Name + Qty -->
+              <div class="group-header">
+                <div class="group-product">
+                  <el-icon size="16"><Box /></el-icon>
+                  <span class="group-product-name">{{ group.productName }}</span>
+                  <el-tag size="small" type="info">x{{ group.qty }}</el-tag>
+                </div>
+                <div class="group-summary">
+                  <span class="group-cost">{{ t('quotation.processingFee') }}: {{ formatCurrency(group.processCost) }}</span>
+                  <span class="group-amount">{{ formatCurrency(group.lineAmount) }}</span>
+                </div>
+              </div>
+
+              <!-- Process Table -->
+              <div class="group-table">
+                <div class="group-table-header">
+                  <span class="th">{{ t('quotation.processType') }}</span>
+                  <span class="th">{{ t('quotation.equipmentType') }}</span>
+                  <span class="th">{{ t('quotation.equipment') }}</span>
+                  <span class="th" align="right">{{ t('quotation.cycleTime') }}</span>
+                  <span class="th" align="right">{{ t('quotation.hourlyRate') }}</span>
+                  <span class="th" align="right">{{ t('quotation.processingFee') }}</span>
+                  <span class="th" align="right">{{ t('quotation.lineAmount') }}</span>
+                </div>
+                <div
+                  v-for="(process, pIdx) in group.processes"
+                  :key="process.id || pIdx"
+                  class="group-table-row"
+                  :class="{ 'is-master': pIdx === 0 }"
+                >
+                  <span class="td">{{ process.processType || '-' }}</span>
+                  <span class="td">{{ process.equipmentType || '-' }}</span>
+                  <span class="td">{{ process.equipment || '-' }}</span>
+                  <span class="td" align="right">{{ process.cycleTime?.toFixed(2) || '-' }}</span>
+                  <span class="td" align="right">{{ process.hourlyRate?.toFixed(2) || '-' }}</span>
+                  <span class="td cost" align="right">{{ formatCurrency(process.cost || 0) }}</span>
+                  <span class="td amount" align="right">{{ formatCurrency(process.lineAmount || 0) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <el-empty v-else :description="t('common.noData')" />
+
+          <!-- Grand Total -->
+          <div class="items-total" v-if="productGroups.length > 0">
+            <div class="total-breakdown">
+              <span class="extra-cost-label">{{ t('quotation.packaging') }}: {{ formatCurrency(detail?.packagingCost || 0) }}</span>
+              <span class="extra-cost-label">{{ t('quotation.transport') }}: {{ formatCurrency(detail?.transportCost || 0) }}</span>
+            </div>
+            <div class="total-final">
+              <span>{{ t('quotation.totalAmount') }}: </span>
+              <span class="total-amount">{{ formatCurrency(detail?.totalAmount || 0) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Attachments -->
+        <div class="content-card" v-if="detail?.fileIds?.length">
+          <div class="card-header">
+            <el-icon size="18"><Paperclip /></el-icon>
+            <span>{{ t('quotation.attachments') }}</span>
+          </div>
+          <div class="attachments-list">
+            <div v-for="fileId in detail.fileIds" :key="fileId" class="attachment-item">
+              <el-icon size="16"><Document /></el-icon>
+              <span class="attachment-name">{{ fileId }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -203,7 +243,7 @@
             />
           </el-form-item>
           <el-form-item :label="t('quotation.totalAmount')" v-if="approveAction === 'APPROVE' && isReviewStep">
-            <div class="info-value amount">¥{{ detail?.totalAmount?.toLocaleString() || '0.00' }}</div>
+            <div class="info-value amount">{{ formatCurrency(detail?.totalAmount || 0) }}</div>
           </el-form-item>
         </el-form>
       </div>
@@ -264,6 +304,7 @@ import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { quotationApi } from '@/api/quotation'
 import { useI18n } from '@/composables/useI18n'
+import { groupQuotationItems, type ProductGroup } from '@/composables/useQuotationGroups'
 import {
   Document,
   Tickets,
@@ -273,7 +314,9 @@ import {
   Promotion,
   View,
   User,
-  UserFilled
+  UserFilled,
+  Box,
+  Paperclip
 } from '@element-plus/icons-vue'
 
 const route = useRoute()
@@ -286,9 +329,21 @@ const canApprove = ref(false)
 const canReject = ref(false)
 const isReviewStep = ref(false)
 
-const totalItemCost = computed(() => {
-  return (detail.value?.items || []).reduce((sum: number, item: any) => sum + (item.cost || 0), 0)
+/** 产品分组数据 */
+const productGroups = computed<ProductGroup[]>(() => {
+  if (!detail.value?.items) return []
+  return groupQuotationItems(detail.value.items)
 })
+
+/** 总工艺数 */
+const totalProcessCount = computed(() =>
+  productGroups.value.reduce((sum, g) => sum + g.processes.length, 0)
+)
+
+/** 货币格式化 */
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY' }).format(value)
+}
 
 const forecastDialogVisible = ref(false)
 const forecastLoading = ref(false)
@@ -475,6 +530,13 @@ onMounted(loadDetail)
   color: var(--slds-text-primary);
 }
 
+.items-count {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--slds-text-secondary);
+  font-weight: 400;
+}
+
 .info-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -492,8 +554,7 @@ onMounted(loadDetail)
   font-size: 12px;
   color: var(--slds-text-secondary);
   font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .info-value {
@@ -514,18 +575,150 @@ onMounted(loadDetail)
   color: var(--slds-brand-primary);
 }
 
-.items-card {
-  padding-bottom: var(--slds-spacing-md);
+/* Product Group Styles */
+.product-groups {
+  padding: var(--slds-spacing-md) var(--slds-spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--slds-spacing-lg);
 }
 
+.product-group {
+  border: 1px solid var(--slds-border-color-light);
+  border-radius: var(--slds-border-radius);
+  overflow: hidden;
+}
+
+.group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--slds-spacing-md) var(--slds-spacing-lg);
+  background: #FAFBFC;
+  border-bottom: 1px solid var(--slds-border-color-light);
+}
+
+.group-product {
+  display: flex;
+  align-items: center;
+  gap: var(--slds-spacing-sm);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--slds-text-primary);
+}
+
+.group-product-name {
+  color: var(--slds-brand-primary);
+}
+
+.group-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--slds-spacing-md);
+  font-size: 13px;
+}
+
+.group-cost {
+  color: var(--slds-text-secondary);
+}
+
+.group-amount {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--slds-brand-primary);
+}
+
+/* Group Table */
+.group-table {
+  width: 100%;
+}
+
+.group-table-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 80px 80px 90px 90px;
+  gap: 8px;
+  padding: 8px var(--slds-spacing-lg);
+  background: #F5F7FA;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--slds-text-secondary);
+  border-bottom: 1px solid var(--slds-border-color-light);
+}
+
+.group-table-header .th {
+  white-space: nowrap;
+}
+
+.group-table-header .th[align="right"] {
+  text-align: right;
+}
+
+.group-table-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 80px 80px 90px 90px;
+  gap: 8px;
+  padding: 10px var(--slds-spacing-lg);
+  font-size: 13px;
+  color: var(--slds-text-primary);
+  border-bottom: 1px solid var(--slds-border-color-light);
+  transition: background 0.15s ease;
+}
+
+.group-table-row:last-child {
+  border-bottom: none;
+}
+
+.group-table-row:hover {
+  background: #FAFBFC;
+}
+
+.group-table-row.is-master {
+  background: #FFF8F0;
+}
+
+.group-table-row .td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.group-table-row .td[align="right"] {
+  text-align: right;
+}
+
+.group-table-row .td.cost {
+  color: var(--slds-brand-primary);
+  font-weight: 600;
+}
+
+.group-table-row .td.amount {
+  font-weight: 700;
+  color: var(--slds-text-primary);
+}
+
+/* Items Total */
 .items-total {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   padding: var(--slds-spacing-md) var(--slds-spacing-lg);
   border-top: 1px solid var(--slds-border-color-light);
   font-size: 14px;
   color: var(--slds-text-secondary);
+}
+
+.total-breakdown {
+  display: flex;
+  gap: var(--slds-spacing-lg);
+}
+
+.extra-cost-label {
+  font-size: 13px;
+  color: var(--slds-text-secondary);
+}
+
+.total-final {
+  font-size: 14px;
 }
 
 .total-amount {
@@ -535,22 +728,25 @@ onMounted(loadDetail)
   margin-left: 8px;
 }
 
-.amount {
-  font-weight: 600;
+/* Attachments */
+.attachments-list {
+  padding: var(--slds-spacing-md) var(--slds-spacing-lg);
+}
+
+.attachment-item {
+  display: flex;
+  align-items: center;
+  gap: var(--slds-spacing-sm);
+  padding: var(--slds-spacing-sm) 0;
+  font-size: 13px;
+  color: var(--slds-text-secondary);
+}
+
+.attachment-name {
   color: var(--slds-text-primary);
 }
 
-.cost {
-  font-weight: 600;
-  color: var(--slds-error);
-}
-
-.total-cost {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--slds-error);
-}
-
+/* Approval */
 .approval-card {
   padding-bottom: var(--slds-spacing-lg);
 }
@@ -766,6 +962,26 @@ onMounted(loadDetail)
 @media (max-width: 1024px) {
   .detail-grid {
     grid-template-columns: 1fr;
+  }
+
+  .group-table-header,
+  .group-table-row {
+    grid-template-columns: 1fr 1fr 1fr 70px 70px 80px 80px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .group-table-header,
+  .group-table-row {
+    grid-template-columns: 1fr 1fr 80px 80px;
+  }
+
+  .group-table-header .th:nth-child(3),
+  .group-table-header .th:nth-child(4),
+  .group-table-row .td:nth-child(3),
+  .group-table-row .td:nth-child(4) {
+    display: none;
   }
 }
 </style>

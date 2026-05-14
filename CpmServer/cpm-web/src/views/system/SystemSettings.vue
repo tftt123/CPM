@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="page-container">
     <div class="page-header-section">
       <el-page-header @back="$router.push('/home')">
@@ -27,6 +27,12 @@
       <el-tab-pane :label="t('mail.title')" name="mail">
         <MailConfig />
       </el-tab-pane>
+      <el-tab-pane :label="t('uiControl.title')" name="ui">
+        <UiControl />
+      </el-tab-pane>
+      <el-tab-pane :label="t('siteSetup.title')" name="site">
+        <SiteSetup />
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
@@ -39,6 +45,8 @@ import RoleList from './RoleList.vue'
 import ApprovalConfig from '../approval/ApprovalConfig.vue'
 import ModuleTypeConfig from './ModuleTypeConfig.vue'
 import MailConfig from './MailConfig.vue'
+import UiControl from './UiControl.vue'
+import SiteSetup from './SiteSetup.vue'
 
 const { t } = useI18n()
 const activeTab = ref('users')
@@ -93,3 +101,5 @@ const activeTab = ref('users')
   padding: var(--slds-spacing-lg);
 }
 </style>
+
+

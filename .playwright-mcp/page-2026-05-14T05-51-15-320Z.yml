@@ -1,0 +1,61 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - img "SIP" [ref=e7]
+          - heading "S I P" [level=1] [ref=e8]
+        - paragraph [ref=e9]: Spindex Integrated Platform
+      - generic [ref=e10]:
+        - generic [ref=e11]:
+          - img [ref=e13]
+          - generic [ref=e15]: 智能客户管理
+        - generic [ref=e16]:
+          - img [ref=e18]
+          - generic [ref=e20]: 全生命周期产品追踪
+        - generic [ref=e21]:
+          - img [ref=e23]
+          - generic [ref=e25]: 数据驱动决策分析
+    - generic [ref=e27]:
+      - generic [ref=e28]:
+        - heading "欢迎回来" [level=2] [ref=e29]
+        - paragraph [ref=e30]: 登录您的账户以继续
+      - generic [ref=e31]:
+        - generic [ref=e33]:
+          - generic [ref=e34]: 用户名
+          - generic [ref=e36]:
+            - img [ref=e39]
+            - textbox "请输入用户名" [ref=e41]: admin
+        - generic [ref=e43]:
+          - generic [ref=e44]: 密码
+          - generic [ref=e46]:
+            - img [ref=e49]
+            - textbox "请输入密码" [ref=e52]: spindex
+            - img [ref=e99] [cursor=pointer]
+        - generic [ref=e54]:
+          - generic [ref=e55]: 登录类型
+          - generic [ref=e57] [cursor=pointer]:
+            - generic:
+              - combobox [ref=e59]
+              - generic [ref=e60]: 本地登录
+            - img [ref=e63]
+        - generic [ref=e66]:
+          - generic [ref=e67]: 站点/Domain
+          - generic [ref=e69] [cursor=pointer]:
+            - generic:
+              - combobox [ref=e71]
+              - generic [ref=e72]: 选择 Domain
+            - img [ref=e75]
+        - generic [ref=e78] [cursor=pointer]:
+          - generic [ref=e79]:
+            - checkbox "记住我"
+          - generic [ref=e81]: 记住我
+        - button "登录" [active] [ref=e84] [cursor=pointer]:
+          - generic [ref=e85]: 登录
+      - button "CH" [ref=e88] [cursor=pointer]:
+        - img [ref=e90]
+        - generic [ref=e93]: CH
+        - img [ref=e95]
+  - alert [ref=e102]:
+    - img [ref=e104]
+    - paragraph [ref=e106]: 请选择工厂站点

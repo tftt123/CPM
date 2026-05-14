@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="page-container">
     <div class="page-header-section" v-if="!embedded">
       <el-page-header @back="$router.push('/home')">
@@ -78,7 +78,7 @@
             <span class="text-secondary">{{ row.phone || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="site" :label="t('common.site')" width="100">
+        <el-table-column prop="site" :label="t('common.site')" min-width="100">
           <template #default="{ row }">
             <span class="text-secondary">{{ row.site || '-' }}</span>
           </template>
@@ -93,14 +93,14 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="isActive" :label="t('common.status')" width="80" align="center">
+        <el-table-column prop="isActive" :label="t('common.status')" min-width="80" align="center">
           <template #default="{ row }">
             <el-tag :type="row.isActive ? 'success' : 'info'" size="small">
               {{ row.isActive ? t('common.active') : t('common.inactive') }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column :label="t('common.action')" width="220" align="right" fixed="right">
+        <el-table-column :label="t('common.action')" min-width="220" align="right" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" :icon="Edit" @click="handleEdit(row)">
               {{ t('common.edit') }}
@@ -324,8 +324,7 @@ onMounted(loadData)
   font-size: var(--slds-font-size-sm);
   color: var(--slds-text-secondary);
   margin-top: var(--slds-spacing-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .search-area {

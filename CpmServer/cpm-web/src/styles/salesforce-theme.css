@@ -1,199 +1,626 @@
-/* =============================================
-   Salesforce Lightning Design System 风格主题
+﻿/* =============================================
+   CPM Design System - Manufacturing Enterprise
+   Based on UI-UX-PRO-MAX: Minimalism + Swiss
    ============================================= */
 
-/* 基础布局保护 */
 html, body, #app {
   height: 100%;
   margin: 0;
   padding: 0;
-  font-family: var(--slds-font-family);
+  font-family: var(--cpm-font-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 :root {
-  /* Salesforce 品牌色 */
-  --slds-brand-primary: #0176D3;
-  --slds-brand-primary-dark: #014486;
-  --slds-brand-primary-light: #90D0FE;
-  --slds-brand-accessible: #0176D3;
+  /* =============================================
+     Brand Colors
+     ============================================= */
+  --cpm-brand-primary: #0F172A;
+  --cpm-brand-accent: #EA580C;
+  --cpm-brand-accent-hover: #C2410C;
+  --cpm-brand-primary-dark: #020617;
+  --cpm-brand-primary-light: #1E293B;
 
-  /* 功能色 */
-  --slds-success: #2E844A;
-  --slds-warning: #E67A1F;
-  --slds-error: #C23A31;
-  --slds-info: #0176D3;
+  /* =============================================
+     Background Colors
+     ============================================= */
+  --cpm-bg-page: #F8FAFC;
+  --cpm-bg-card: #FFFFFF;
+  --cpm-bg-header: #FFFFFF;
+  --cpm-bg-sidebar: #0F172A;
+  --cpm-bg-hover: #F1F5F9;
+  --cpm-bg-selected: #EFF6FF;
+  --cpm-bg-dark: #020617;
+  --cpm-bg-elevated: #1E293B;
 
-  /* 背景色 */
-  --slds-bg-page: #F3F3F3;
-  --slds-bg-card: #FFFFFF;
-  --slds-bg-sidebar: #032D60;
-  --slds-bg-header: #FFFFFF;
-  --slds-bg-hover: #F3F3F3;
-  --slds-bg-selected: #F0F8FF;
+  /* =============================================
+     Text Colors
+     ============================================= */
+  --cpm-text-primary: #0F172A;
+  --cpm-text-secondary: #475569;
+  --cpm-text-placeholder: #94A3B8;
+  --cpm-text-inverse: #FFFFFF;
+  --cpm-text-muted: #64748B;
 
-  /* 文字色 */
-  --slds-text-primary: #181818;
-  --slds-text-secondary: #706E6B;
-  --slds-text-placeholder: #A9A7A5;
-  --slds-text-inverse: #FFFFFF;
+  /* =============================================
+     Semantic / Status Colors
+     ============================================= */
+  --cpm-success: #059669;
+  --cpm-success-bg: #ECFDF5;
+  --cpm-success-border: #A7F3D0;
+  --cpm-warning: #D97706;
+  --cpm-warning-bg: #FFFBEB;
+  --cpm-warning-border: #FDE68A;
+  --cpm-error: #DC2626;
+  --cpm-error-bg: #FEF2F2;
+  --cpm-error-border: #FECACA;
+  --cpm-info: #0369A1;
+  --cpm-info-bg: #F0F9FF;
+  --cpm-info-border: #BAE6FD;
 
-  /* 边框 */
-  --slds-border-color: #DDDBDA;
-  --slds-border-color-light: #E5E5E5;
-  --slds-border-radius: 4px;
+  /* =============================================
+     Border Colors
+     ============================================= */
+  --cpm-border: #E2E8F0;
+  --cpm-border-light: #F1F5F9;
+  --cpm-border-focus: #EA580C;
 
-  /* 间距 */
-  --slds-spacing-xs: 4px;
-  --slds-spacing-sm: 8px;
-  --slds-spacing-md: 16px;
-  --slds-spacing-lg: 24px;
-  --slds-spacing-xl: 32px;
+  /* =============================================
+     Border Radius
+     ============================================= */
+  --cpm-radius-sm: 4px;
+  --cpm-radius-md: 6px;
+  --cpm-radius-lg: 8px;
+  --cpm-radius-full: 9999px;
 
-  /* 阴影 */
-  --slds-shadow-card: 0 2px 4px rgba(0, 0, 0, 0.05);
-  --slds-shadow-dropdown: 0 2px 8px rgba(0, 0, 0, 0.1);
-  --slds-shadow-header: 0 1px 3px rgba(0, 0, 0, 0.08);
+  /* =============================================
+     Shadows
+     ============================================= */
+  --cpm-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --cpm-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+  --cpm-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+  --cpm-shadow-focus: 0 0 0 3px rgba(234, 88, 12, 0.15);
 
-  /* 字体 */
-  --slds-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --slds-font-size-xs: 10px;
-  --slds-font-size-sm: 12px;
-  --slds-font-size-md: 14px;
-  --slds-font-size-lg: 18px;
-  --slds-font-size-xl: 24px;
+  /* =============================================
+     Typography
+     ============================================= */
+  --cpm-font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --cpm-text-display: 28px;
+  --cpm-text-h1: 22px;
+  --cpm-text-h2: 18px;
+  --cpm-text-h3: 16px;
+  --cpm-text-body: 14px;
+  --cpm-text-small: 12px;
+  --cpm-text-label: 11px;
+
+  /* =============================================
+     Spacing (4px base)
+     ============================================= */
+  --cpm-space-1: 4px;
+  --cpm-space-2: 8px;
+  --cpm-space-3: 12px;
+  --cpm-space-4: 16px;
+  --cpm-space-5: 20px;
+  --cpm-space-6: 24px;
+  --cpm-space-8: 32px;
+  --cpm-space-10: 40px;
+  --cpm-space-12: 48px;
+
+  /* =============================================
+     Animation
+     ============================================= */
+  --cpm-duration-fast: 100ms;
+  --cpm-duration-normal: 150ms;
+  --cpm-duration-slow: 200ms;
+  --cpm-easing-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --cpm-easing-bounce: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* =============================================
+     Legacy SLDS aliases for backward compatibility
+     (Deprecated: migrate to --cpm-* tokens)
+     ============================================= */
+  --slds-brand-primary: var(--cpm-brand-accent);
+  --slds-brand-primary-dark: var(--cpm-brand-accent-hover);
+  --slds-brand-primary-light: #FDBA74;
+  --slds-brand-accessible: var(--cpm-brand-accent);
+  --slds-success: var(--cpm-success);
+  --slds-warning: var(--cpm-warning);
+  --slds-error: var(--cpm-error);
+  --slds-info: var(--cpm-info);
+  --slds-bg-page: var(--cpm-bg-page);
+  --slds-bg-card: var(--cpm-bg-card);
+  --slds-bg-sidebar: var(--cpm-bg-sidebar);
+  --slds-bg-header: var(--cpm-bg-header);
+  --slds-bg-hover: var(--cpm-bg-hover);
+  --slds-bg-selected: var(--cpm-bg-selected);
+  --slds-text-primary: var(--cpm-text-primary);
+  --slds-text-secondary: var(--cpm-text-secondary);
+  --slds-text-placeholder: var(--cpm-text-placeholder);
+  --slds-text-inverse: var(--cpm-text-inverse);
+  --slds-border-color: var(--cpm-border);
+  --slds-border-color-light: var(--cpm-border-light);
+  --slds-border-radius: var(--cpm-radius-sm);
+  --slds-spacing-xs: var(--cpm-space-1);
+  --slds-spacing-sm: var(--cpm-space-2);
+  --slds-spacing-md: var(--cpm-space-4);
+  --slds-spacing-lg: var(--cpm-space-6);
+  --slds-spacing-xl: var(--cpm-space-8);
+  --slds-shadow-card: var(--cpm-shadow-sm);
+  --slds-shadow-dropdown: var(--cpm-shadow-md);
+  --slds-shadow-header: var(--cpm-shadow-sm);
+  --slds-font-family: var(--cpm-font-family);
+  --slds-font-size-xs: var(--cpm-text-label);
+  --slds-font-size-sm: var(--cpm-text-small);
+  --slds-font-size-md: var(--cpm-text-body);
+  --slds-font-size-lg: var(--cpm-text-h2);
+  --slds-font-size-xl: var(--cpm-text-h1);
 }
 
 /* =============================================
-   全局覆盖 Element Plus 样式为 Salesforce 风格
+   Element Plus Global Overrides
    ============================================= */
 
-/* 主按钮 */
-.el-button--primary {
-  background-color: var(--slds-brand-primary) !important;
-  border-color: var(--slds-brand-primary) !important;
-  border-radius: var(--slds-border-radius) !important;
-  font-weight: 500;
+/* =============================================
+   Buttons
+   ============================================= */
+
+/* Small buttons - stronger overrides for EP defaults */
+.el-button.el-button--small {
+  min-height: 30px !important;
+  height: 30px !important;
+  padding: 0 14px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.3px;
 }
 
-.el-button--primary:hover {
-  background-color: var(--slds-brand-primary-dark) !important;
-  border-color: var(--slds-brand-primary-dark) !important;
+/* =============================================
+   Solid Colored Buttons (Primary / Success / Danger)
+   ============================================= */
+
+/* Primary button: orange background + bold white text */
+.el-button.el-button--primary {
+  background-color: var(--cpm-brand-accent) !important;
+  border-color: var(--cpm-brand-accent) !important;
+  border-radius: var(--cpm-radius-sm) !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35), 0 0 1px rgba(0, 0, 0, 0.5) !important;
+  letter-spacing: 0.4px;
+  transition: all var(--cpm-duration-normal) var(--cpm-easing-default);
 }
 
-/* 成功按钮 */
-.el-button--success {
-  background-color: var(--slds-success) !important;
-  border-color: var(--slds-success) !important;
-  border-radius: var(--slds-border-radius) !important;
+.el-button.el-button--primary:hover {
+  background-color: var(--cpm-brand-accent-hover) !important;
+  border-color: var(--cpm-brand-accent-hover) !important;
+  transform: translateY(-1px);
+  box-shadow: var(--cpm-shadow-md);
+  color: #FFFFFF !important;
 }
 
-/* 危险按钮 */
-.el-button--danger {
-  background-color: var(--slds-error) !important;
-  border-color: var(--slds-error) !important;
-  border-radius: var(--slds-border-radius) !important;
+.el-button.el-button--primary:active {
+  transform: translateY(0);
 }
 
-/* 默认/次要按钮 */
+.el-button.el-button--primary.is-disabled,
+.el-button.el-button--primary.is-disabled:hover {
+  background-color: var(--cpm-brand-accent) !important;
+  border-color: var(--cpm-brand-accent) !important;
+  color: #FFFFFF !important;
+  opacity: 0.5;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Success button */
+.el-button.el-button--success {
+  background-color: var(--cpm-success) !important;
+  border-color: var(--cpm-success) !important;
+  border-radius: var(--cpm-radius-sm) !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 0 1px rgba(0, 0, 0, 0.4) !important;
+  letter-spacing: 0.4px;
+}
+
+.el-button.el-button--success:hover {
+  background-color: #047857 !important;
+  border-color: #047857 !important;
+  color: #FFFFFF !important;
+}
+
+/* Danger button */
+.el-button.el-button--danger {
+  background-color: var(--cpm-error) !important;
+  border-color: var(--cpm-error) !important;
+  border-radius: var(--cpm-radius-sm) !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 0 1px rgba(0, 0, 0, 0.4) !important;
+  letter-spacing: 0.4px;
+}
+
+.el-button.el-button--danger:hover {
+  background-color: #B91C1C !important;
+  border-color: #B91C1C !important;
+  color: #FFFFFF !important;
+}
+
+/* Default / secondary buttons */
 .el-button:not(.el-button--primary):not(.el-button--success):not(.el-button--danger) {
-  border-radius: var(--slds-border-radius) !important;
-  border-color: var(--slds-border-color);
-  color: var(--slds-text-primary);
+  border-radius: var(--cpm-radius-sm) !important;
+  border-color: var(--cpm-border);
+  color: var(--cpm-text-primary);
+  font-weight: 500;
+  transition: all var(--cpm-duration-normal) var(--cpm-easing-default);
 }
 
-/* 表格 */
+.el-button:not(.el-button--primary):not(.el-button--success):not(.el-button--danger):hover {
+  background: var(--cpm-bg-hover);
+  border-color: var(--cpm-text-secondary);
+}
+
+/* =============================================
+   Link Buttons (Table Actions) 鈫?Solid style with white text
+   ============================================= */
+
+/* Force table action buttons (link type) to look like solid pills with white text */
+.el-button.is-link {
+  font-weight: 600;
+  padding: 2px 4px;
+  border-radius: var(--cpm-radius-sm);
+  height: var(--cpm-btn-action-height, 24px) !important;
+  min-height: var(--cpm-btn-action-height, 24px) !important;
+  line-height: 1.4;
+  min-width: var(--cpm-btn-action-width, 64px) !important;
+  padding-left: 6px !important;
+  padding-right: 6px !important;
+  text-align: center;
+  font-size: var(--cpm-btn-action-font-size, 12px) !important;
+  transition: all var(--cpm-duration-normal) var(--cpm-easing-default);
+  border-width: 1px;
+  border-style: solid;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* Prevent action buttons from wrapping in table cells */
+.el-table td .cell:has(.el-button.is-link) {
+  white-space: nowrap;
+}
+
+/* Fallback for browsers without :has() */
+.el-table td .cell .el-button.is-link + .el-button.is-link {
+  margin-left: 4px;
+}
+
+/* Primary link 鈫?solid orange pill with white text */
+.el-button.is-link.el-button--primary,
+.el-button.is-text.el-button--primary {
+  background-color: var(--cpm-brand-accent) !important;
+  border-color: var(--cpm-brand-accent) !important;
+  color: #FFFFFF !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+.el-button.is-link.el-button--primary:hover,
+.el-button.is-text.el-button--primary:hover {
+  background-color: var(--cpm-brand-accent-hover) !important;
+  border-color: var(--cpm-brand-accent-hover) !important;
+  color: #FFFFFF !important;
+  transform: translateY(-1px);
+  box-shadow: var(--cpm-shadow-sm);
+}
+
+/* Danger link 鈫?solid red pill with white text */
+.el-button.is-link.el-button--danger,
+.el-button.is-text.el-button--danger {
+  background-color: var(--cpm-error) !important;
+  border-color: var(--cpm-error) !important;
+  color: #FFFFFF !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+.el-button.is-link.el-button--danger:hover,
+.el-button.is-text.el-button--danger:hover {
+  background-color: #B91C1C !important;
+  border-color: #B91C1C !important;
+  color: #FFFFFF !important;
+  transform: translateY(-1px);
+  box-shadow: var(--cpm-shadow-sm);
+}
+
+/* Success link 鈫?solid green pill with white text */
+.el-button.is-link.el-button--success,
+.el-button.is-text.el-button--success {
+  background-color: var(--cpm-success) !important;
+  border-color: var(--cpm-success) !important;
+  color: #FFFFFF !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+.el-button.is-link.el-button--success:hover,
+.el-button.is-text.el-button--success:hover {
+  background-color: #047857 !important;
+  border-color: #047857 !important;
+  color: #FFFFFF !important;
+}
+
+/* Warning link 鈫?solid amber pill with white text */
+.el-button.is-link.el-button--warning,
+.el-button.is-text.el-button--warning {
+  background-color: var(--cpm-warning) !important;
+  border-color: var(--cpm-warning) !important;
+  color: #FFFFFF !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+.el-button.is-link.el-button--warning:hover,
+.el-button.is-text.el-button--warning:hover {
+  background-color: #B45309 !important;
+  border-color: #B45309 !important;
+  color: #FFFFFF !important;
+}
+
+/* Info link 鈫?solid blue pill with white text */
+.el-button.is-link.el-button--info,
+.el-button.is-text.el-button--info {
+  background-color: var(--cpm-info) !important;
+  border-color: var(--cpm-info) !important;
+  color: #FFFFFF !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+.el-button.is-link.el-button--info:hover,
+.el-button.is-text.el-button--info:hover {
+  background-color: #075985 !important;
+  border-color: #075985 !important;
+  color: #FFFFFF !important;
+}
+
+/* =============================================
+   Header Dropdown Triggers (Workspace / Language)
+   ============================================= */
+.workspace-trigger,
+.lang-trigger {
+  height: var(--cpm-header-trigger-height, 34px) !important;
+  min-height: var(--cpm-header-trigger-height, 34px) !important;
+  min-width: var(--cpm-header-trigger-width, 80px) !important;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+  box-sizing: border-box !important;
+}
+
+.workspace-trigger .workspace-code,
+.lang-trigger .lang-code {
+  font-size: var(--cpm-header-trigger-font-size, 12px) !important;
+}
+
+/* =============================================
+   Tables
+   ============================================= */
+.el-table th .cell {
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.el-table th {
+  overflow: visible;
+}
+
 .el-table {
-  border-radius: var(--slds-border-radius);
-  box-shadow: var(--slds-shadow-card);
-  background: var(--slds-bg-card);
+  border-radius: var(--cpm-radius-md);
+  box-shadow: var(--cpm-shadow-sm);
+  background: var(--cpm-bg-card);
+  font-size: var(--cpm-text-body);
 }
 
 .el-table th {
   background-color: #FAFAF9 !important;
-  color: var(--slds-text-primary) !important;
+  color: var(--cpm-text-primary) !important;
   font-weight: 600;
-  font-size: var(--slds-font-size-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 2px solid var(--slds-border-color) !important;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+  border-bottom: 2px solid var(--cpm-border) !important;
+  padding: var(--cpm-space-3) var(--cpm-space-4) !important;
 }
 
 .el-table td {
-  border-bottom: 1px solid var(--slds-border-color-light) !important;
+  border-bottom: 1px solid var(--cpm-border-light) !important;
+  padding: var(--cpm-space-3) var(--cpm-space-4) !important;
+  color: var(--cpm-text-primary);
+  font-size: var(--cpm-text-small);
 }
 
 .el-table--enable-row-hover .el-table__body tr:hover > td {
-  background-color: var(--slds-bg-hover) !important;
+  background-color: var(--cpm-bg-hover) !important;
 }
 
-/* 输入框和下拉框统一高度 */
+.el-table__header-wrapper {
+  border-radius: var(--cpm-radius-md) var(--cpm-radius-md) 0 0;
+}
+
+/* Numeric columns: tabular nums for alignment */
+.el-table .cell.numeric,
+.el-table td.is-right .cell {
+  font-variant-numeric: tabular-nums;
+}
+
+/* =============================================
+   Inputs & Form Controls
+   ============================================= */
 .el-input__wrapper,
 .el-select .el-input__wrapper {
-  border-radius: var(--slds-border-radius) !important;
-  box-shadow: 0 0 0 1px var(--slds-border-color) inset !important;
+  border-radius: var(--cpm-radius-sm) !important;
+  box-shadow: 0 0 0 1px var(--cpm-border) inset !important;
   min-height: 40px !important;
   height: 40px !important;
   padding-top: 0 !important;
   padding-bottom: 0 !important;
   box-sizing: border-box !important;
+  transition: box-shadow var(--cpm-duration-normal) var(--cpm-easing-default);
 }
 
 .el-input__inner {
   height: 40px !important;
   line-height: 40px !important;
+  font-size: var(--cpm-text-body);
+  color: var(--cpm-text-primary);
 }
 
 .el-input__wrapper.is-focus {
-  box-shadow: 0 0 0 1px var(--slds-brand-primary) inset !important;
+  box-shadow: 0 0 0 1px var(--cpm-border-focus) inset !important;
 }
 
-/* 分页 */
+.el-input__wrapper:hover {
+  box-shadow: 0 0 0 1px var(--cpm-text-secondary) inset !important;
+}
+
+/* Form labels */
+.el-form-item__label {
+  color: var(--cpm-text-secondary);
+  font-weight: 600;
+  font-size: var(--cpm-text-small);
+  letter-spacing: 0.3px;
+}
+
+/* =============================================
+   Pagination
+   ============================================= */
 .el-pagination {
-  margin-top: var(--slds-spacing-md);
+  margin-top: var(--cpm-space-4);
+  justify-content: flex-end;
 }
 
-/* 卡片 */
+.el-pagination .el-pager li.is-active {
+  background-color: var(--cpm-brand-accent) !important;
+  color: #FFFFFF !important;
+}
+
+/* =============================================
+   Cards
+   ============================================= */
 .el-card {
-  border-radius: var(--slds-border-radius) !important;
-  box-shadow: var(--slds-shadow-card) !important;
-  border: 1px solid var(--slds-border-color-light);
+  border-radius: var(--cpm-radius-md) !important;
+  box-shadow: var(--cpm-shadow-sm) !important;
+  border: 1px solid var(--cpm-border-light);
+  background: var(--cpm-bg-card);
 }
 
-/* 对话框 */
+.el-card__header {
+  padding: var(--cpm-space-4) var(--cpm-space-5);
+  border-bottom: 1px solid var(--cpm-border-light);
+  font-size: var(--cpm-text-h2);
+  font-weight: 600;
+  color: var(--cpm-text-primary);
+}
+
+/* =============================================
+   Dialogs / Modals
+   ============================================= */
 .el-dialog {
-  border-radius: var(--slds-border-radius) !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+  border-radius: var(--cpm-radius-lg) !important;
+  box-shadow: var(--cpm-shadow-lg) !important;
+  background: var(--cpm-bg-card);
 }
 
 .el-dialog__header {
-  border-bottom: 1px solid var(--slds-border-color-light);
-  padding: var(--slds-spacing-md) var(--slds-spacing-lg);
+  border-bottom: 1px solid var(--cpm-border-light);
+  padding: var(--cpm-space-5);
+  margin-right: 0 !important;
+}
+
+.el-dialog__title {
+  font-size: var(--cpm-text-h1);
+  font-weight: 600;
+  color: var(--cpm-text-primary);
 }
 
 .el-dialog__body {
-  padding: var(--slds-spacing-lg);
+  padding: var(--cpm-space-5);
+  color: var(--cpm-text-primary);
 }
 
 .el-dialog__footer {
-  border-top: 1px solid var(--slds-border-color-light);
-  padding: var(--slds-spacing-md) var(--slds-spacing-lg);
+  border-top: 1px solid var(--cpm-border-light);
+  padding: var(--cpm-space-4) var(--cpm-space-5);
 }
 
-/* 表单 */
-.el-form-item__label {
-  color: var(--slds-text-secondary);
-  font-weight: 500;
-  font-size: var(--slds-font-size-sm);
+/* =============================================
+   Tags / Badges
+   ============================================= */
+.el-tag {
+  border-radius: var(--cpm-radius-full) !important;
+  font-size: var(--cpm-text-small);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0 10px;
+  height: 24px;
+  line-height: 22px;
+  border-width: 1px;
 }
 
-/* 菜单 */
+.el-tag--success {
+  background-color: var(--cpm-success-bg) !important;
+  border-color: var(--cpm-success-border) !important;
+  color: var(--cpm-success) !important;
+}
+
+.el-tag--warning {
+  background-color: var(--cpm-warning-bg) !important;
+  border-color: var(--cpm-warning-border) !important;
+  color: #92400E !important;
+}
+
+.el-tag--danger {
+  background-color: var(--cpm-error-bg) !important;
+  border-color: var(--cpm-error-border) !important;
+  color: var(--cpm-error) !important;
+}
+
+.el-tag--info {
+  background-color: var(--cpm-info-bg) !important;
+  border-color: var(--cpm-info-border) !important;
+  color: #075985 !important;
+}
+
+/* =============================================
+   Menus
+   ============================================= */
 .el-menu {
   border-right: none !important;
+  background: transparent;
 }
 
-/* 页头 */
+.el-dropdown-menu {
+  border-radius: var(--cpm-radius-md) !important;
+  box-shadow: var(--cpm-shadow-lg) !important;
+  border: 1px solid var(--cpm-border-light);
+  padding: var(--cpm-space-2) 0;
+}
+
+.el-dropdown-menu__item {
+  font-size: var(--cpm-text-body);
+  padding: var(--cpm-space-2) var(--cpm-space-4);
+  color: var(--cpm-text-primary);
+}
+
+.el-dropdown-menu__item:hover {
+  background: var(--cpm-bg-hover);
+  color: var(--cpm-text-primary);
+}
+
+/* =============================================
+   Page Header / Breadcrumbs
+   ============================================= */
 .el-page-header {
-  margin-bottom: var(--slds-spacing-md);
+  margin-bottom: var(--cpm-space-4);
 }
 
 .el-page-header__left {
@@ -201,125 +628,346 @@ html, body, #app {
 }
 
 .el-page-header__title {
-  font-size: var(--slds-font-size-xl);
-  font-weight: 700;
-  color: var(--slds-text-primary);
+  font-size: var(--cpm-text-h1);
+  font-weight: 600;
+  color: var(--cpm-text-primary);
 }
 
-/* 消息提示 */
+/* =============================================
+   Messages / Notifications
+   ============================================= */
 .el-message--success {
-  background-color: #EDF7EE;
-  border-color: var(--slds-success);
-  color: var(--slds-success);
+  background-color: var(--cpm-success-bg);
+  border-color: var(--cpm-success);
+  color: var(--cpm-success);
 }
 
 .el-message--error {
-  background-color: #FCEEED;
-  border-color: var(--slds-error);
-  color: var(--slds-error);
+  background-color: var(--cpm-error-bg);
+  border-color: var(--cpm-error);
+  color: var(--cpm-error);
 }
 
-/* 页面布局通用 */
+.el-message--warning {
+  background-color: var(--cpm-warning-bg);
+  border-color: var(--cpm-warning);
+  color: #92400E;
+}
+
+/* =============================================
+   Tabs
+   ============================================= */
+.el-tabs__item {
+  font-size: var(--cpm-text-body);
+  font-weight: 500;
+  color: var(--cpm-text-secondary);
+}
+
+.el-tabs__item.is-active {
+  color: var(--cpm-brand-accent);
+  font-weight: 600;
+}
+
+.el-tabs__active-bar {
+  background-color: var(--cpm-brand-accent) !important;
+}
+
+/* =============================================
+   Select / Dropdown
+   ============================================= */
+.el-select-dropdown {
+  border-radius: var(--cpm-radius-md) !important;
+  box-shadow: var(--cpm-shadow-lg) !important;
+  border: 1px solid var(--cpm-border-light);
+}
+
+.el-select-dropdown__item.selected {
+  color: var(--cpm-brand-accent);
+  font-weight: 600;
+}
+
+/* =============================================
+   Date Picker
+   ============================================= */
+.el-picker-panel {
+  border-radius: var(--cpm-radius-md) !important;
+  box-shadow: var(--cpm-shadow-lg) !important;
+}
+
+.el-date-table td.current:not(.disabled) .el-date-table-cell__text {
+  background-color: var(--cpm-brand-accent) !important;
+}
+
+.el-date-table td.today .el-date-table-cell__text {
+  color: var(--cpm-brand-accent) !important;
+  font-weight: 700;
+}
+
+/* =============================================
+   Tooltip
+   ============================================= */
+.el-tooltip__trigger:focus-visible {
+  outline: 2px solid var(--cpm-border-focus);
+  outline-offset: 2px;
+}
+
+/* =============================================
+   Loading
+   ============================================= */
+.el-loading-mask {
+  background-color: rgba(248, 250, 252, 0.8);
+}
+
+.el-loading-spinner .circular {
+  color: var(--cpm-brand-accent);
+}
+
+/* =============================================
+   Skeleton
+   ============================================= */
+.el-skeleton__item {
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background-size: 200% 100%;
+}
+
+/* =============================================
+   Switch
+   ============================================= */
+.el-switch.is-checked .el-switch__core {
+  background-color: var(--cpm-brand-accent) !important;
+  border-color: var(--cpm-brand-accent) !important;
+}
+
+/* =============================================
+   Checkbox / Radio
+   ============================================= */
+.el-checkbox__input.is-checked .el-checkbox__inner,
+.el-checkbox__input.is-indeterminate .el-checkbox__inner {
+  background-color: var(--cpm-brand-accent) !important;
+  border-color: var(--cpm-brand-accent) !important;
+}
+
+.el-radio__input.is-checked .el-radio__inner {
+  background-color: var(--cpm-brand-accent) !important;
+  border-color: var(--cpm-brand-accent) !important;
+}
+
+/* =============================================
+   Step / Progress
+   ============================================= */
+.el-step__head.is-success,
+.el-step__head.is-process {
+  color: var(--cpm-brand-accent) !important;
+  border-color: var(--cpm-brand-accent) !important;
+}
+
+.el-step__title.is-success,
+.el-step__title.is-process {
+  color: var(--cpm-brand-accent) !important;
+  font-weight: 600;
+}
+
+.el-progress-bar__inner {
+  background-color: var(--cpm-brand-accent) !important;
+}
+
+/* =============================================
+   Page Layout Utilities
+   ============================================= */
+
 .page-container {
-  padding: var(--slds-spacing-lg);
+  padding: var(--cpm-space-6);
 }
 
 .page-header-section {
-  background: var(--slds-bg-card);
-  border-bottom: 1px solid var(--slds-border-color);
-  padding: var(--slds-spacing-lg);
-  margin: calc(-1 * var(--slds-spacing-lg));
-  margin-bottom: var(--slds-spacing-lg);
+  background: var(--cpm-bg-card);
+  border-bottom: 1px solid var(--cpm-border);
+  padding: var(--cpm-space-6);
+  margin: calc(-1 * var(--cpm-space-6));
+  margin-bottom: var(--cpm-space-6);
 }
 
 .page-title {
-  font-size: var(--slds-font-size-xl);
+  font-size: var(--cpm-text-display);
   font-weight: 700;
-  color: var(--slds-text-primary);
+  color: var(--cpm-text-primary);
   margin: 0;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
 }
 
 .page-subtitle {
-  font-size: var(--slds-font-size-sm);
-  color: var(--slds-text-secondary);
-  margin-top: var(--slds-spacing-xs);
+  font-size: var(--cpm-text-small);
+  color: var(--cpm-text-secondary);
+  margin-top: var(--cpm-space-1);
 }
 
-/* 搜索区域 */
+/* Search area */
 .search-area {
-  background: var(--slds-bg-card);
-  padding: var(--slds-spacing-md);
-  border-radius: var(--slds-border-radius);
-  border: 1px solid var(--slds-border-color-light);
-  margin-bottom: var(--slds-spacing-md);
+  background: var(--cpm-bg-card);
+  padding: var(--cpm-space-4);
+  border-radius: var(--cpm-radius-md);
+  border: 1px solid var(--cpm-border-light);
+  margin-bottom: var(--cpm-space-4);
+  box-shadow: var(--cpm-shadow-sm);
 }
 
-/* 内容卡片 */
+/* Content card */
 .content-card {
-  background: var(--slds-bg-card);
-  border-radius: var(--slds-border-radius);
-  border: 1px solid var(--slds-border-color-light);
-  box-shadow: var(--slds-shadow-card);
-  padding: var(--slds-spacing-lg);
+  background: var(--cpm-bg-card);
+  border-radius: var(--cpm-radius-md);
+  border: 1px solid var(--cpm-border-light);
+  box-shadow: var(--cpm-shadow-sm);
+  padding: var(--cpm-space-5);
 }
 
-/* 统计卡片 */
+/* Stat / KPI card */
 .stat-card {
-  background: var(--slds-bg-card);
-  border-radius: var(--slds-border-radius);
-  border: 1px solid var(--slds-border-color-light);
-  box-shadow: var(--slds-shadow-card);
-  padding: var(--slds-spacing-lg);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: var(--cpm-bg-card);
+  border-radius: var(--cpm-radius-md);
+  border: 1px solid var(--cpm-border-light);
+  box-shadow: var(--cpm-shadow-sm);
+  padding: var(--cpm-space-5);
+  transition: transform var(--cpm-duration-normal) var(--cpm-easing-default),
+              box-shadow var(--cpm-duration-normal) var(--cpm-easing-default);
+  border-top: 3px solid var(--cpm-brand-accent);
 }
 
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--cpm-shadow-md);
 }
 
 .stat-value {
   font-size: 32px;
   font-weight: 700;
-  color: var(--slds-brand-primary);
+  color: var(--cpm-brand-accent);
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .stat-label {
-  font-size: var(--slds-font-size-sm);
-  color: var(--slds-text-secondary);
-  margin-top: var(--slds-spacing-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: var(--cpm-text-small);
+  color: var(--cpm-text-secondary);
+  margin-top: var(--cpm-space-2);
+  letter-spacing: 0.3px;
+  font-weight: 600;
 }
 
-/* 徽章 */
+/* Status badge utility classes */
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: var(--slds-font-size-xs);
+  padding: 2px 10px;
+  border-radius: var(--cpm-radius-full);
+  font-size: var(--cpm-text-small);
   font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid;
+  line-height: 18px;
 }
 
 .badge-primary {
-  background: #F0F8FF;
-  color: var(--slds-brand-primary);
+  background: #FFF7ED;
+  color: #C2410C;
+  border-color: #FED7AA;
 }
 
 .badge-success {
-  background: #EDF7EE;
-  color: var(--slds-success);
+  background: var(--cpm-success-bg);
+  color: var(--cpm-success);
+  border-color: var(--cpm-success-border);
 }
 
 .badge-warning {
-  background: #FEF3E8;
-  color: var(--slds-warning);
+  background: var(--cpm-warning-bg);
+  color: #92400E;
+  border-color: var(--cpm-warning-border);
 }
 
 .badge-error {
-  background: #FCEEED;
-  color: var(--slds-error);
+  background: var(--cpm-error-bg);
+  color: var(--cpm-error);
+  border-color: var(--cpm-error-border);
 }
+
+.badge-info {
+  background: var(--cpm-info-bg);
+  color: #075985;
+  border-color: var(--cpm-info-border);
+}
+
+/* Text utilities */
+.text-primary { color: var(--cpm-text-primary); }
+.text-secondary { color: var(--cpm-text-secondary); }
+.text-muted { color: var(--cpm-text-muted); }
+.text-accent { color: var(--cpm-brand-accent); }
+.text-success { color: var(--cpm-success); }
+.text-warning { color: var(--cpm-warning); }
+.text-error { color: var(--cpm-error); }
+.text-inverse { color: var(--cpm-text-inverse); }
+
+/* Numeric text alignment utility */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* =============================================
+   Scrollbar
+   ============================================= */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--cpm-bg-hover);
+  border-radius: var(--cpm-radius-sm);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--cpm-text-placeholder);
+  border-radius: var(--cpm-radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cpm-text-secondary);
+}
+
+/* =============================================
+   Focus Visible (Accessibility)
+   ============================================= */
+:focus-visible {
+  outline: 2px solid var(--cpm-border-focus);
+  outline-offset: 2px;
+  border-radius: var(--cpm-radius-sm);
+}
+
+/* Remove default outline when custom is applied */
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+input:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* =============================================
+   Reduced Motion
+   ============================================= */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+
+
+
+
+
+
