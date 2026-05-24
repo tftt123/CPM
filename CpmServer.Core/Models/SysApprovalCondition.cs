@@ -36,6 +36,12 @@ public class SysApprovalCondition
 
     public bool IsActive { get; set; } = true;
 
+    [StringLength(64)]
+    public string? Site { get; set; }
+
+    [StringLength(64)]
+    public string? App { get; set; }
+
     [ForeignKey("StepId")]
     public SysApprovalStep? Step { get; set; }
 }

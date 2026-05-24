@@ -2,6 +2,7 @@ using CpmServer.Data;
 using CpmServer.Modules.SequenceRule.Contracts;
 using CpmServer.Modules.SequenceRule.DTOs;
 using CpmServer.Models;
+using CpmServer.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace CpmServer.Modules.SequenceRule.Services;
@@ -9,10 +10,12 @@ namespace CpmServer.Modules.SequenceRule.Services;
 public class SequenceRuleService : ISequenceRuleService
 {
     private readonly CpmDbContext _db;
+    private readonly IGeneralizedCodeService _gc;
 
-    public SequenceRuleService(CpmDbContext db)
+    public SequenceRuleService(CpmDbContext db, IGeneralizedCodeService gc)
     {
         _db = db;
+        _gc = gc;
     }
 
     public async Task<List<SequenceRuleDto>> GetRulesAsync(string? site)
@@ -46,6 +49,8 @@ public class SequenceRuleService : ISequenceRuleService
 
     public async Task<long> CreateRuleAsync(SequenceRuleCreateDto dto, string? site)
     {
+        await _gc.ValidateAsync("SEQUENCE_RESET_RULE", dto.ResetRule.ToString(), site, "cpm");
+
         var existing = await _db.SequenceRules
             .FirstOrDefaultAsync(r => r.ModuleType == dto.ModuleType && r.Site == site);
         if (existing != null)
@@ -75,6 +80,8 @@ public class SequenceRuleService : ISequenceRuleService
     {
         var entity = await _db.SequenceRules.FindAsync(id);
         if (entity == null) throw new InvalidOperationException("规则不存在");
+
+        await _gc.ValidateAsync("SEQUENCE_RESET_RULE", dto.ResetRule.ToString(), entity.Site, "cpm");
 
         entity.ModuleType = dto.ModuleType;
         entity.ModuleName = dto.ModuleName;

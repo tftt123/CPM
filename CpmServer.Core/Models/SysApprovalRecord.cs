@@ -17,6 +17,7 @@ public class SysApprovalRecord
     public string Action { get; set; } = string.Empty;
     public string? Comment { get; set; }
     public string? Site { get; set; }
+    public string? App { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     [ForeignKey("InstanceId")]

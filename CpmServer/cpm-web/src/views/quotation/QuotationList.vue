@@ -9,7 +9,7 @@
           </div>
         </template>
         <template #extra>
-          <el-button type="primary" :icon="Plus" @click="handleAdd">
+          <el-button v-if="userStore.hasPermission('quotations.manage')" type="primary" :icon="Plus" @click="handleAdd">
             {{ t('common.create') }}
           </el-button>
         </template>
@@ -151,6 +151,7 @@ import { quotationApi } from '@/api/quotation'
 import QuotationForm from './QuotationForm.vue'
 import { useI18n } from '@/composables/useI18n'
 import { useFieldControl } from '@/composables/useFieldControl'
+import { useUserStore } from '@/stores/user'
 import { useGeneralizedCode, type GcOption } from '@/composables/useGeneralizedCode'
 import GcSelect from '@/components/GcSelect.vue'
 import {
@@ -164,6 +165,7 @@ import {
 } from '@element-plus/icons-vue'
 
 const { t } = useI18n()
+const userStore = useUserStore()
 const { isVisible, load: loadFieldConfig } = useFieldControl('Quotation', 'QuotationList')
 const { getOptions } = useGeneralizedCode()
 const loading = ref(false)

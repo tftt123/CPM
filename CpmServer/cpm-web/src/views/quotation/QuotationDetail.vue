@@ -9,7 +9,7 @@
           </div>
         </template>
         <template #extra>
-          <el-button type="primary" :icon="Promotion" @click="handleSubmit" v-if="detail?.status === 0">
+          <el-button type="primary" :icon="Promotion" @click="handleSubmit" v-if="detail?.status === 0 && userStore.hasPermission('quotations.manage')">
             {{ t('quotation.submitApproval') }}
           </el-button>
           <el-button type="success" :icon="CircleCheck" @click="showApproveDialog('APPROVE')" v-if="canApprove">
@@ -255,6 +255,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { quotationApi } from '@/api/quotation'
 import { useI18n } from '@/composables/useI18n'
 import { useFieldControl } from '@/composables/useFieldControl'
+import { useUserStore } from '@/stores/user'
 import { useGeneralizedCode, type GcOption } from '@/composables/useGeneralizedCode'
 import { groupQuotationItems, type ProductGroup } from '@/composables/useQuotationGroups'
 import {
@@ -274,6 +275,7 @@ import {
 
 const route = useRoute()
 const { t } = useI18n()
+const userStore = useUserStore()
 const { isVisible, load: loadFieldConfig } = useFieldControl('Quotation', 'QuotationDetail')
 const { getOptions } = useGeneralizedCode()
 const loading = ref(false)

@@ -43,6 +43,7 @@ public class SysSequenceRule
     /// <summary>站点</summary>
     [StringLength(20)]
     public string? Site { get; set; }
+    public string? App { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime UpdatedAt { get; set; } = DateTime.Now;

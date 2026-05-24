@@ -6,6 +6,7 @@ public class RoleDto
     public string RoleCode { get; set; } = string.Empty;
     public string RoleName { get; set; } = string.Empty;
     public string? Site { get; set; }
+    public List<string> Permissions { get; set; } = new();
 }
 
 public class RoleCreateDto

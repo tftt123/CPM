@@ -34,7 +34,7 @@
     <div class="content-card" style="padding: 0;">
       <!-- Toolbar -->
       <div class="table-toolbar">
-        <el-button type="primary" :icon="Plus" @click="handleAdd">
+        <el-button v-if="userStore.hasPermission('mfg.manage')" type="primary" :icon="Plus" @click="handleAdd">
           {{ t('common.add') }}
         </el-button>
         <el-button :icon="Download" @click="handleExport">
@@ -175,15 +175,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, nextTick, reactive } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, nextTick, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { mfgProcessApi, type MfgProcessRecord, type MfgCascadeOption } from '@/api/mfgProcess'
 import { useI18n } from '@/composables/useI18n'
 import { useFieldControl } from '@/composables/useFieldControl'
+import { useUserStore } from '@/stores/user'
 import { Plus, Edit, Delete, Search, RefreshRight, Download, Upload } from '@element-plus/icons-vue'
 import * as XLSX from 'xlsx'
 
 const { t } = useI18n()
+const userStore = useUserStore()
 const { isVisible } = useFieldControl('Mfg', 'MfgProcessManage')
 const loading = ref(false)
 const dialogVisible = ref(false)
@@ -249,24 +251,44 @@ const onProcessChange = async (val: number | string) => {
   }
 }
 
+const processInputHandler = ref<((e: Event) => void) | null>(null)
+const subCategoryInputHandler = ref<((e: Event) => void) | null>(null)
+
 const bindSelectInputListeners = () => {
   nextTick(() => {
     const pInput = processSelectRef.value?.$el?.querySelector('input')
     if (pInput && !(pInput as any)._bound) {
-      pInput.addEventListener('input', (e: Event) => {
+      const handler = (e: Event) => {
         selectInputCache.process = (e.target as HTMLInputElement).value
-      })
+      }
+      pInput.addEventListener('input', handler)
+      processInputHandler.value = handler
       ;(pInput as any)._bound = true
     }
     const sInput = subCategorySelectRef.value?.$el?.querySelector('input')
     if (sInput && !(sInput as any)._bound) {
-      sInput.addEventListener('input', (e: Event) => {
+      const handler = (e: Event) => {
         selectInputCache.subCategory = (e.target as HTMLInputElement).value
-      })
+      }
+      sInput.addEventListener('input', handler)
+      subCategoryInputHandler.value = handler
       ;(sInput as any)._bound = true
     }
   })
 }
+
+onBeforeUnmount(() => {
+  const pInput = processSelectRef.value?.$el?.querySelector('input')
+  if (pInput && processInputHandler.value) {
+    pInput.removeEventListener('input', processInputHandler.value)
+    delete (pInput as any)._bound
+  }
+  const sInput = subCategorySelectRef.value?.$el?.querySelector('input')
+  if (sInput && subCategoryInputHandler.value) {
+    sInput.removeEventListener('input', subCategoryInputHandler.value)
+    delete (sInput as any)._bound
+  }
+})
 
 const onProcessBlur = () => {
   const val = selectInputCache.process.trim()

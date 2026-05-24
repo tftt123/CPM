@@ -43,6 +43,7 @@ public class PmProjectTrace
     public int Status { get; set; } = 0;
 
     public string? Site { get; set; }
+    public string? App { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime UpdatedAt { get; set; } = DateTime.Now;

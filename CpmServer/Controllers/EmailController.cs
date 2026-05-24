@@ -1,3 +1,4 @@
+using CpmServer.Authorization;
 using CpmServer.Common;
 using CpmServer.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -7,7 +8,7 @@ namespace CpmServer.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "ADMIN")]
+[Authorize(Policy = Policies.CanManageSystem)]
 public class EmailController : ControllerBase
 {
     private readonly IEmailService _emailService;

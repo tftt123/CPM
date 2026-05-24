@@ -176,7 +176,6 @@ const currentLanguageLabel = computed(() => locale.value === 'zh' ? 'CH' : 'EN')
 const handleSwitchLanguage = (lang: 'zh' | 'en') => {
   if (lang !== locale.value) {
     setLocale(lang)
-    window.location.reload()
   }
 }
 
@@ -254,7 +253,8 @@ const handleLogin = async () => {
       username: res.data.username,
       realName: res.data.realName,
       site: res.data.site,
-      roles: res.data.roles
+      roles: res.data.roles,
+      permissions: res.data.permissions || []
     })
     const sitesRes = await authApi.getMySites()
     userStore.setSiteList(sitesRes.data || [res.data.site])

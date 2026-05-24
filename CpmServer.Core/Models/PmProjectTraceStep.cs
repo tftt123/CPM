@@ -73,6 +73,7 @@ public class PmProjectTraceStep
     public List<PmProjectTraceStepActualCycleTime> ActualCycleTimes { get; set; } = new();
 
     public string? Site { get; set; }
+    public string? App { get; set; }
 
     [ForeignKey("ProjectTraceId")]
     public PmProjectTrace? ProjectTrace { get; set; }

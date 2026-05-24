@@ -2,6 +2,7 @@ using CpmServer.Data;
 using CpmServer.Models;
 using CpmServer.Modules.Approval.Contracts;
 using CpmServer.Modules.Approval.DTOs;
+using CpmServer.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace CpmServer.Modules.Approval.Services;
@@ -9,10 +10,12 @@ namespace CpmServer.Modules.Approval.Services;
 public class ApprovalTaskService : IApprovalTaskService
 {
     private readonly CpmDbContext _db;
+    private readonly ICurrentUser _currentUser;
 
-    public ApprovalTaskService(CpmDbContext db)
+    public ApprovalTaskService(CpmDbContext db, ICurrentUser currentUser)
     {
         _db = db;
+        _currentUser = currentUser;
     }
 
     public async Task<List<ApprovalTaskDto>> GetPendingTasksAsync(long userId)
@@ -27,9 +30,12 @@ public class ApprovalTaskService : IApprovalTaskService
             .ToListAsync();
 
         var userRoleNames = await _db.Roles
-            .Where(r => userRoleIds.Contains(r.Id))
+            .Where(r => userRoleIds.Contains(r.Id) && (r.Site == _currentUser.Site || string.IsNullOrEmpty(r.Site)))
             .Select(r => r.RoleName)
             .ToListAsync();
+
+        var currentApp = _currentUser.App ?? "cpm";
+        var currentSite = _currentUser.Site;
 
         var tasks = await _db.ApprovalInstanceTasks
             .Include(t => t.Instance)
@@ -37,6 +43,8 @@ public class ApprovalTaskService : IApprovalTaskService
             .ThenInclude(t => t!.Steps)
             .Include(t => t.Assignee)
             .Where(t => t.Status == 0 &&
+                (t.App == currentApp || string.IsNullOrEmpty(t.App)) &&
+                (t.Site == currentSite || string.IsNullOrEmpty(t.Site)) &&
                 (t.AssigneeId == userId || (t.AssigneeRole != null && userRoleNames.Contains(t.AssigneeRole))))
             .OrderByDescending(t => t.CreatedAt)
             .ToListAsync();
@@ -179,7 +187,7 @@ public class ApprovalTaskService : IApprovalTaskService
                 .ToListAsync();
 
             var userRoleNames = await _db.Roles
-                .Where(r => userRoleIds.Contains(r.Id))
+                .Where(r => userRoleIds.Contains(r.Id) && (r.Site == _currentUser.Site || string.IsNullOrEmpty(r.Site)))
                 .Select(r => r.RoleName)
                 .ToListAsync();
 
@@ -199,7 +207,7 @@ public class ApprovalTaskService : IApprovalTaskService
                 .ToListAsync();
 
             var roleNames = await _db.Roles
-                .Where(r => userRoleIds.Contains(r.Id))
+                .Where(r => userRoleIds.Contains(r.Id) && (r.Site == _currentUser.Site || string.IsNullOrEmpty(r.Site)))
                 .Select(r => r.RoleName)
                 .ToListAsync();
 

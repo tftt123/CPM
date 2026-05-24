@@ -33,4 +33,5 @@ public class SysAlertRecipient
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
     public string? Site { get; set; }
+    public string? App { get; set; }
 }

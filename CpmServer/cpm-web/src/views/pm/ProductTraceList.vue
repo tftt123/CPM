@@ -2,7 +2,7 @@
   <div class="page-container">
     <div class="page-header">
       <h2>{{ t('pmTrace.pageTitle') }}</h2>
-      <el-button type="primary" @click="handleCreate">
+      <el-button v-if="userStore.hasPermission('pm.manage')" type="primary" @click="handleCreate">
         <el-icon><Plus /></el-icon>
         {{ t('common.new') }}
       </el-button>
@@ -77,6 +77,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Edit, Delete } from '@element-plus/icons-vue'
 import { useI18n } from '@/composables/useI18n'
 import { useFieldControl } from '@/composables/useFieldControl'
+import { useUserStore } from '@/stores/user'
 import { useGeneralizedCode, type GcOption } from '@/composables/useGeneralizedCode'
 import GcSelect from '@/components/GcSelect.vue'
 import { getTraceList, deleteTrace } from '@/api/pmProjectTrace'
@@ -84,6 +85,7 @@ import type { PmProjectTrace } from '@/api/pmProjectTrace'
 
 const router = useRouter()
 const { t } = useI18n()
+const userStore = useUserStore()
 const { isVisible } = useFieldControl('PM', 'ProductTraceList')
 const { getOptions } = useGeneralizedCode()
 

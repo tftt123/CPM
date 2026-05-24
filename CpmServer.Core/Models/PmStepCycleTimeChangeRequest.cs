@@ -28,6 +28,7 @@ public class PmStepCycleTimeChangeRequest
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
     public string? Site { get; set; }
+    public string? App { get; set; }
 
     public List<PmStepCycleTimeChangeDetail> Details { get; set; } = new();
 

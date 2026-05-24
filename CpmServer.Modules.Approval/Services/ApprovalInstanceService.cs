@@ -40,10 +40,14 @@ public class ApprovalInstanceService : IApprovalInstanceService
 
     public async Task<SysApprovalInstance> StartApprovalAsync(string businessType, long businessId, string templateCode)
     {
+        var currentApp = _currentUser.App ?? "cpm";
+        var currentSite = _currentUser.Site;
         var template = await _db.ApprovalTemplates
             .Include(t => t.Steps)
             .ThenInclude(s => s.Rules)
-            .FirstOrDefaultAsync(t => t.TemplateCode == templateCode && t.IsActive == true);
+            .FirstOrDefaultAsync(t => t.TemplateCode == templateCode && t.IsActive == true &&
+                (t.App == currentApp || string.IsNullOrEmpty(t.App)) &&
+                (t.Site == currentSite || string.IsNullOrEmpty(t.Site)));
 
         if (template == null)
         {
@@ -192,10 +196,12 @@ public class ApprovalInstanceService : IApprovalInstanceService
 
     private async Task<SysApprovalTemplate?> FindBestTemplateAsync(string moduleType, string? site)
     {
+        var currentApp = _currentUser.App ?? "cpm";
         var templates = await _db.ApprovalTemplates
             .Include(t => t.Steps)
             .ThenInclude(s => s.Rules)
-            .Where(t => t.ModuleType == moduleType && t.IsActive == true)
+            .Where(t => t.ModuleType == moduleType && t.IsActive == true &&
+                (t.App == currentApp || string.IsNullOrEmpty(t.App)))
             .OrderBy(t => t.Site == null ? 1 : 0)
             .ThenByDescending(t => t.IsDefault)
             .ThenBy(t => t.CreatedAt)
@@ -234,6 +240,7 @@ public class ApprovalInstanceService : IApprovalInstanceService
 
         var variables = await GetBusinessVariablesAsync(businessType, businessId);
 
+        var currentApp = _currentUser.App ?? "cpm";
         var instance = new SysApprovalInstance
         {
             TemplateId = template.Id,
@@ -242,6 +249,7 @@ public class ApprovalInstanceService : IApprovalInstanceService
             CurrentStepId = firstStep.Id,
             CurrentStepOrder = firstStep.StepOrder,
             Site = businessSite ?? template.Site ?? _currentUser.Site,
+            App = currentApp,
             Status = 0,
             SubmitterId = submitterId,
             Variables = System.Text.Json.JsonSerializer.Serialize(variables),
@@ -323,6 +331,8 @@ public class ApprovalInstanceService : IApprovalInstanceService
                 AssigneeRole = approver.RoleCode,
                 Status = 0,
                 DueDate = dueDate,
+                Site = instance.Site,
+                App = instance.App,
                 CreatedAt = DateTime.UtcNow
             };
             _db.ApprovalInstanceTasks.Add(task);

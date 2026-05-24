@@ -20,6 +20,7 @@ public class MfgProcess
     public string? Description { get; set; }
 
     public string? Site { get; set; }
+    public string? App { get; set; }
 
     public string? Owner { get; set; }
 

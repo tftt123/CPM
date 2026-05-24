@@ -16,4 +16,5 @@ public class SysRole
     public string RoleName { get; set; } = string.Empty;
 
     public string? Site { get; set; }
+    public string? App { get; set; }
 }

@@ -58,6 +58,7 @@ public class SysNavigationConfig
 
     /// <summary>站点隔离</summary>
     public string? Site { get; set; }
+    public string? App { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

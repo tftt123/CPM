@@ -13,6 +13,7 @@ using CpmServer.Modules.SequenceRule.Contracts;
 using CpmServer.Modules.SequenceRule.Services;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Reflection;
@@ -53,10 +54,28 @@ builder.Services.AddApiVersioning(options =>
     });
 
 // 基于策略的授权
+builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy(Policies.CanApproveQuotation, policy => policy.RequireRole("ADMIN", "APPROVER_QUOTATION"));
-    options.AddPolicy(Policies.CanApproveCycleTime, policy => policy.RequireRole("ADMIN", "APPROVER_CYCLETIME"));
+    options.AddPolicy(Policies.CanApproveQuotation, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanApproveQuotation)));
+    options.AddPolicy(Policies.CanApproveCycleTime, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanApproveCycleTime)));
+    options.AddPolicy(Policies.CanManageSystem, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageSystem)));
+    options.AddPolicy(Policies.CanManageUsers, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageUsers)));
+    options.AddPolicy(Policies.CanManageRoles, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageRoles)));
+    options.AddPolicy(Policies.CanManageCustomers, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageCustomers)));
+    options.AddPolicy(Policies.CanManageProducts, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageProducts)));
+    options.AddPolicy(Policies.CanManageMfgProcesses, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageMfgProcesses)));
+    options.AddPolicy(Policies.CanManageQuotations, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageQuotations)));
+    options.AddPolicy(Policies.CanManageProjectTrace, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageProjectTrace)));
+    options.AddPolicy(Policies.CanManageApprovalTemplates, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageApprovalTemplates)));
+    options.AddPolicy(Policies.CanViewApprovalCenter, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanViewApprovalCenter)));
+    options.AddPolicy(Policies.CanManageGeneralizedCode, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageGeneralizedCode)));
+    options.AddPolicy(Policies.CanManageNavigation, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageNavigation)));
+    options.AddPolicy(Policies.CanManageFieldControl, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageFieldControl)));
+    options.AddPolicy(Policies.CanManageTranslations, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageTranslations)));
+    options.AddPolicy(Policies.CanManageEmailTemplates, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageEmailTemplates)));
+    options.AddPolicy(Policies.CanManageAlertRecipients, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageAlertRecipients)));
+    options.AddPolicy(Policies.CanViewSettings, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanViewSettings)));
 });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -204,6 +223,9 @@ builder.Services.AddScoped<IFieldControlService, FieldControlService>();
 
 // i18n 翻译管理
 builder.Services.AddScoped<II18nMessageService, I18nMessageService>();
+
+// 通用代码验证服务
+builder.Services.AddScoped<IGeneralizedCodeService, GeneralizedCodeService>();
 
 // QAD (Progress OpenEdge) 认证服务
 builder.Services.AddSingleton<IQadAuthService, QadAuthService>();

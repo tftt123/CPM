@@ -14,17 +14,20 @@ public class ApprovalNotificationService
     private readonly IEmailService _emailService;
     private readonly ILogger<ApprovalNotificationService> _logger;
     private readonly IEnumerable<IBusinessVariableProvider> _variableProviders;
+    private readonly ICurrentUser _currentUser;
 
     public ApprovalNotificationService(
         CpmDbContext db,
         IEmailService emailService,
         ILogger<ApprovalNotificationService> logger,
-        IEnumerable<IBusinessVariableProvider> variableProviders)
+        IEnumerable<IBusinessVariableProvider> variableProviders,
+        ICurrentUser currentUser)
     {
         _db = db;
         _emailService = emailService;
         _logger = logger;
         _variableProviders = variableProviders;
+        _currentUser = currentUser;
     }
 
     public async Task NotifyStepAsync(SysApprovalInstance instance, SysApprovalStep step, string businessType, long businessId)
@@ -86,7 +89,7 @@ public class ApprovalNotificationService
         else if (!string.IsNullOrEmpty(step.ApproverRole))
         {
             var roleId = await _db.Roles
-                .Where(r => r.RoleName == step.ApproverRole)
+                .Where(r => r.RoleName == step.ApproverRole && (r.Site == _currentUser.Site || string.IsNullOrEmpty(r.Site)))
                 .Select(r => (long?)r.Id)
                 .FirstOrDefaultAsync();
 
@@ -120,7 +123,7 @@ public class ApprovalNotificationService
                 else if (rule.RuleType == "FIXED_ROLE" && !string.IsNullOrEmpty(rule.RuleValue))
                 {
                     var roleId = await _db.Roles
-                        .Where(r => r.RoleName == rule.RuleValue)
+                        .Where(r => r.RoleName == rule.RuleValue && (r.Site == _currentUser.Site || string.IsNullOrEmpty(r.Site)))
                         .Select(r => (long?)r.Id)
                         .FirstOrDefaultAsync();
 
@@ -147,7 +150,7 @@ public class ApprovalNotificationService
                         if (fbParts.Length == 2 && fbParts[0] == "ROLE")
                         {
                             var roleId = await _db.Roles
-                                .Where(r => r.RoleName == fbParts[1])
+                                .Where(r => r.RoleName == fbParts[1] && (r.Site == _currentUser.Site || string.IsNullOrEmpty(r.Site)))
                                 .Select(r => (long?)r.Id)
                                 .FirstOrDefaultAsync();
 

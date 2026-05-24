@@ -1,8 +1,8 @@
 using CpmServer.Data;
-using CpmServer.Services;
 using CpmServer.Models;
 using CpmServer.Modules.Approval.Contracts;
 using CpmServer.Modules.Approval.DTOs;
+using CpmServer.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace CpmServer.Modules.Approval.Services;
@@ -11,20 +11,27 @@ public class ApprovalTemplateService : IApprovalTemplateService
 {
     private readonly CpmDbContext _db;
     private readonly ICurrentUser _currentUser;
+    private readonly IGeneralizedCodeService _gc;
 
-    public ApprovalTemplateService(CpmDbContext db, ICurrentUser currentUser)
+    public ApprovalTemplateService(CpmDbContext db, ICurrentUser currentUser, IGeneralizedCodeService gc)
     {
         _db = db;
         _currentUser = currentUser;
+        _gc = gc;
     }
 
     public async Task<List<ApprovalTemplateDto>> GetTemplatesAsync(string? moduleType)
     {
+        var currentApp = _currentUser.App ?? "cpm";
+        var currentSite = _currentUser.Site;
+
         var query = _db.ApprovalTemplates
             .Include(t => t.Steps)
             .ThenInclude(s => s.Rules)
             .Include(t => t.Steps)
             .ThenInclude(s => s.Conditions)
+            .Where(t => (t.App == currentApp || string.IsNullOrEmpty(t.App)) &&
+                        (t.Site == currentSite || string.IsNullOrEmpty(t.Site)))
             .AsQueryable();
 
         if (!string.IsNullOrEmpty(moduleType))
@@ -58,6 +65,17 @@ public class ApprovalTemplateService : IApprovalTemplateService
 
     public async Task<long> CreateTemplateAsync(ApprovalTemplateDto dto)
     {
+        var currentApp = _currentUser.App ?? "cpm";
+        var currentSite = !string.IsNullOrWhiteSpace(dto.Site) ? dto.Site : _currentUser.Site;
+
+        foreach (var step in dto.Steps)
+        {
+            await _gc.ValidateAsync("APPROVAL_STEP_TYPE", step.StepType, currentSite, currentApp);
+            await _gc.ValidateAsync("APPROVAL_STEP_MODE", step.StepMode, currentSite, currentApp);
+            if (!string.IsNullOrWhiteSpace(step.RejectBehavior))
+                await _gc.ValidateAsync("REJECT_BEHAVIOR", step.RejectBehavior, currentSite, currentApp);
+        }
+
         var entity = new SysApprovalTemplate
         {
             TemplateCode = GenerateTemplateCode(dto.ModuleType),
@@ -67,6 +85,7 @@ public class ApprovalTemplateService : IApprovalTemplateService
             IsDefault = dto.IsDefault,
             IsActive = dto.IsActive,
             Site = !string.IsNullOrWhiteSpace(dto.Site) ? dto.Site : _currentUser.Site,
+            App = currentApp,
             CreatedAt = DateTime.UtcNow,
             Steps = new List<SysApprovalStep>()
         };
@@ -90,6 +109,8 @@ public class ApprovalTemplateService : IApprovalTemplateService
                 RejectBehavior = step.RejectBehavior,
                 RejectTargetStepId = step.RejectTargetStepId,
                 TimeoutHours = step.TimeoutHours,
+                Site = entity.Site,
+                App = currentApp,
                 Rules = new List<SysApprovalRule>(),
                 Conditions = new List<SysApprovalCondition>()
             };
@@ -103,7 +124,9 @@ public class ApprovalTemplateService : IApprovalTemplateService
                     RuleValue = rule.RuleValue,
                     Fallback = rule.Fallback,
                     Priority = rule.Priority,
-                    IsActive = rule.IsActive
+                    IsActive = rule.IsActive,
+                    Site = entity.Site,
+                    App = currentApp
                 });
             }
 
@@ -115,7 +138,9 @@ public class ApprovalTemplateService : IApprovalTemplateService
                     Expression = cond.Expression,
                     TargetStepId = cond.TargetStepId,
                     Priority = cond.Priority,
-                    IsActive = cond.IsActive
+                    IsActive = cond.IsActive,
+                    Site = entity.Site,
+                    App = currentApp
                 });
             }
         }
@@ -133,12 +158,22 @@ public class ApprovalTemplateService : IApprovalTemplateService
 
         if (entity == null) return;
 
+        var currentApp = _currentUser.App ?? "cpm";
         entity.TemplateName = dto.TemplateName;
         entity.ModuleType = dto.ModuleType;
         entity.Description = dto.Description;
         entity.IsDefault = dto.IsDefault;
         entity.IsActive = dto.IsActive;
         entity.Site = !string.IsNullOrWhiteSpace(dto.Site) ? dto.Site : entity.Site;
+        entity.App = currentApp;
+
+        foreach (var step in dto.Steps)
+        {
+            await _gc.ValidateAsync("APPROVAL_STEP_TYPE", step.StepType, entity.Site, currentApp);
+            await _gc.ValidateAsync("APPROVAL_STEP_MODE", step.StepMode, entity.Site, currentApp);
+            if (!string.IsNullOrWhiteSpace(step.RejectBehavior))
+                await _gc.ValidateAsync("REJECT_BEHAVIOR", step.RejectBehavior, entity.Site, currentApp);
+        }
 
         foreach (var step in entity.Steps.Where(s => s.IsActive == true).ToList())
         {
@@ -233,7 +268,9 @@ public class ApprovalTemplateService : IApprovalTemplateService
                             Expression = condDto.Expression,
                             TargetStepId = condDto.TargetStepId,
                             Priority = condDto.Priority,
-                            IsActive = condDto.IsActive
+                            IsActive = condDto.IsActive,
+                            Site = entity.Site,
+                            App = currentApp
                         });
                     }
                 }
@@ -254,7 +291,9 @@ public class ApprovalTemplateService : IApprovalTemplateService
                     NotifyEmailTemplate = stepDto.NotifyEmailTemplate,
                     RejectBehavior = stepDto.RejectBehavior,
                     RejectTargetStepId = stepDto.RejectTargetStepId,
-                    TimeoutHours = stepDto.TimeoutHours
+                    TimeoutHours = stepDto.TimeoutHours,
+                    Site = entity.Site,
+                    App = currentApp
                 };
                 _db.ApprovalSteps.Add(newStep);
                 await _db.SaveChangesAsync();
@@ -268,7 +307,9 @@ public class ApprovalTemplateService : IApprovalTemplateService
                         RuleValue = ruleDto.RuleValue,
                         Fallback = ruleDto.Fallback,
                         Priority = ruleDto.Priority,
-                        IsActive = ruleDto.IsActive
+                        IsActive = ruleDto.IsActive,
+                        Site = entity.Site,
+                        App = currentApp
                     });
                 }
 
@@ -281,7 +322,9 @@ public class ApprovalTemplateService : IApprovalTemplateService
                         Expression = condDto.Expression,
                         TargetStepId = condDto.TargetStepId,
                         Priority = condDto.Priority,
-                        IsActive = condDto.IsActive
+                        IsActive = condDto.IsActive,
+                        Site = entity.Site,
+                        App = currentApp
                     });
                 }
             }

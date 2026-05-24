@@ -10,7 +10,7 @@
           </div>
         </template>
         <template #extra>
-          <el-button type="primary" :icon="Plus" @click="handleAdd">
+          <el-button v-if="userStore.hasPermission('products.manage')" type="primary" :icon="Plus" @click="handleAdd">
             {{ t('common.add') }}
           </el-button>
         </template>
@@ -106,6 +106,7 @@ import { productApi } from '@/api/product'
 import ProductForm from './ProductForm.vue'
 import { useI18n } from '@/composables/useI18n'
 import { useFieldControl } from '@/composables/useFieldControl'
+import { useUserStore } from '@/stores/user'
 import {
   Plus,
   Search,
@@ -117,6 +118,7 @@ import {
 } from '@element-plus/icons-vue'
 
 const { t } = useI18n()
+const userStore = useUserStore()
 const { isVisible } = useFieldControl('Product', 'ProductList')
 const loading = ref(false)
 const dialogVisible = ref(false)

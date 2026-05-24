@@ -53,7 +53,7 @@ const router = createRouter({
           path: 'system/settings',
           name: 'systemSettings',
           component: () => import('@/views/system/SystemSettings.vue'),
-          meta: { title: 'System Settings', adminOnly: true }
+          meta: { title: 'System Settings', permission: 'settings.view' }
         },
 
         {
@@ -111,18 +111,52 @@ const router = createRouter({
   ],
 })
 
+let cachedUserInfo: any = null
+let cachedUserInfoStr = ''
+
+function getCachedUserInfo() {
+  const raw = localStorage.getItem('userInfo') || '{}'
+  if (raw !== cachedUserInfoStr) {
+    cachedUserInfoStr = raw
+    try {
+      cachedUserInfo = JSON.parse(raw)
+    } catch {
+      cachedUserInfo = {}
+    }
+  }
+  return cachedUserInfo
+}
+
 router.beforeEach((to) => {
   const token = localStorage.getItem('token')
   if (!to.meta.public && !token) {
     return '/login'
   }
-  if (to.meta.adminOnly && token) {
-    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
-    const roles = userInfo.roles || []
-    if (!roles.some((r: string) => r.toUpperCase() === 'ADMIN')) {
+  if (to.meta.permission && token) {
+    const userInfo = getCachedUserInfo()
+    const roles = userInfo?.roles || []
+    const permissions = userInfo?.permissions || []
+    const required = to.meta.permission as string
+    const isAdmin = roles.some((r: string) => r.toUpperCase() === 'ADMIN')
+    if (!isAdmin && !permissions.includes(required)) {
       return '/home'
     }
   }
+})
+
+// Aggressive cleanup after each route change to mitigate Element Plus
+// el-table ResizeObserver leaks (known issue in 2.13.x)
+router.afterEach(() => {
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.el-table').forEach((el) => {
+      const table = el as any
+      // Disconnect any ResizeObserver instances Element Plus may have left behind
+      const obs = table.__resizeObserver__ || table.resizeObserver || table._resizeObserver
+      if (obs && typeof obs.disconnect === 'function') {
+        try { obs.disconnect() } catch {}
+      }
+    })
+  })
 })
 
 export default router

@@ -1,3 +1,4 @@
+using CpmServer.Authorization;
 using CpmServer.Models;
 using CpmServer.Common;
 using CpmServer.Services;
@@ -26,6 +27,7 @@ public class I18nMessageController : ControllerBase
     }
 
     [HttpGet("active")]
+    [AllowAnonymous]
     public async Task<ApiResult<Dictionary<string, Dictionary<string, string>>>> GetActiveMessages()
     {
         var messages = await _service.GetActiveMessagesAsync();
@@ -33,7 +35,7 @@ public class I18nMessageController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "ADMIN")]
+    [Authorize(Policy = Policies.CanManageSystem)]
     public async Task<ApiResult<SysI18nMessage>> Create([FromBody] SysI18nMessage message)
     {
         var created = await _service.CreateAsync(message);
@@ -41,7 +43,7 @@ public class I18nMessageController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "ADMIN")]
+    [Authorize(Policy = Policies.CanManageSystem)]
     public async Task<ApiResult> Update(long id, [FromBody] SysI18nMessage message)
     {
         await _service.UpdateAsync(id, message);
@@ -49,7 +51,7 @@ public class I18nMessageController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "ADMIN")]
+    [Authorize(Policy = Policies.CanManageSystem)]
     public async Task<ApiResult> Delete(long id)
     {
         await _service.DeleteAsync(id);

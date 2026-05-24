@@ -1,3 +1,4 @@
+using CpmServer.Authorization;
 using CpmServer.Common;
 using CpmServer.DTOs.Role;
 using CpmServer.Services;
@@ -8,7 +9,7 @@ namespace CpmServer.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "ADMIN")]
+[Authorize(Policy = Policies.CanManageSystem)]
 public class RoleController : ControllerBase
 {
     private readonly IRoleService _roleService;
@@ -52,5 +53,19 @@ public class RoleController : ControllerBase
     {
         await _roleService.DeleteAsync(id);
         return ApiResult.Success();
+    }
+
+    [HttpPut("{id}/permissions")]
+    public async Task<ApiResult> AssignPermissions(long id, [FromBody] List<string> permissionCodes)
+    {
+        await _roleService.UpdateRolePermissionsAsync(id, permissionCodes);
+        return ApiResult.Success();
+    }
+
+    [HttpGet("permissions/all")]
+    [AllowAnonymous]
+    public Task<ApiResult<List<string>>> GetAllPermissions()
+    {
+        return Task.FromResult(ApiResult<List<string>>.Success(Permissions.All.ToList()));
     }
 }

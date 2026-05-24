@@ -15,7 +15,7 @@ public class JwtHelper
         _settings = options.Value;
     }
 
-    public string GenerateToken(long userId, string username, List<string> roles, string? site = null, string? app = null)
+    public string GenerateToken(long userId, string username, List<string> roles, List<string> permissions, string? site = null, string? app = null)
     {
         var claims = new List<Claim>
         {
@@ -26,6 +26,11 @@ public class JwtHelper
         foreach (var role in roles)
         {
             claims.Add(new Claim(ClaimTypes.Role, role.ToUpperInvariant()));
+        }
+
+        foreach (var permission in permissions)
+        {
+            claims.Add(new Claim("Permission", permission));
         }
 
         if (!string.IsNullOrWhiteSpace(site))

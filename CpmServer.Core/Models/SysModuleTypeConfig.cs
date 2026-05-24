@@ -23,5 +23,11 @@ public class SysModuleTypeConfig
     /// <summary>是否启用</summary>
     public bool IsActive { get; set; } = true;
 
+    [StringLength(64)]
+    public string? Site { get; set; }
+
+    [StringLength(64)]
+    public string? App { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 }

@@ -44,6 +44,7 @@ public class QuoQuotationItem
     public QuoQuotation? Quotation { get; set; }
 
     public string? Site { get; set; }
+    public string? App { get; set; }
 
     [ForeignKey("ProductId")]
     public CrmProduct? Product { get; set; }

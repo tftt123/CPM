@@ -28,6 +28,7 @@ public class QuoOpportunity
 
     public long OwnerId { get; set; }
     public string? Site { get; set; }
+    public string? App { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime UpdatedAt { get; set; } = DateTime.Now;

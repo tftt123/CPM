@@ -183,7 +183,7 @@ const tokens: CpmTokens = {
     '12': '48px',
   },
   font: {
-    family: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+    family: "'Montserrat', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
     size: {
       display: '28px',
       h1: '22px',

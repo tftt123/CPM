@@ -1,6 +1,7 @@
 using CpmServer.Data;
 using CpmServer.Models;
 using CpmServer.Modules.Approval.Contracts;
+using CpmServer.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -14,6 +15,7 @@ public class ApprovalActionService : IApprovalActionService
     private readonly ApprovalInstanceService _instanceService;
     private readonly IEnumerable<IBusinessVariableProvider> _variableProviders;
     private readonly IEnumerable<IBusinessStatusUpdater> _statusUpdaters;
+    private readonly ICurrentUser _currentUser;
 
     public ApprovalActionService(
         CpmDbContext db,
@@ -21,7 +23,8 @@ public class ApprovalActionService : IApprovalActionService
         ApprovalNotificationService notificationService,
         ApprovalInstanceService instanceService,
         IEnumerable<IBusinessVariableProvider> variableProviders,
-        IEnumerable<IBusinessStatusUpdater> statusUpdaters)
+        IEnumerable<IBusinessStatusUpdater> statusUpdaters,
+        ICurrentUser currentUser)
     {
         _db = db;
         _logger = logger;
@@ -29,6 +32,7 @@ public class ApprovalActionService : IApprovalActionService
         _instanceService = instanceService;
         _variableProviders = variableProviders;
         _statusUpdaters = statusUpdaters;
+        _currentUser = currentUser;
     }
 
     public async Task ApproveAsync(long instanceId, long approverId, string comment, decimal? reviewCost = null)
@@ -75,6 +79,7 @@ public class ApprovalActionService : IApprovalActionService
             Action = "APPROVE",
             Comment = comment,
             Site = instance.Site,
+            App = instance.App,
             CreatedAt = DateTime.UtcNow
         });
 
@@ -206,6 +211,7 @@ public class ApprovalActionService : IApprovalActionService
             Action = "REJECT",
             Comment = comment,
             Site = instance.Site,
+            App = instance.App,
             CreatedAt = DateTime.UtcNow
         });
 
@@ -351,6 +357,8 @@ public class ApprovalActionService : IApprovalActionService
             AssigneeId = toUserId,
             Status = 0,
             DueDate = dueDate,
+            Site = instance.Site,
+            App = instance.App,
             CreatedAt = DateTime.UtcNow
         });
 
@@ -364,6 +372,7 @@ public class ApprovalActionService : IApprovalActionService
             Action = "TRANSFER",
             Comment = $"转交给:{toUser?.RealName ?? toUser?.Username}: {comment}",
             Site = instance.Site,
+            App = instance.App,
             CreatedAt = DateTime.UtcNow
         });
 
@@ -402,7 +411,7 @@ public class ApprovalActionService : IApprovalActionService
                 .ToListAsync();
 
             var userRoleNames = await _db.Roles
-                .Where(r => userRoleIds.Contains(r.Id))
+                .Where(r => userRoleIds.Contains(r.Id) && (r.Site == _currentUser.Site || string.IsNullOrEmpty(r.Site)))
                 .Select(r => r.RoleName)
                 .ToListAsync();
 
@@ -422,7 +431,7 @@ public class ApprovalActionService : IApprovalActionService
                 .ToListAsync();
 
             var roleNames = await _db.Roles
-                .Where(r => userRoleIds.Contains(r.Id))
+                .Where(r => userRoleIds.Contains(r.Id) && (r.Site == _currentUser.Site || string.IsNullOrEmpty(r.Site)))
                 .Select(r => r.RoleName)
                 .ToListAsync();
 

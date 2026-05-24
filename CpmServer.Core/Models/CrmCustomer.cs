@@ -23,6 +23,7 @@ public class CrmCustomer
     public bool IsFromQad { get; set; }
     public string? QadCustomerCode { get; set; }
     public string? Site { get; set; }
+    public string? App { get; set; }
     public long? CreatedBy { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime UpdatedAt { get; set; } = DateTime.Now;

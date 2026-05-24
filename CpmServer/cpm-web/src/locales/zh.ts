@@ -521,6 +521,28 @@
     draftSaved: '草稿已保存',
     submitApprovalSuccess: '已提交审批'
   },
+  permission: {
+    title: '权限分配',
+    system_manage: '系统管理',
+    users_manage: '用户管理',
+    roles_manage: '角色管理',
+    settings_view: '查看设置',
+    customers_manage: '客户管理',
+    products_manage: '产品管理',
+    mfg_manage: '工艺管理',
+    quotations_manage: '报价管理',
+    quotations_approve: '报价审批',
+    pm_manage: '项目管理',
+    pm_cycletime_approve: '节拍审批',
+    approval_templates_manage: '审批模板管理',
+    approval_center_view: '审批中心查看',
+    gc_manage: '通用代码管理',
+    nav_manage: '导航管理',
+    fieldcontrol_manage: '字段控制管理',
+    i18n_manage: '翻译管理',
+    email_templates_manage: '邮件模板管理',
+    alerts_manage: '告警收件人管理'
+  },
   gc: {
     title: '通用代码',
     subtitle: '维护系统下拉选项和枚举值',

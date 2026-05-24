@@ -52,7 +52,7 @@
     <el-dialog
       :title="isEdit ? t('common.edit') : t('common.create')"
       v-model="dialogVisible"
-      width="520px"
+      width="640px"
       :close-on-click-modal="false"
       class="slds-dialog"
       @closed="handleClose"
@@ -71,6 +71,20 @@
             <el-input v-model="form.site" :placeholder="t('common.pleaseInput')" />
           </el-form-item>
         </el-form>
+
+        <div v-if="isEdit" v-loading="permLoading" class="permission-section">
+          <div class="permission-header">{{ t('permission.title') }}</div>
+          <el-checkbox-group v-model="selectedPermissions" class="permission-group">
+            <div v-for="(perms, module) in permissionGroups" :key="module" class="permission-module">
+              <div class="permission-module-title">{{ getModuleLabel(module) }}</div>
+              <div class="permission-items">
+                <el-checkbox v-for="perm in perms" :key="perm" :label="perm" :value="perm" border size="small">
+                  {{ getPermissionLabel(perm) }}
+                </el-checkbox>
+              </div>
+            </div>
+          </el-checkbox-group>
+        </div>
       </div>
       <template #footer>
         <div class="dialog-footer">
@@ -102,6 +116,9 @@ const submitting = ref(false)
 const tableData = ref<any[]>([])
 const editId = ref<number | null>(null)
 const formRef = ref()
+const allPermissions = ref<string[]>([])
+const selectedPermissions = ref<string[]>([])
+const permLoading = ref(false)
 
 const isEdit = computed(() => !!editId.value)
 
@@ -110,6 +127,42 @@ const form = ref({
   roleName: '',
   site: ''
 })
+
+const permissionGroups = computed(() => {
+  const groups: Record<string, string[]> = {}
+  allPermissions.value.forEach(p => {
+    const module = p.split('.')[0]
+    if (!groups[module]) groups[module] = []
+    groups[module].push(p)
+  })
+  return groups
+})
+
+const getModuleLabel = (module: string) => {
+  const map: Record<string, string> = {
+    system: t('permission.system_manage'),
+    users: t('permission.users_manage'),
+    customers: t('permission.customers_manage'),
+    products: t('permission.products_manage'),
+    mfg: t('permission.mfg_manage'),
+    quotations: t('permission.quotations_manage'),
+    pm: t('permission.pm_manage'),
+    approval: t('permission.approval_templates_manage'),
+    gc: t('permission.gc_manage'),
+    nav: t('permission.nav_manage'),
+    fieldcontrol: t('permission.fieldcontrol_manage'),
+    i18n: t('permission.i18n_manage'),
+    email: t('permission.email_templates_manage'),
+    alerts: t('permission.alerts_manage')
+  }
+  return map[module] || module.toUpperCase()
+}
+
+const getPermissionLabel = (code: string) => {
+  const key = code.replace(/\./g, '_')
+  const translated = t(`permission.${key}`)
+  return translated !== `permission.${key}` ? translated : code
+}
 
 const rules = {
   roleCode: [{ required: true, message: t('validation.required', { field: t('common.code') }), trigger: 'blur' }],
@@ -132,12 +185,24 @@ const handleAdd = () => {
   dialogVisible.value = true
 }
 
-const handleEdit = (row: any) => {
+const handleEdit = async (row: any) => {
   editId.value = row.id
   form.value = {
     roleCode: row.roleCode,
     roleName: row.roleName,
     site: row.site || ''
+  }
+  selectedPermissions.value = []
+  permLoading.value = true
+  try {
+    const [allRes, roleRes] = await Promise.all([
+      roleApi.getAllPermissions(),
+      roleApi.getById(row.id)
+    ])
+    allPermissions.value = allRes.data || []
+    selectedPermissions.value = roleRes.data?.permissions || []
+  } finally {
+    permLoading.value = false
   }
   dialogVisible.value = true
 }
@@ -155,6 +220,7 @@ const handleSubmit = async () => {
   try {
     if (isEdit.value && editId.value) {
       await roleApi.update(editId.value, { roleName: form.value.roleName, site: form.value.site })
+      await roleApi.assignPermissions(editId.value, selectedPermissions.value)
       ElMessage.success(t('message.updateSuccess'))
     } else {
       await roleApi.create(form.value)
@@ -271,5 +337,41 @@ onMounted(async () => {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+}
+
+.permission-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--slds-border-color-light);
+}
+
+.permission-header {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--slds-text-primary);
+  margin-bottom: 12px;
+}
+
+.permission-module {
+  margin-bottom: 12px;
+}
+
+.permission-module-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--slds-brand-primary);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.permission-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.permission-items :deep(.el-checkbox) {
+  margin-right: 0;
 }
 </style>

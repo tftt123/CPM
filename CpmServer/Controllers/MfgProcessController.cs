@@ -1,3 +1,4 @@
+using CpmServer.Authorization;
 using CpmServer.Common;
 using CpmServer.DTOs.MfgProcess;
 using CpmServer.Services;
@@ -8,7 +9,7 @@ namespace CpmServer.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "ADMIN")]
+[Authorize(Policy = Policies.CanManageSystem)]
 public class MfgProcessController : ControllerBase
 {
     private readonly IMfgProcessService _mfgService;

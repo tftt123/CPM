@@ -10,4 +10,5 @@ public interface IRoleService
     Task<long> CreateAsync(RoleCreateDto dto);
     Task UpdateAsync(long id, RoleUpdateDto dto);
     Task DeleteAsync(long id);
+    Task UpdateRolePermissionsAsync(long id, List<string> permissionCodes);
 }

@@ -21,6 +21,7 @@ public class SysApprovalTemplate
     public bool IsActive { get; set; } = true;
     public long? CreatedBy { get; set; }
     public string? Site { get; set; }
+    public string? App { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     public List<SysApprovalStep> Steps { get; set; } = new();

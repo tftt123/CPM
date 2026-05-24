@@ -116,7 +116,7 @@
               <el-dropdown-item command="profile">
                 <el-icon><User /></el-icon>{{ t('common.personalInfo') }}
               </el-dropdown-item>
-              <el-dropdown-item command="settings" v-if="isAdmin">
+              <el-dropdown-item command="settings" v-if="canViewSettings">
                 <el-icon><Setting /></el-icon>{{ t('common.systemSettings') }}
               </el-dropdown-item>
               <el-dropdown-item divided command="logout">
@@ -129,31 +129,26 @@
     </el-header>
 
     <el-container style="flex: 1; overflow: hidden;">
-      <!-- 宸︿晶瀵艰埅鏍?-->
+      <!-- 左侧导航栏 -->
       <el-aside width="240px" class="sidebar">
         <!-- Dynamic Navigation -->
         <template v-if="groupedModules.length > 0">
           <div class="nav-section" v-for="module in groupedModules" :key="module.moduleCode">
             <div class="nav-section-title">{{ module.moduleLabel }}</div>
-            <el-menu
-              router
-              :default-active="$route.path"
-              class="nav-menu"
-              :collapse="false"
-              :collapse-transition="false"
-            >
-              <el-menu-item
+            <div class="nav-menu">
+              <div
                 v-for="item in module.items"
                 :key="item.navCode"
-                :index="item.routePath"
                 class="nav-item"
+                :class="{ 'is-active': isActiveRoute(item.routePath) }"
+                @click="router.push(item.routePath)"
               >
                 <el-icon size="18">
                   <component :is="getIconComponent(item.iconName)" />
                 </el-icon>
                 <span>{{ resolveNavLabel(item) }}</span>
-              </el-menu-item>
-            </el-menu>
+              </div>
+            </div>
           </div>
         </template>
 
@@ -161,96 +156,72 @@
         <template v-else>
           <div class="nav-section">
             <div class="nav-section-title">{{ t('nav.home') }}</div>
-            <el-menu
-              router
-              :default-active="$route.path"
-              class="nav-menu"
-              :collapse="false"
-              :collapse-transition="false"
-            >
-              <el-menu-item index="/home" class="nav-item">
+            <div class="nav-menu">
+              <div class="nav-item" :class="{ 'is-active': isActiveRoute('/home') }" @click="router.push('/home')">
                 <el-icon size="18"><HomeFilled /></el-icon>
                 <span>{{ t('nav.home') }}</span>
-              </el-menu-item>
-            </el-menu>
+              </div>
+            </div>
           </div>
 
           <div class="nav-section">
             <div class="nav-section-title">{{ t('nav.rfq') }}</div>
-            <el-menu
-              router
-              :default-active="$route.path"
-              class="nav-menu"
-              :collapse="false"
-              :collapse-transition="false"
-            >
-              <el-menu-item index="/customer" class="nav-item">
+            <div class="nav-menu">
+              <div class="nav-item" :class="{ 'is-active': isActiveRoute('/customer') }" @click="router.push('/customer')">
                 <el-icon size="18"><UserFilled /></el-icon>
                 <span>{{ t('nav.customer') }}</span>
-              </el-menu-item>
-              <el-menu-item index="/product" class="nav-item">
+              </div>
+              <div class="nav-item" :class="{ 'is-active': isActiveRoute('/product') }" @click="router.push('/product')">
                 <el-icon size="18"><Box /></el-icon>
                 <span>{{ t('nav.product') }}</span>
-              </el-menu-item>
-              <el-menu-item index="/opportunity" class="nav-item">
+              </div>
+              <div class="nav-item" :class="{ 'is-active': isActiveRoute('/opportunity') }" @click="router.push('/opportunity')">
                 <el-icon size="18"><FolderOpened /></el-icon>
                 <span>{{ t('nav.opportunity') }}</span>
-              </el-menu-item>
-              <el-menu-item index="/quotation/list" class="nav-item">
+              </div>
+              <div class="nav-item" :class="{ 'is-active': isActiveRoute('/quotation/list') }" @click="router.push('/quotation/list')">
                 <el-icon size="18"><Document /></el-icon>
                 <span>{{ t('nav.quotation') }}</span>
-              </el-menu-item>
-              <el-menu-item index="/mfg/process" class="nav-item">
+              </div>
+              <div class="nav-item" :class="{ 'is-active': isActiveRoute('/mfg/process') }" @click="router.push('/mfg/process')">
                 <el-icon size="18"><Setting /></el-icon>
                 <span>{{ t('nav.mfgProcess') }}</span>
-              </el-menu-item>
-            </el-menu>
+              </div>
+            </div>
           </div>
 
           <div class="nav-section">
             <div class="nav-section-title">{{ t('nav.pm') }}</div>
-            <el-menu
-              router
-              :default-active="$route.path"
-              class="nav-menu"
-              :collapse="false"
-              :collapse-transition="false"
-            >
-              <el-menu-item index="/pm/actual-cycle-time" class="nav-item">
+            <div class="nav-menu">
+              <div class="nav-item" :class="{ 'is-active': isActiveRoute('/pm/actual-cycle-time') }" @click="router.push('/pm/actual-cycle-time')">
                 <el-icon size="18"><Timer /></el-icon>
                 <span>{{ t('nav.actualCycleTime') }}</span>
-              </el-menu-item>
-              <el-menu-item index="/pm/trace" class="nav-item">
+              </div>
+              <div class="nav-item" :class="{ 'is-active': isActiveRoute('/pm/trace') }" @click="router.push('/pm/trace')">
                 <el-icon size="18"><TrendCharts /></el-icon>
                 <span>{{ t('nav.productTrace') }}</span>
-              </el-menu-item>
-            </el-menu>
+              </div>
+            </div>
           </div>
 
           <div class="nav-section">
             <div class="nav-section-title">{{ t('nav.approval') }}</div>
-            <el-menu
-              router
-              :default-active="$route.path"
-              class="nav-menu"
-              :collapse="false"
-              :collapse-transition="false"
-            >
-              <el-menu-item index="/approval/center" class="nav-item">
+            <div class="nav-menu">
+              <div class="nav-item" :class="{ 'is-active': isActiveRoute('/approval/center') }" @click="router.push('/approval/center')">
                 <el-icon size="18"><CircleCheck /></el-icon>
                 <span>{{ t('nav.approvalCenter') }}</span>
-              </el-menu-item>
-            </el-menu>
+              </div>
+            </div>
           </div>
 
           <div class="nav-section">
             <div class="nav-section-title">{{ t('nav.salesReport') }}</div>
-            <el-menu class="nav-menu">
-              <el-menu-item index="/report/analysis" class="nav-item">
+            <div class="nav-menu">
+              <div class="nav-item" :class="{ 'is-active': isActiveRoute('/report/analysis') }" @click="router.push('/report/analysis')">
                 <el-icon size="18"><DataAnalysis /></el-icon>
                 <span>{{ t('nav.dataAnalysis') }}</span>
-              </el-menu-item>
-            </el-menu>
+              </div>
+            </div>
           </div>
         </template>
       </el-aside>
@@ -265,7 +236,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useI18n } from '@/composables/useI18n'
 import { useNavigationConfig } from '@/composables/useNavigationConfig'
@@ -294,13 +265,32 @@ import { authApi } from '@/api/auth'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 const { t, locale, setLocale } = useI18n()
 const { loadNavigationConfig, groupedModules, resolveNavLabel, getIconComponent } = useNavigationConfig()
 const searchQuery = ref('')
 
+const isActiveRoute = (path: string) => route.path === path || route.path.startsWith(path + '/')
+
 onMounted(() => {
   loadNavigationConfig()
+  // 空闲时预加载所有页面组件，消除首次切换的懒加载延迟
+  requestIdleCallback?.(() => {
+    import('@/views/HomeView.vue').catch(() => {})
+    import('@/views/customer/CustomerList.vue').catch(() => {})
+    import('@/views/product/ProductList.vue').catch(() => {})
+    import('@/views/quotation/OpportunityList.vue').catch(() => {})
+    import('@/views/quotation/QuotationList.vue').catch(() => {})
+    import('@/views/quotation/QuotationDetail.vue').catch(() => {})
+    import('@/views/mfg/MfgProcessManage.vue').catch(() => {})
+    import('@/views/pm/ProductTraceList.vue').catch(() => {})
+    import('@/views/pm/ProductTraceDetail.vue').catch(() => {})
+    import('@/views/pm/ActualCycleTimeManage.vue').catch(() => {})
+    import('@/views/approval/ApprovalCenter.vue').catch(() => {})
+    import('@/views/system/SystemSettings.vue').catch(() => {})
+    import('@/views/profile/ProfileView.vue').catch(() => {})
+  })
 })
 
 
@@ -316,7 +306,7 @@ const currentAppLabel = computed(() => {
 })
 const currentLangLabel = computed(() => locale.value === 'zh' ? 'CH' : 'EN')
 
-const isAdmin = computed(() => userStore.roles.some(r => r.toUpperCase() === 'ADMIN'))
+const canViewSettings = computed(() => userStore.hasPermission('settings.view'))
 
 const handleUserCommand = (command: string) => {
   switch (command) {
@@ -338,9 +328,15 @@ const handleSwitchSite = async (site: string) => {
   try {
     const res = await authApi.switchSite(site)
     userStore.setToken(res.data.token)
-    userStore.switchSite(site)
+    userStore.setUserInfo({
+      username: res.data.username,
+      realName: res.data.realName,
+      site: res.data.site,
+      roles: res.data.roles,
+      permissions: res.data.permissions || []
+    })
     ElMessage.success(t('message.switchSiteSuccess', { site }))
-    window.location.reload()
+    router.replace('/home')
   } catch {
     ElMessage.error(t('common.failed'))
   }
@@ -349,7 +345,6 @@ const handleSwitchSite = async (site: string) => {
 const handleSwitchLanguage = (lang: 'zh' | 'en') => {
   if (lang === locale.value) return
   setLocale(lang)
-  window.location.reload()
 }
 
 const handleSwitchApp = (command: string) => {
@@ -631,7 +626,10 @@ const handleSwitchApp = (command: string) => {
 }
 
 .nav-item {
-  color: rgba(255, 255, 255, 0.85) !important;
+  display: flex;
+  align-items: center;
+  gap: var(--slds-spacing-sm);
+  color: rgba(255, 255, 255, 0.85);
   margin: 2px var(--slds-spacing-sm);
   border-radius: var(--slds-border-radius);
   height: 44px;
@@ -639,27 +637,25 @@ const handleSwitchApp = (command: string) => {
   font-size: var(--slds-font-size-md);
   font-weight: 500;
   transition: all 0.2s;
+  padding-left: var(--slds-spacing-lg);
+  cursor: pointer;
+  user-select: none;
 }
 
 .nav-item:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
-  color: #fff !important;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
 }
 
 .nav-item.is-active {
-  background: rgba(255, 255, 255, 0.12) !important;
-  color: #fff !important;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
   border-left: 3px solid #90D0FE;
 }
 
-.nav-item :deep(.el-icon) {
-  margin-right: var(--slds-spacing-sm);
+.nav-item .el-icon {
   color: inherit;
-}
-
-.nav-item :deep(.el-menu-tooltip__trigger) {
-  justify-content: flex-start !important;
-  padding-left: var(--slds-spacing-lg) !important;
+  flex-shrink: 0;
 }
 
 /* Main Content */
@@ -667,10 +663,6 @@ const handleSwitchApp = (command: string) => {
   background: var(--slds-bg-page);
   padding: var(--slds-spacing-lg);
   overflow-y: auto;
-}
-
-:deep(.el-menu-item) {
-  padding-left: var(--slds-spacing-lg) !important;
 }
 </style>
 

@@ -518,6 +518,28 @@
     draftSaved: 'Draft saved',
     submitApprovalSuccess: 'Submitted for approval'
   },
+  permission: {
+    title: 'Permission Assignment',
+    system_manage: 'System Management',
+    users_manage: 'User Management',
+    roles_manage: 'Role Management',
+    settings_view: 'View Settings',
+    customers_manage: 'Customer Management',
+    products_manage: 'Product Management',
+    mfg_manage: 'Mfg Process Management',
+    quotations_manage: 'Quotation Management',
+    quotations_approve: 'Quotation Approval',
+    pm_manage: 'Project Management',
+    pm_cycletime_approve: 'Cycle Time Approval',
+    approval_templates_manage: 'Approval Template Management',
+    approval_center_view: 'Approval Center View',
+    gc_manage: 'Generalized Code Management',
+    nav_manage: 'Navigation Management',
+    fieldcontrol_manage: 'Field Control Management',
+    i18n_manage: 'Translation Management',
+    email_templates_manage: 'Email Template Management',
+    alerts_manage: 'Alert Recipient Management'
+  },
   gc: {
     title: 'Generalized Code',
     subtitle: 'Maintain system dropdown options and enum values',

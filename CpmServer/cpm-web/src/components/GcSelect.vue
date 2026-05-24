@@ -14,7 +14,7 @@
       :value="opt.value"
     >
       <span style="display: flex; align-items: center; gap: 8px;">
-        <el-tag v-if="showTag && opt.tagType" :type="opt.tagType as any" size="small" effect="light">{{ opt.value }}</el-tag>
+        <el-tag v-if="showTag && opt.tagType" :type="opt.tagType" size="small" effect="light">{{ opt.value }}</el-tag>
         <span>{{ opt.label }}</span>
       </span>
     </el-option>

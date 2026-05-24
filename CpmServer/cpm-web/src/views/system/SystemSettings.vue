@@ -12,46 +12,46 @@
     </div>
 
     <el-tabs v-model="activeTab" type="border-card" class="settings-tabs">
-      <el-tab-pane :label="t('system.userListTitle')" name="users">
+      <el-tab-pane v-if="hasTabPerm('users.manage')" :label="t('system.userListTitle')" name="users">
         <UserList embedded />
       </el-tab-pane>
-      <el-tab-pane :label="t('system.roleListTitle')" name="roles">
+      <el-tab-pane v-if="hasTabPerm('roles.manage')" :label="t('system.roleListTitle')" name="roles">
         <RoleList embedded />
       </el-tab-pane>
-      <el-tab-pane :label="t('approval.steps')" name="approval">
+      <el-tab-pane v-if="hasTabPerm('approval.templates.manage')" :label="t('approval.steps')" name="approval">
         <ApprovalConfig embedded />
       </el-tab-pane>
-      <el-tab-pane :label="t('system.moduleTypeConfig')" name="moduleTypes">
+      <el-tab-pane v-if="hasTabPerm('system.manage')" :label="t('system.moduleTypeConfig')" name="moduleTypes">
         <ModuleTypeConfig />
       </el-tab-pane>
-      <el-tab-pane :label="t('mail.title')" name="mail">
+      <el-tab-pane v-if="hasTabPerm('system.manage')" :label="t('mail.title')" name="mail">
         <MailConfig />
       </el-tab-pane>
-      <el-tab-pane :label="t('uiControl.title')" name="ui">
+      <el-tab-pane v-if="hasTabPerm('system.manage')" :label="t('uiControl.title')" name="ui">
         <UiControl />
       </el-tab-pane>
-      <el-tab-pane :label="t('siteSetup.title')" name="site">
+      <el-tab-pane v-if="hasTabPerm('system.manage')" :label="t('siteSetup.title')" name="site">
         <SiteSetup />
       </el-tab-pane>
-      <el-tab-pane :label="t('sequenceRule.title')" name="sequence">
+      <el-tab-pane v-if="hasTabPerm('system.manage')" :label="t('sequenceRule.title')" name="sequence">
         <SequenceRuleConfig />
       </el-tab-pane>
-      <el-tab-pane :label="t('emailTemplate.title')" name="emailTemplates">
+      <el-tab-pane v-if="hasTabPerm('email.templates.manage')" :label="t('emailTemplate.title')" name="emailTemplates">
         <EmailTemplateManage />
       </el-tab-pane>
-      <el-tab-pane :label="t('alertRecipient.title')" name="alertRecipients">
+      <el-tab-pane v-if="hasTabPerm('alerts.manage')" :label="t('alertRecipient.title')" name="alertRecipients">
         <AlertRecipientManage />
       </el-tab-pane>
-      <el-tab-pane :label="t('fieldControl.title')" name="fieldControl">
+      <el-tab-pane v-if="hasTabPerm('fieldcontrol.manage')" :label="t('fieldControl.title')" name="fieldControl">
         <FieldControlConfig />
       </el-tab-pane>
-      <el-tab-pane :label="t('system.translationTitle')" name="translations">
+      <el-tab-pane v-if="hasTabPerm('i18n.manage')" :label="t('system.translationTitle')" name="translations">
         <TranslationManage />
       </el-tab-pane>
-      <el-tab-pane :label="t('navConfig.title')" name="navigation">
+      <el-tab-pane v-if="hasTabPerm('nav.manage')" :label="t('navConfig.title')" name="navigation">
         <NavigationConfig />
       </el-tab-pane>
-      <el-tab-pane :label="t('gc.title')" name="generalizedCode">
+      <el-tab-pane v-if="hasTabPerm('gc.manage')" :label="t('gc.title')" name="generalizedCode">
         <GeneralizedCodeManage />
       </el-tab-pane>
     </el-tabs>
@@ -59,8 +59,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from '@/composables/useI18n'
+import { useUserStore } from '@/stores/user'
 import UserList from './UserList.vue'
 import RoleList from './RoleList.vue'
 import ApprovalConfig from '../approval/ApprovalConfig.vue'
@@ -77,7 +78,34 @@ import NavigationConfig from './NavigationConfig.vue'
 import GeneralizedCodeManage from './GeneralizedCodeManage.vue'
 
 const { t } = useI18n()
+const userStore = useUserStore()
 const activeTab = ref('users')
+
+const tabs = [
+  { name: 'users', perm: 'users.manage' },
+  { name: 'roles', perm: 'roles.manage' },
+  { name: 'approval', perm: 'approval.templates.manage' },
+  { name: 'moduleTypes', perm: 'system.manage' },
+  { name: 'mail', perm: 'system.manage' },
+  { name: 'ui', perm: 'system.manage' },
+  { name: 'site', perm: 'system.manage' },
+  { name: 'sequence', perm: 'system.manage' },
+  { name: 'emailTemplates', perm: 'email.templates.manage' },
+  { name: 'alertRecipients', perm: 'alerts.manage' },
+  { name: 'fieldControl', perm: 'fieldcontrol.manage' },
+  { name: 'translations', perm: 'i18n.manage' },
+  { name: 'navigation', perm: 'nav.manage' },
+  { name: 'generalizedCode', perm: 'gc.manage' }
+]
+
+const visibleTabs = computed(() => tabs.filter(tab => userStore.hasPermission(tab.perm)))
+
+const hasTabPerm = (perm: string) => userStore.hasPermission(perm)
+
+onMounted(() => {
+  const first = visibleTabs.value[0]
+  if (first) activeTab.value = first.name
+})
 </script>
 
 <style scoped>

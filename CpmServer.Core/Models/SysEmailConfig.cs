@@ -20,4 +20,5 @@ public class SysEmailConfig
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     public string? Site { get; set; }
+    public string? App { get; set; }
 }

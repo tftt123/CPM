@@ -31,7 +31,9 @@ request.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
       localStorage.removeItem('userInfo')
-      window.location.href = '/login'
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login'
+      }
     } else if (error.response?.status === 403) {
       ElMessage.error('没有权限执行此操作')
     } else if (error.response?.status === 500) {

@@ -1,3 +1,4 @@
+using CpmServer.Authorization;
 using CpmServer.Common;
 using CpmServer.Data;
 using CpmServer.DTOs.Auth;
@@ -41,6 +42,25 @@ public class AuthService : IAuthService
         return refreshToken;
     }
 
+    private async Task<List<string>> LoadPermissionsAsync(List<long> roleIds, string? site, string app)
+    {
+        var roles = await _db.Roles
+            .Where(r => roleIds.Contains(r.Id))
+            .Select(r => r.RoleCode)
+            .ToListAsync();
+
+        if (roles.Any(r => r.Equals("ADMIN", StringComparison.OrdinalIgnoreCase)))
+            return Permissions.All.ToList();
+
+        return await _db.RolePermissions
+            .Where(rp => roleIds.Contains(rp.RoleId) && rp.IsActive
+                && rp.App == app
+                && (rp.Site == site || string.IsNullOrEmpty(rp.Site)))
+            .Select(rp => rp.PermissionCode)
+            .Distinct()
+            .ToListAsync();
+    }
+
     public async Task<LoginResponse> LoginAsync(LoginRequest request)
     {
         var user = await _db.Users
@@ -78,7 +98,9 @@ public class AuthService : IAuthService
             loginSite = user.Site ?? allowedSites.FirstOrDefault() ?? string.Empty;
         }
 
-        var token = _jwt.GenerateToken(user.Id, user.Username, roles, loginSite, "cpm");
+        var permissions = await LoadPermissionsAsync(roleIds, loginSite, "cpm");
+
+        var token = _jwt.GenerateToken(user.Id, user.Username, roles, permissions, loginSite, "cpm");
         var refreshToken = await StoreRefreshTokenAsync(user.Id);
 
         return new LoginResponse
@@ -89,7 +111,8 @@ public class AuthService : IAuthService
             Username = user.Username,
             RealName = user.RealName,
             Site = loginSite,
-            Roles = roles
+            Roles = roles,
+            Permissions = permissions
         };
     }
 
@@ -131,7 +154,9 @@ public class AuthService : IAuthService
             .Select(r => r.RoleCode)
             .ToListAsync();
 
-        var token = _jwt.GenerateToken(user.Id, user.Username, roles, site);
+        var permissions = await LoadPermissionsAsync(roleIds, site, "cpm");
+
+        var token = _jwt.GenerateToken(user.Id, user.Username, roles, permissions, site);
         var refreshToken = await StoreRefreshTokenAsync(user.Id);
 
         return new LoginResponse
@@ -142,7 +167,8 @@ public class AuthService : IAuthService
             Username = user.Username,
             RealName = user.RealName,
             Site = site,
-            Roles = roles
+            Roles = roles,
+            Permissions = permissions
         };
     }
 
@@ -181,7 +207,9 @@ public class AuthService : IAuthService
             .Select(us => us.Site)
             .FirstOrDefaultAsync() ?? string.Empty;
 
-        var newAccessToken = _jwt.GenerateToken(user.Id, user.Username, roles, loginSite);
+        var permissions = await LoadPermissionsAsync(roleIds, loginSite, "cpm");
+
+        var newAccessToken = _jwt.GenerateToken(user.Id, user.Username, roles, permissions, loginSite);
         var newRefreshToken = await StoreRefreshTokenAsync(user.Id);
 
         tokenEntity.IsRevoked = true;

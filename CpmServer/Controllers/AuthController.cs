@@ -1,3 +1,4 @@
+using CpmServer.Authorization;
 using CpmServer.Common;
 using CpmServer.Data;
 using CpmServer.DTOs.Auth;
@@ -88,8 +89,29 @@ public class AuthController : ControllerBase
         if (!roleCodes.Any())
             roleCodes.Add("USER");
 
+        // 3.5 获取用户权限
+        var roleIds = await _db.UserRoles
+            .Where(ur => ur.UserId == user.Id)
+            .Select(ur => ur.RoleId)
+            .ToListAsync();
+        List<string> permissions;
+        if (roleCodes.Any(r => r.Equals("ADMIN", StringComparison.OrdinalIgnoreCase)))
+        {
+            permissions = Permissions.All.ToList();
+        }
+        else
+        {
+            permissions = await _db.RolePermissions
+                .Where(rp => roleIds.Contains(rp.RoleId) && rp.IsActive
+                    && rp.App == "cpm"
+                    && (rp.Site == user.Site || string.IsNullOrEmpty(rp.Site)))
+                .Select(rp => rp.PermissionCode)
+                .Distinct()
+                .ToListAsync();
+        }
+
         // 4. 生成 Token 与 RefreshToken
-        var token = _jwt.GenerateToken(user.Id, user.Username, roleCodes, user.Site ?? "NT01");
+        var token = _jwt.GenerateToken(user.Id, user.Username, roleCodes, permissions, user.Site ?? "NT01", "cpm");
         var refreshToken = await _authService.GenerateRefreshTokenAsync(user.Id);
 
         return ApiResult<LoginResponse>.Success(new LoginResponse
@@ -100,7 +122,8 @@ public class AuthController : ControllerBase
             Username = user.Username,
             RealName = user.RealName,
             Site = user.Site,
-            Roles = roleCodes
+            Roles = roleCodes,
+            Permissions = permissions
         });
     }
 

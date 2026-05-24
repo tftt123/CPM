@@ -19,14 +19,16 @@ public class QuotationService : IQuotationService
     private readonly IApprovalService _approvalService;
     private readonly ISequenceRuleService _sequenceRuleService;
     private readonly ICurrentUser _currentUser;
+    private readonly IGeneralizedCodeService _gc;
 
-    public QuotationService(CpmDbContext db, ILogger<QuotationService> logger, IApprovalService approvalService, ISequenceRuleService sequenceRuleService, ICurrentUser currentUser)
+    public QuotationService(CpmDbContext db, ILogger<QuotationService> logger, IApprovalService approvalService, ISequenceRuleService sequenceRuleService, ICurrentUser currentUser, IGeneralizedCodeService gc)
     {
         _db = db;
         _logger = logger;
         _approvalService = approvalService;
         _sequenceRuleService = sequenceRuleService;
         _currentUser = currentUser;
+        _gc = gc;
     }
 
     #region 商机管理
@@ -161,6 +163,8 @@ public class QuotationService : IQuotationService
     {
         var entity = await _db.Opportunities.FindAsync(id);
         if (entity == null) return;
+
+        await _gc.ValidateAsync("OPP_STAGE", stage, entity.Site, _currentUser.App ?? "cpm");
 
         entity.Stage = stage;
         entity.UpdatedAt = DateTime.Now;

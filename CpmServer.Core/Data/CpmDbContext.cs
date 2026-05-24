@@ -44,6 +44,8 @@ public class CpmDbContext : DbContext
     public DbSet<SysUserRole> UserRoles => Set<SysUserRole>();
     public DbSet<SysUserSite> UserSites => Set<SysUserSite>();
     public DbSet<SysDept> Depts => Set<SysDept>();
+    public DbSet<SysPermission> Permissions => Set<SysPermission>();
+    public DbSet<SysRolePermission> RolePermissions => Set<SysRolePermission>();
 
     // P2 - CRM
     public DbSet<CrmCustomer> Customers => Set<CrmCustomer>();
@@ -114,6 +116,18 @@ public class CpmDbContext : DbContext
         modelBuilder.Entity<SysUserSite>()
             .HasKey(e => new { e.UserId, e.Site });
 
+        // Permissions
+        modelBuilder.Entity<SysPermission>()
+            .HasIndex(e => e.PermissionCode)
+            .IsUnique();
+
+        modelBuilder.Entity<SysRolePermission>()
+            .HasIndex(e => new { e.RoleId, e.PermissionCode, e.App, e.Site })
+            .IsUnique();
+
+        modelBuilder.Entity<SysRolePermission>()
+            .HasIndex(e => new { e.App, e.Site });
+
         // SysDept - Manager 鍏崇郴
         modelBuilder.Entity<SysDept>()
             .HasOne(d => d.Manager)
@@ -129,31 +143,37 @@ public class CpmDbContext : DbContext
             .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<QuoOpportunity>()
-            .HasIndex(e => e.OpportunityNo)
+            .HasIndex(e => new { e.OpportunityNo, e.App, e.Site })
             .IsUnique();
 
         modelBuilder.Entity<QuoQuotation>()
-            .HasIndex(e => e.QuotationNo)
+            .HasIndex(e => new { e.QuotationNo, e.App, e.Site })
             .IsUnique();
 
         modelBuilder.Entity<SysApprovalTemplate>()
-            .HasIndex(e => e.TemplateCode)
+            .HasIndex(e => new { e.TemplateCode, e.App, e.Site })
             .IsUnique();
 
         modelBuilder.Entity<SysModuleTypeConfig>()
-            .HasIndex(e => e.ModuleType)
+            .HasIndex(e => new { e.ModuleType, e.App, e.Site })
             .IsUnique();
 
         modelBuilder.Entity<SysEmailTemplate>()
-            .HasIndex(e => new { e.TemplateCode, e.Site })
+            .HasIndex(e => new { e.TemplateCode, e.App, e.Site })
             .IsUnique();
 
         // Approval Workflow - indexes
         modelBuilder.Entity<SysApprovalRule>()
             .HasIndex(e => e.StepId);
 
+        modelBuilder.Entity<SysApprovalRule>()
+            .HasIndex(e => new { e.App, e.Site });
+
         modelBuilder.Entity<SysApprovalCondition>()
             .HasIndex(e => e.StepId);
+
+        modelBuilder.Entity<SysApprovalCondition>()
+            .HasIndex(e => new { e.App, e.Site });
 
         modelBuilder.Entity<SysApprovalInstanceTask>()
             .HasIndex(e => e.InstanceId);
@@ -164,74 +184,80 @@ public class CpmDbContext : DbContext
         modelBuilder.Entity<SysApprovalInstanceTask>()
             .HasIndex(e => new { e.AssigneeRole, e.Status });
 
-        // Manufacturing Process - Site indexes
+        modelBuilder.Entity<SysApprovalInstanceTask>()
+            .HasIndex(e => new { e.App, e.Site });
+
+        modelBuilder.Entity<SysModuleTypeConfig>()
+            .HasIndex(e => new { e.App, e.Site });
+
+        // Manufacturing Process - App + Site indexes
         modelBuilder.Entity<MfgProcess>()
-            .HasIndex(e => e.Site);
+            .HasIndex(e => new { e.App, e.Site });
 
         modelBuilder.Entity<MfgSubCategory>()
-            .HasIndex(e => e.Site);
+            .HasIndex(e => new { e.App, e.Site });
 
         modelBuilder.Entity<MfgEquipment>()
-            .HasIndex(e => e.Site);
+            .HasIndex(e => new { e.App, e.Site });
 
         // PM - Product Trace indexes
         modelBuilder.Entity<PmProjectTrace>()
             .HasIndex(e => new { e.CustomerName, e.ProductCode, e.Status, e.CreatedAt });
 
         modelBuilder.Entity<PmProjectTrace>()
-            .HasIndex(e => e.Site);
+            .HasIndex(e => new { e.App, e.Site });
 
         modelBuilder.Entity<PmProjectTraceStep>()
-            .HasIndex(e => e.Site);
+            .HasIndex(e => new { e.App, e.Site });
 
         modelBuilder.Entity<PmProjectTraceStepActualCycleTime>()
-            .HasIndex(e => e.Site);
+            .HasIndex(e => new { e.App, e.Site });
 
         modelBuilder.Entity<PmStepCycleTimeChangeRequest>()
             .HasIndex(e => new { e.StepId, e.ApprovalStatus });
 
         modelBuilder.Entity<PmStepCycleTimeChangeRequest>()
-            .HasIndex(e => e.Site);
+            .HasIndex(e => new { e.App, e.Site });
 
         modelBuilder.Entity<PmStepCycleTimeChangeDetail>()
-            .HasIndex(e => e.Site);
+            .HasIndex(e => new { e.App, e.Site });
 
-        // Email - Site indexes
+        // Email - App + Site indexes
         modelBuilder.Entity<SysEmailTemplate>()
-            .HasIndex(e => e.Site);
+            .HasIndex(e => new { e.App, e.Site });
 
         modelBuilder.Entity<SysEmailConfig>()
-            .HasIndex(e => e.Site);
+            .HasIndex(e => new { e.App, e.Site });
 
         modelBuilder.Entity<SysEmailLog>()
-            .HasIndex(e => e.Site);
+            .HasIndex(e => new { e.App, e.Site });
 
-        // Alert - Site index
+        // Alert - App + Site index
         modelBuilder.Entity<SysAlertRecipient>()
-            .HasIndex(e => e.Site);
+            .HasIndex(e => new { e.App, e.Site });
 
-        // Sequence Rule - unique index on ModuleType + Site
+        // Sequence Rule - unique index on ModuleType + App + Site
         modelBuilder.Entity<SysSequenceRule>()
-            .HasIndex(e => new { e.ModuleType, e.Site })
+            .HasIndex(e => new { e.ModuleType, e.App, e.Site })
             .IsUnique();
 
-        // Field Control - unique index on ModuleCode + PageCode + FieldCode + Site
+        // Field Control - unique index on ModuleCode + PageCode + FieldCode + App + Site
         modelBuilder.Entity<SysFieldControl>()
-            .HasIndex(e => new { e.ModuleCode, e.PageCode, e.FieldCode, e.Site })
+            .HasIndex(e => new { e.ModuleCode, e.PageCode, e.FieldCode, e.App, e.Site })
             .IsUnique();
 
-        // i18n - unique index on MessageKey + Site
+        // i18n - unique index on MessageKey + App + Site
         modelBuilder.Entity<SysI18nMessage>()
-            .HasIndex(e => new { e.MessageKey, e.Site })
+            .HasIndex(e => new { e.MessageKey, e.App, e.Site })
             .IsUnique();
 
-        // Navigation Config - unique index on NavCode + Site
+        // Navigation Config - unique index on NavCode + App + Site
         modelBuilder.Entity<SysNavigationConfig>()
-            .HasIndex(e => new { e.NavCode, e.Site })
+            .HasIndex(e => new { e.NavCode, e.App, e.Site })
             .IsUnique();
 
         modelBuilder.Entity<SysNavigationConfig>()
-            .HasIndex(e => e.Site);
+            .HasIndex(e => new { e.App, e.Site });
 
         // Generalized Code - unique index on Domain + Code + App + Site
         modelBuilder.Entity<SysGeneralizedCode>()

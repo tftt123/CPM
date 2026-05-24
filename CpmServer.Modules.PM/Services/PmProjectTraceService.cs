@@ -14,12 +14,14 @@ public class PmProjectTraceService : IPmProjectTraceService
     private readonly CpmDbContext _db;
     private readonly IApprovalService _approvalService;
     private readonly ICurrentUser _currentUser;
+    private readonly IGeneralizedCodeService _gc;
 
-    public PmProjectTraceService(CpmDbContext db, IApprovalService approvalService, ICurrentUser currentUser)
+    public PmProjectTraceService(CpmDbContext db, IApprovalService approvalService, ICurrentUser currentUser, IGeneralizedCodeService gc)
     {
         _db = db;
         _approvalService = approvalService;
         _currentUser = currentUser;
+        _gc = gc;
     }
 
     public async Task<PmProjectTraceListResponse> GetListAsync(string? keyword, int? status, int page, int pageSize)
@@ -404,6 +406,8 @@ public class PmProjectTraceService : IPmProjectTraceService
 
     public async Task<long> CreateAsync(PmProjectTraceCreateRequest dto)
     {
+        await _gc.ValidateAsync("PM_TRACE_STATUS", dto.Status.ToString(), _currentUser.Site, _currentUser.App ?? "cpm");
+
         var entity = new PmProjectTrace
         {
             QuotationId = dto.QuotationId,
@@ -470,6 +474,8 @@ public class PmProjectTraceService : IPmProjectTraceService
             .FirstOrDefaultAsync(t => t.Id == id);
 
         if (trace == null) throw new BusinessException("Record not found");
+
+        await _gc.ValidateAsync("PM_TRACE_STATUS", dto.Status.ToString(), trace.Site, _currentUser.App ?? "cpm");
 
         trace.CustomerName = dto.CustomerName;
         trace.ProductCode = dto.ProductCode;

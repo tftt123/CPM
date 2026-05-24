@@ -30,6 +30,18 @@ public class PmProjectTraceServiceTests
         return mock.Object;
     }
 
+    private static IGeneralizedCodeService CreateMockGeneralizedCodeService()
+    {
+        var mock = new Mock<IGeneralizedCodeService>();
+        mock.Setup(x => x.ValidateAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>()))
+            .Returns(Task.CompletedTask);
+        return mock.Object;
+    }
+
     [Fact]
     public async Task SubmitCycleTimeChangeRequestAsync_Should_Create_Request_With_Status_Zero()
     {
@@ -46,7 +58,8 @@ public class PmProjectTraceServiceTests
             .ReturnsAsync(new SysApprovalInstance { Id = 99 });
 
         var mockCurrentUser = CreateMockCurrentUser();
-        var service = new PmProjectTraceService(db, mockApproval.Object, mockCurrentUser);
+        var mockGc = CreateMockGeneralizedCodeService();
+        var service = new PmProjectTraceService(db, mockApproval.Object, mockCurrentUser, mockGc);
 
         var step = new PmProjectTraceStep
         {
@@ -81,7 +94,8 @@ public class PmProjectTraceServiceTests
         var db = CreateInMemoryContext();
         var mockApproval = new Mock<IApprovalService>();
         var mockCurrentUser = CreateMockCurrentUser();
-        var service = new PmProjectTraceService(db, mockApproval.Object, mockCurrentUser);
+        var mockGc = CreateMockGeneralizedCodeService();
+        var service = new PmProjectTraceService(db, mockApproval.Object, mockCurrentUser, mockGc);
 
         var trace = new PmProjectTrace
         {
@@ -134,7 +148,8 @@ public class PmProjectTraceServiceTests
         var db = CreateInMemoryContext();
         var mockApproval = new Mock<IApprovalService>();
         var mockCurrentUser = CreateMockCurrentUser();
-        var service = new PmProjectTraceService(db, mockApproval.Object, mockCurrentUser);
+        var mockGc = CreateMockGeneralizedCodeService();
+        var service = new PmProjectTraceService(db, mockApproval.Object, mockCurrentUser, mockGc);
 
         var trace = new PmProjectTrace
         {
