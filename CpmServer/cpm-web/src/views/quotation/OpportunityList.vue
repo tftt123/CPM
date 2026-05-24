@@ -37,7 +37,7 @@
 
     <div class="search-area">
       <el-form :model="query" inline class="search-form">
-        <el-form-item :label="t('common.search')">
+        <el-form-item>
           <el-input
             v-model="query.keyword"
             :placeholder="t('common.pleaseInput')"
@@ -47,14 +47,14 @@
           />
         </el-form-item>
         <el-form-item :label="t('opportunity.stage')">
-          <el-select v-model="query.stage" :placeholder="t('common.all')" clearable style="width: 140px">
-            <el-option :label="t('common.new')" value="NEW" />
-            <el-option :label="t('common.qualified')" value="QUALIFIED" />
-            <el-option :label="t('common.proposal')" value="PROPOSAL" />
-            <el-option :label="t('common.negotiation')" value="NEGOTIATION" />
-            <el-option :label="t('common.closed')" value="CLOSED" />
-            <el-option :label="t('common.lost')" value="LOST" />
-          </el-select>
+          <GcSelect
+            v-model="query.stage"
+            domain="OPP_STAGE"
+            :placeholder="t('common.all')"
+            clearable
+            style="width: 140px"
+            :fallback="stageFallback"
+          />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :icon="Search" @click="handleSearch">{{ t('common.search') }}</el-button>
@@ -64,21 +64,21 @@
     </div>
 
     <div class="content-card" style="padding: 0;">
-      <el-table :data="tableData" v-loading="loading" stripe style="width: 100%">
+      <el-table border :data="tableData" v-loading="loading" stripe style="width: 100%">
         <el-table-column type="index" label="#" width="50" align="center" />
-        <el-table-column prop="opportunityNo" :label="t('opportunity.opportunityNo')" width="200">
+        <el-table-column v-if="isVisible('opportunityNo')" prop="opportunityNo" :label="t('opportunity.opportunityNo')" width="200">
           <template #default="{ row }">
             <span class="code-link">{{ row.opportunityNo }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="title" :label="t('opportunity.title')" min-width="180">
+        <el-table-column v-if="isVisible('title')" prop="title" :label="t('opportunity.title')" min-width="180">
           <template #default="{ row }">
             <div class="opportunity-title-cell">
               <span class="opportunity-title">{{ row.title }}</span>
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="customerName" :label="t('quotation.customer')" width="150">
+        <el-table-column v-if="isVisible('customerName')" prop="customerName" :label="t('quotation.customer')" width="330">
           <template #default="{ row }">
             <div class="customer-cell">
               <el-avatar :size="24" :icon="UserFilled" class="customer-avatar-small" />
@@ -86,24 +86,24 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="expectedAmount" :label="t('opportunity.expectedAmount')" width="130" align="right">
+        <el-table-column v-if="isVisible('expectedAmount')" prop="expectedAmount" :label="t('opportunity.expectedAmount')" width="130" align="right">
           <template #default="{ row }">
             <span class="amount">{{ row.expectedAmount ? '¥' + row.expectedAmount.toLocaleString() : '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="stage" :label="t('opportunity.stage')" min-width="110">
+        <el-table-column v-if="isVisible('stage')" prop="stage" :label="t('opportunity.stage')" width="150">
           <template #default="{ row }">
             <el-tag :type="getStageType(row.stage)" size="small" effect="light">
               {{ getStageLabel(row.stage) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="quoteDeadline" :label="t('opportunity.quoteDeadline')" width="130">
+        <el-table-column v-if="isVisible('quoteDeadline')" prop="quoteDeadline" :label="t('opportunity.quoteDeadline')" width="130">
           <template #default="{ row }">
             <span class="date-text">{{ row.quoteDeadline ? formatDate(row.quoteDeadline) : '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="ownerName" :label="t('opportunity.owner')" min-width="100">
+        <el-table-column v-if="isVisible('ownerName')" prop="ownerName" :label="t('opportunity.owner')" min-width="100">
           <template #default="{ row }">
             <div class="owner-cell">
               <el-icon size="14"><User /></el-icon>
@@ -127,7 +127,6 @@
       </el-table>
 
       <div class="table-footer">
-        <span class="table-info">{{ t('common.total') }} {{ total }}</span>
         <el-pagination
           v-model:current-page="query.pageNum"
           v-model:page-size="query.pageSize"
@@ -136,6 +135,7 @@
           :page-sizes="[10, 20, 50]"
           @change="loadData"
         />
+        <span class="table-info">{{ t('common.total') }} {{ total }}</span>
       </div>
     </div>
 
@@ -160,6 +160,9 @@ import { opportunityApi } from '@/api/quotation'
 import OpportunityForm from './OpportunityForm.vue'
 import QuotationForm from './QuotationForm.vue'
 import { useI18n } from '@/composables/useI18n'
+import { useFieldControl } from '@/composables/useFieldControl'
+import { useGeneralizedCode, type GcOption } from '@/composables/useGeneralizedCode'
+import GcSelect from '@/components/GcSelect.vue'
 import {
   Plus,
   Search,
@@ -172,6 +175,8 @@ import {
 } from '@element-plus/icons-vue'
 
 const { t } = useI18n()
+const { isVisible } = useFieldControl('Opportunity', 'OpportunityList')
+const { getOptions } = useGeneralizedCode()
 const loading = ref(false)
 const dialogVisible = ref(false)
 const quotationDialogVisible = ref(false)
@@ -180,7 +185,17 @@ const selectedOpportunity = ref<any>(null)
 const tableData = ref<any[]>([])
 const total = ref(0)
 const stageCount = reactive<Record<string, number>>({})
-const query = ref({ pageNum: 1, pageSize: 10, keyword: '', stage: '' })
+const query = ref<{ pageNum: number; pageSize: number; keyword: string; stage: string | null }>({ pageNum: 1, pageSize: 10, keyword: '', stage: '' })
+const stageOptions = ref<GcOption[]>([])
+
+const stageFallback = [
+  { code: 'NEW', label: t('common.new'), tagType: 'info' },
+  { code: 'QUALIFIED', label: t('common.qualified'), tagType: 'warning' },
+  { code: 'PROPOSAL', label: t('common.proposal'), tagType: 'warning' },
+  { code: 'NEGOTIATION', label: t('common.negotiation'), tagType: 'warning' },
+  { code: 'CLOSED', label: t('common.closed'), tagType: 'success' },
+  { code: 'LOST', label: t('common.lost'), tagType: 'danger' }
+]
 
 const loadData = async () => {
   loading.value = true
@@ -198,6 +213,12 @@ const loadData = async () => {
 
 const handleSearch = () => { query.value.pageNum = 1; loadData() }
 const handleReset = () => { query.value = { pageNum: 1, pageSize: 10, keyword: '', stage: '' }; loadData() }
+
+const getStageOption = (stage: string) => stageOptions.value.find(o => o.value === stage)
+
+const getStageType = (stage: string) => getStageOption(stage)?.tagType || 'info'
+
+const getStageLabel = (stage: string) => getStageOption(stage)?.label || stage
 const handleAdd = () => { editData.value = null; dialogVisible.value = true }
 const handleEdit = (row: any) => { editData.value = row; dialogVisible.value = true }
 
@@ -213,35 +234,14 @@ const handleDelete = async (row: any) => {
   loadData()
 }
 
-const getStageType = (stage: string) => {
-  const map: Record<string, any> = {
-    NEW: 'info',
-    QUALIFIED: 'primary',
-    PROPOSAL: 'warning',
-    NEGOTIATION: 'warning',
-    CLOSED: 'success',
-    LOST: 'danger'
-  }
-  return map[stage] || 'info'
-}
-
-const getStageLabel = (stage: string) => {
-  const map: Record<string, string> = {
-    NEW: t('common.new'),
-    QUALIFIED: t('common.qualified'),
-    PROPOSAL: t('common.proposal'),
-    NEGOTIATION: t('common.negotiation'),
-    CLOSED: t('common.closed'),
-    LOST: t('common.lost')
-  }
-  return map[stage] || stage
-}
-
 const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString()
 }
 
-onMounted(loadData)
+onMounted(async () => {
+  stageOptions.value = await getOptions('OPP_STAGE', stageFallback)
+  loadData()
+})
 </script>
 
 <style scoped>
@@ -386,8 +386,9 @@ onMounted(loadData)
 
 .table-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
+  gap: var(--slds-spacing-lg);
   padding: var(--slds-spacing-md) var(--slds-spacing-lg);
   border-top: 1px solid var(--slds-border-color-light);
 }

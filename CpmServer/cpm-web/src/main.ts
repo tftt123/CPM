@@ -12,6 +12,7 @@ import en from 'element-plus/dist/locale/en.mjs'
 import App from './App.vue'
 import router from './router'
 import { useUiControlStore } from './stores/uiControl'
+import { useLocaleStore } from './stores/locale'
 
 const app = createApp(App)
 
@@ -28,6 +29,10 @@ app.use(router)
 // Initialize UI control settings
 const uiStore = useUiControlStore()
 uiStore.applyAll()
+
+// Load DB translations
+const localeStore = useLocaleStore()
+localeStore.loadDbMessages()
 
 app.use(ElementPlus, {
   locale: elementLocale,

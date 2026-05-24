@@ -131,99 +131,128 @@
     <el-container style="flex: 1; overflow: hidden;">
       <!-- 宸︿晶瀵艰埅鏍?-->
       <el-aside width="240px" class="sidebar">
-        <div class="nav-section">
-          <div class="nav-section-title">{{ t('nav.home') }}</div>
-          <el-menu
-            router
-            :default-active="$route.path"
-            class="nav-menu"
-            :collapse="false"
-            :collapse-transition="false"
-          >
-            <el-menu-item index="/home" class="nav-item">
-              <el-icon size="18"><HomeFilled /></el-icon>
-              <span>{{ t('nav.home') }}</span>
-            </el-menu-item>
-          </el-menu>
-        </div>
+        <!-- Dynamic Navigation -->
+        <template v-if="groupedModules.length > 0">
+          <div class="nav-section" v-for="module in groupedModules" :key="module.moduleCode">
+            <div class="nav-section-title">{{ module.moduleLabel }}</div>
+            <el-menu
+              router
+              :default-active="$route.path"
+              class="nav-menu"
+              :collapse="false"
+              :collapse-transition="false"
+            >
+              <el-menu-item
+                v-for="item in module.items"
+                :key="item.navCode"
+                :index="item.routePath"
+                class="nav-item"
+              >
+                <el-icon size="18">
+                  <component :is="getIconComponent(item.iconName)" />
+                </el-icon>
+                <span>{{ resolveNavLabel(item) }}</span>
+              </el-menu-item>
+            </el-menu>
+          </div>
+        </template>
 
-        <div class="nav-section">
-          <div class="nav-section-title">{{ t('nav.rfq') }}</div>
-          <el-menu
-            router
-            :default-active="$route.path"
-            class="nav-menu"
-            :collapse="false"
-            :collapse-transition="false"
-          >
-            <el-menu-item index="/customer" class="nav-item">
-              <el-icon size="18"><UserFilled /></el-icon>
-              <span>{{ t('nav.customer') }}</span>
-            </el-menu-item>
-            <el-menu-item index="/product" class="nav-item">
-              <el-icon size="18"><Box /></el-icon>
-              <span>{{ t('nav.product') }}</span>
-            </el-menu-item>
-            <el-menu-item index="/opportunity" class="nav-item">
-              <el-icon size="18"><FolderOpened /></el-icon>
-              <span>{{ t('nav.opportunity') }}</span>
-            </el-menu-item>
-            <el-menu-item index="/quotation/list" class="nav-item">
-              <el-icon size="18"><Document /></el-icon>
-              <span>{{ t('nav.quotation') }}</span>
-            </el-menu-item>
-            <el-menu-item index="/mfg/process" class="nav-item">
-              <el-icon size="18"><Setting /></el-icon>
-              <span>{{ t('nav.mfgProcess') }}</span>
-            </el-menu-item>
-          </el-menu>
-        </div>
+        <!-- Fallback: hardcoded navigation when dynamic config is unavailable -->
+        <template v-else>
+          <div class="nav-section">
+            <div class="nav-section-title">{{ t('nav.home') }}</div>
+            <el-menu
+              router
+              :default-active="$route.path"
+              class="nav-menu"
+              :collapse="false"
+              :collapse-transition="false"
+            >
+              <el-menu-item index="/home" class="nav-item">
+                <el-icon size="18"><HomeFilled /></el-icon>
+                <span>{{ t('nav.home') }}</span>
+              </el-menu-item>
+            </el-menu>
+          </div>
 
-        <div class="nav-section">
-          <div class="nav-section-title">{{ t('nav.pm') }}</div>
-          <el-menu
-            router
-            :default-active="$route.path"
-            class="nav-menu"
-            :collapse="false"
-            :collapse-transition="false"
-          >
-            <el-menu-item index="/pm/actual-cycle-time" class="nav-item">
-              <el-icon size="18"><Timer /></el-icon>
-              <span>{{ t('nav.actualCycleTime') }}</span>
-            </el-menu-item>
-            <el-menu-item index="/pm/trace" class="nav-item">
-              <el-icon size="18"><TrendCharts /></el-icon>
-              <span>{{ t('nav.productTrace') }}</span>
-            </el-menu-item>
-          </el-menu>
-        </div>
+          <div class="nav-section">
+            <div class="nav-section-title">{{ t('nav.rfq') }}</div>
+            <el-menu
+              router
+              :default-active="$route.path"
+              class="nav-menu"
+              :collapse="false"
+              :collapse-transition="false"
+            >
+              <el-menu-item index="/customer" class="nav-item">
+                <el-icon size="18"><UserFilled /></el-icon>
+                <span>{{ t('nav.customer') }}</span>
+              </el-menu-item>
+              <el-menu-item index="/product" class="nav-item">
+                <el-icon size="18"><Box /></el-icon>
+                <span>{{ t('nav.product') }}</span>
+              </el-menu-item>
+              <el-menu-item index="/opportunity" class="nav-item">
+                <el-icon size="18"><FolderOpened /></el-icon>
+                <span>{{ t('nav.opportunity') }}</span>
+              </el-menu-item>
+              <el-menu-item index="/quotation/list" class="nav-item">
+                <el-icon size="18"><Document /></el-icon>
+                <span>{{ t('nav.quotation') }}</span>
+              </el-menu-item>
+              <el-menu-item index="/mfg/process" class="nav-item">
+                <el-icon size="18"><Setting /></el-icon>
+                <span>{{ t('nav.mfgProcess') }}</span>
+              </el-menu-item>
+            </el-menu>
+          </div>
 
-        <div class="nav-section">
-          <div class="nav-section-title">{{ t('nav.approval') }}</div>
-          <el-menu
-            router
-            :default-active="$route.path"
-            class="nav-menu"
-            :collapse="false"
-            :collapse-transition="false"
-          >
-            <el-menu-item index="/approval/center" class="nav-item">
-              <el-icon size="18"><CircleCheck /></el-icon>
-              <span>{{ t('nav.approvalCenter') }}</span>
-            </el-menu-item>
-          </el-menu>
-        </div>
+          <div class="nav-section">
+            <div class="nav-section-title">{{ t('nav.pm') }}</div>
+            <el-menu
+              router
+              :default-active="$route.path"
+              class="nav-menu"
+              :collapse="false"
+              :collapse-transition="false"
+            >
+              <el-menu-item index="/pm/actual-cycle-time" class="nav-item">
+                <el-icon size="18"><Timer /></el-icon>
+                <span>{{ t('nav.actualCycleTime') }}</span>
+              </el-menu-item>
+              <el-menu-item index="/pm/trace" class="nav-item">
+                <el-icon size="18"><TrendCharts /></el-icon>
+                <span>{{ t('nav.productTrace') }}</span>
+              </el-menu-item>
+            </el-menu>
+          </div>
 
-        <div class="nav-section">
-          <div class="nav-section-title">{{ t('nav.salesReport') }}</div>
-          <el-menu class="nav-menu">
-            <el-menu-item index="/report/analysis" class="nav-item">
-              <el-icon size="18"><DataAnalysis /></el-icon>
-              <span>{{ t('nav.dataAnalysis') }}</span>
-            </el-menu-item>
-          </el-menu>
-        </div>
+          <div class="nav-section">
+            <div class="nav-section-title">{{ t('nav.approval') }}</div>
+            <el-menu
+              router
+              :default-active="$route.path"
+              class="nav-menu"
+              :collapse="false"
+              :collapse-transition="false"
+            >
+              <el-menu-item index="/approval/center" class="nav-item">
+                <el-icon size="18"><CircleCheck /></el-icon>
+                <span>{{ t('nav.approvalCenter') }}</span>
+              </el-menu-item>
+            </el-menu>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-section-title">{{ t('nav.salesReport') }}</div>
+            <el-menu class="nav-menu">
+              <el-menu-item index="/report/analysis" class="nav-item">
+                <el-icon size="18"><DataAnalysis /></el-icon>
+                <span>{{ t('nav.dataAnalysis') }}</span>
+              </el-menu-item>
+            </el-menu>
+          </div>
+        </template>
       </el-aside>
 
       <!-- 涓诲唴瀹瑰尯鍩?-->
@@ -235,10 +264,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useI18n } from '@/composables/useI18n'
+import { useNavigationConfig } from '@/composables/useNavigationConfig'
 import {
   HomeFilled,
   UserFilled,
@@ -266,11 +296,16 @@ import { ElMessage } from 'element-plus'
 const router = useRouter()
 const userStore = useUserStore()
 const { t, locale, setLocale } = useI18n()
+const { loadNavigationConfig, groupedModules, resolveNavLabel, getIconComponent } = useNavigationConfig()
 const searchQuery = ref('')
+
+onMounted(() => {
+  loadNavigationConfig()
+})
 
 
 // Current App / Subsystem
-const currentApp = ref('cpm')
+const currentApp = ref(localStorage.getItem('current_app') || 'cpm')
 const currentAppLabel = computed(() => {
   const map: Record<string, string> = {
     cpm: t('app.cpm'),
@@ -321,6 +356,7 @@ const handleSwitchApp = (command: string) => {
   if (command === currentApp.value) return
   if (command === 'cpm') {
     currentApp.value = command
+    localStorage.setItem('current_app', command)
     router.push('/home')
   } else {
     ElMessage.info(t('app.comingSoon'))

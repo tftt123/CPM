@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="page-container">
     <div class="page-header-section">
       <el-page-header @back="$router.push('/home')">
@@ -33,6 +33,27 @@
       <el-tab-pane :label="t('siteSetup.title')" name="site">
         <SiteSetup />
       </el-tab-pane>
+      <el-tab-pane :label="t('sequenceRule.title')" name="sequence">
+        <SequenceRuleConfig />
+      </el-tab-pane>
+      <el-tab-pane :label="t('emailTemplate.title')" name="emailTemplates">
+        <EmailTemplateManage />
+      </el-tab-pane>
+      <el-tab-pane :label="t('alertRecipient.title')" name="alertRecipients">
+        <AlertRecipientManage />
+      </el-tab-pane>
+      <el-tab-pane :label="t('fieldControl.title')" name="fieldControl">
+        <FieldControlConfig />
+      </el-tab-pane>
+      <el-tab-pane :label="t('system.translationTitle')" name="translations">
+        <TranslationManage />
+      </el-tab-pane>
+      <el-tab-pane :label="t('navConfig.title')" name="navigation">
+        <NavigationConfig />
+      </el-tab-pane>
+      <el-tab-pane :label="t('gc.title')" name="generalizedCode">
+        <GeneralizedCodeManage />
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
@@ -47,6 +68,13 @@ import ModuleTypeConfig from './ModuleTypeConfig.vue'
 import MailConfig from './MailConfig.vue'
 import UiControl from './UiControl.vue'
 import SiteSetup from './SiteSetup.vue'
+import SequenceRuleConfig from './SequenceRuleConfig.vue'
+import EmailTemplateManage from './EmailTemplateManage.vue'
+import AlertRecipientManage from './AlertRecipientManage.vue'
+import FieldControlConfig from './FieldControlConfig.vue'
+import TranslationManage from './TranslationManage.vue'
+import NavigationConfig from './NavigationConfig.vue'
+import GeneralizedCodeManage from './GeneralizedCodeManage.vue'
 
 const { t } = useI18n()
 const activeTab = ref('users')
@@ -101,5 +129,3 @@ const activeTab = ref('users')
   padding: var(--slds-spacing-lg);
 }
 </style>
-
-

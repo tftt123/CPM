@@ -15,7 +15,7 @@
         ref="formRef"
         class="slds-form"
       >
-        <el-form-item :label="t('product.productCode')" prop="productCode" v-if="!isEdit">
+        <el-form-item :label="t('product.productCode')" prop="productCode" v-if="!isEdit && isVisible('productCode')">
           <el-input
             v-model="form.productCode"
             :placeholder="t('common.pleaseInput')"
@@ -23,7 +23,7 @@
           />
         </el-form-item>
 
-        <el-form-item :label="t('product.productName')" prop="productName">
+        <el-form-item :label="t('product.productName')" prop="productName" v-if="isVisible('productName')">
           <el-input
             v-model="form.productName"
             :placeholder="t('common.pleaseInput')"
@@ -31,7 +31,7 @@
           />
         </el-form-item>
 
-        <el-form-item :label="t('product.material')">
+        <el-form-item :label="t('product.material')" v-if="isVisible('material')">
           <el-input
             v-model="form.material"
             placeholder="SUS304 / AL6061"
@@ -39,7 +39,7 @@
           />
         </el-form-item>
 
-        <el-form-item :label="t('product.surfaceTreatment')">
+        <el-form-item :label="t('product.surfaceTreatment')" v-if="isVisible('surfaceTreatment')">
           <el-input
             v-model="form.surfaceTreatment"
             placeholder="Polishing / Anodizing"
@@ -65,7 +65,10 @@ import { ref, watch, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { productApi } from '@/api/product'
 import { useI18n } from '@/composables/useI18n'
+import { useFieldControl } from '@/composables/useFieldControl'
 import { Document, Box, Collection, Brush } from '@element-plus/icons-vue'
+
+const { isVisible } = useFieldControl('Product', 'ProductForm')
 
 const props = defineProps<{ visible: boolean; data: any }>()
 const emit = defineEmits(['update:visible', 'success'])

@@ -11,42 +11,64 @@
       </el-page-header>
     </div>
 
+    <!-- Search Area -->
+    <div class="search-area">
+      <el-form inline class="search-form">
+        <el-form-item>
+          <el-input
+            v-model="keyword"
+            :placeholder="t('common.pleaseInput')"
+            clearable
+            style="width: 320px"
+            :prefix-icon="Search"
+            @keyup.enter="loadData"
+          />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" :icon="Search" @click="loadData">{{ t('common.search') }}</el-button>
+          <el-button :icon="RefreshRight" @click="handleReset">{{ t('common.reset') }}</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
+
     <div class="content-card" style="padding: 0;">
       <!-- Toolbar -->
       <div class="table-toolbar">
-        <div class="toolbar-left">
-          <el-input
-            v-model="keyword"
-            :placeholder="t('common.search')"
-            style="width: 260px;"
-            clearable
-            @keyup.enter="loadData"
-          >
-            <template #prefix>
-              <el-icon><Search /></el-icon>
-            </template>
-          </el-input>
-          <el-button style="margin-left: 12px;" @click="loadData">{{ t('common.search') }}</el-button>
-        </div>
         <el-button type="primary" :icon="Plus" @click="handleAdd">
           {{ t('common.add') }}
         </el-button>
+        <el-button :icon="Download" @click="handleExport">
+          {{ t('common.export') }}
+        </el-button>
+        <el-upload
+          ref="uploadRef"
+          action=""
+          :auto-upload="false"
+          :show-file-list="false"
+          accept=".xlsx,.xls"
+          :on-change="handleFileChange"
+          style="display: inline-block; margin-left: 12px;"
+        >
+          <el-button :icon="Upload">
+            {{ t('common.import') }}
+          </el-button>
+        </el-upload>
       </div>
 
       <!-- Flat Table -->
-      <el-table :data="records" v-loading="loading" stripe>
+      <el-table border :data="records" v-loading="loading" stripe>
         <el-table-column type="index" label="#" width="50" align="center" />
-        <el-table-column prop="processName" :label="t('mfg.process')" width="160" />
-        <el-table-column prop="subCategoryName" :label="t('mfg.subCategory')" width="160" />
-        <el-table-column prop="equipmentName" :label="t('mfg.equipment')" min-width="160" />
-        <el-table-column prop="owner" :label="t('mfg.owner')" min-width="120" />
-        <el-table-column :label="t('mfg.hourlyRate')" min-width="120" align="right">
+        <el-table-column v-if="isVisible('processName')" prop="processName" :label="t('mfg.process')" width="160" />
+        <el-table-column v-if="isVisible('subCategoryName')" prop="subCategoryName" :label="t('mfg.subCategory')" width="160" />
+        <el-table-column v-if="isVisible('equipmentName')" prop="equipmentName" :label="t('mfg.equipment')" min-width="160" />
+        <el-table-column v-if="isVisible('owner')" prop="owner" :label="t('mfg.owner')" min-width="120" />
+        <el-table-column v-if="isVisible('costRate')" :label="t('mfg.hourlyRate')" min-width="120" align="right">
           <template #default="{ row }">
             <span v-if="row.costRate">{{ row.costRate }}</span>
             <span v-else class="text-muted">-</span>
           </template>
         </el-table-column>
-        <el-table-column :label="t('common.status')" min-width="90" align="center">
+        <el-table-column v-if="isVisible('isActive')" :label="t('common.status')" min-width="90" align="center">
           <template #default="{ row }">
             <el-tag size="small" :type="row.isActive ? 'success' : 'info'">
               {{ row.isActive ? t('common.active') : t('common.inactive') }}
@@ -71,7 +93,7 @@
       <div class="dialog-body">
         <el-form :model="form" label-width="120px" :rules="rules" ref="formRef" class="slds-form">
           <!-- Cascade: Process -->
-          <el-form-item :label="t('mfg.process')" prop="processIdOrName">
+          <el-form-item :label="t('mfg.process')" prop="processIdOrName" v-if="isVisible('processName')">
             <el-select
               ref="processSelectRef"
               v-model="form.processIdOrName"
@@ -92,7 +114,7 @@
           </el-form-item>
 
           <!-- Cascade: SubCategory -->
-          <el-form-item :label="t('mfg.subCategory')" prop="subCategoryIdOrName">
+          <el-form-item :label="t('mfg.subCategory')" prop="subCategoryIdOrName" v-if="isVisible('subCategoryName')">
             <el-select
               ref="subCategorySelectRef"
               v-model="form.subCategoryIdOrName"
@@ -112,13 +134,13 @@
           </el-form-item>
 
           <!-- Equipment Name -->
-          <el-form-item :label="t('mfg.equipment')" prop="equipmentName">
+          <el-form-item :label="t('mfg.equipment')" prop="equipmentName" v-if="isVisible('equipmentName')">
             <el-input v-model="form.equipmentName" :placeholder="t('common.pleaseInput')" />
           </el-form-item>
 
           <el-divider />
 
-          <el-form-item :label="t('mfg.hourlyRate')">
+          <el-form-item :label="t('mfg.hourlyRate')" v-if="isVisible('costRate')">
             <el-input-number
               v-model="form.costRate"
               :min="0"
@@ -129,15 +151,15 @@
             />
           </el-form-item>
 
-          <el-form-item :label="t('mfg.owner')">
+          <el-form-item :label="t('mfg.owner')" v-if="isVisible('owner')">
             <el-input v-model="form.owner" :placeholder="t('common.pleaseInput')" />
           </el-form-item>
 
-          <el-form-item :label="t('mfg.description')">
+          <el-form-item :label="t('mfg.description')" v-if="isVisible('description')">
             <el-input v-model="form.description" type="textarea" :rows="2" :placeholder="t('common.pleaseInput')" />
           </el-form-item>
 
-          <el-form-item :label="t('common.status')">
+          <el-form-item :label="t('common.status')" v-if="isVisible('isActive')">
             <el-switch v-model="form.isActive" :active-text="t('common.active')" :inactive-text="t('common.inactive')" />
           </el-form-item>
         </el-form>
@@ -157,9 +179,12 @@ import { ref, onMounted, computed, nextTick, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { mfgProcessApi, type MfgProcessRecord, type MfgCascadeOption } from '@/api/mfgProcess'
 import { useI18n } from '@/composables/useI18n'
-import { Plus, Edit, Delete, Search } from '@element-plus/icons-vue'
+import { useFieldControl } from '@/composables/useFieldControl'
+import { Plus, Edit, Delete, Search, RefreshRight, Download, Upload } from '@element-plus/icons-vue'
+import * as XLSX from 'xlsx'
 
 const { t } = useI18n()
+const { isVisible } = useFieldControl('Mfg', 'MfgProcessManage')
 const loading = ref(false)
 const dialogVisible = ref(false)
 const submitting = ref(false)
@@ -171,6 +196,8 @@ const editId = ref<number | null>(null)
 const keyword = ref('')
 const processSelectRef = ref<any>(null)
 const subCategorySelectRef = ref<any>(null)
+const uploadRef = ref<any>(null)
+const importing = ref(false)
 
 const selectInputCache = reactive({
   process: '',
@@ -313,6 +340,49 @@ const handleDelete = async (row: MfgProcessRecord) => {
     loadData()
   } catch {
     // user cancelled
+  }
+}
+
+const handleReset = () => {
+  keyword.value = ''
+  loadData()
+}
+
+const handleExport = () => {
+  const data = records.value.map((row, index) => ({
+    [t('common.serial')]: index + 1,
+    [t('mfg.process')]: row.processName,
+    [t('mfg.subCategory')]: row.subCategoryName,
+    [t('mfg.equipment')]: row.equipmentName,
+    [t('mfg.owner')]: row.owner || '',
+    [t('mfg.hourlyRate')]: row.costRate ?? '',
+    [t('common.status')]: row.isActive ? t('common.active') : t('common.inactive'),
+  }))
+  const ws = XLSX.utils.json_to_sheet(data)
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, t('mfg.title'))
+  XLSX.writeFile(wb, `${t('mfg.title')}.xlsx`)
+}
+
+const handleFileChange = async (uploadFile: any) => {
+  const file = uploadFile.raw as File
+  if (!file) return
+  if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+    ElMessage.warning('请上传Excel文件')
+    return
+  }
+  importing.value = true
+  try {
+    const res = await mfgProcessApi.importExcel(file)
+    ElMessage.success(res.data.message || t('common.importSuccess'))
+    loadData()
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.message || t('common.failed'))
+  } finally {
+    importing.value = false
+    if (uploadRef.value) {
+      uploadRef.value.clearFiles()
+    }
   }
 }
 

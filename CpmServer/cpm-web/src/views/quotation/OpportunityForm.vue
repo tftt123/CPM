@@ -15,7 +15,7 @@
         ref="formRef"
         class="slds-form"
       >
-        <el-form-item :label="t('opportunity.title')" prop="title">
+        <el-form-item :label="t('opportunity.title')" prop="title" v-if="isVisible('title')">
           <el-input
             v-model="form.title"
             :placeholder="t('common.pleaseInput')"
@@ -23,7 +23,7 @@
           />
         </el-form-item>
 
-        <el-form-item :label="t('quotation.customer')" prop="customerId">
+        <el-form-item :label="t('quotation.customer')" prop="customerId" v-if="isVisible('customerId')">
           <el-select
             v-model="form.customerId"
             :placeholder="t('common.pleaseSelect')"
@@ -39,7 +39,7 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item :label="t('opportunity.expectedAmount')">
+        <el-form-item :label="t('opportunity.expectedAmount')" v-if="isVisible('expectedAmount')">
           <el-input-number
             v-model="form.expectedAmount"
             :min="0"
@@ -50,7 +50,7 @@
           />
         </el-form-item>
 
-        <el-form-item :label="t('opportunity.quoteDeadline')">
+        <el-form-item :label="t('opportunity.quoteDeadline')" v-if="isVisible('quoteDeadline')">
           <el-date-picker
             v-model="form.quoteDeadline"
             type="date"
@@ -79,7 +79,10 @@ import { ElMessage } from 'element-plus'
 import { opportunityApi } from '@/api/quotation'
 import { customerApi } from '@/api/customer'
 import { useI18n } from '@/composables/useI18n'
+import { useFieldControl } from '@/composables/useFieldControl'
 import { Document } from '@element-plus/icons-vue'
+
+const { isVisible } = useFieldControl('Opportunity', 'OpportunityForm')
 
 const props = defineProps<{ visible: boolean; data: any }>()
 const emit = defineEmits(['update:visible', 'success'])

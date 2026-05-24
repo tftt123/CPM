@@ -27,6 +27,8 @@ public class PmStepCycleTimeChangeRequest
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
+    public string? Site { get; set; }
+
     public List<PmStepCycleTimeChangeDetail> Details { get; set; } = new();
 
     [ForeignKey("StepId")]

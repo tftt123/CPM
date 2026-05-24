@@ -78,20 +78,17 @@
           <!-- Unified Domain field -->
           <el-form-item>
             <label class="form-label">{{ t('login.domain') }}</label>
-            <el-select
+            <GcSelect
               v-model="domainValue"
+              domain="LOGIN_DOMAIN"
               :placeholder="t('login.domainPlaceholder')"
-              size="large"
               style="width: 100%"
               clearable
-            >
-              <el-option
-                v-for="item in domainOptions"
-                :key="item"
-                :label="item"
-                :value="item"
-              />
-            </el-select>
+              :fallback="[
+                { code: 'NT01', label: 'NT01', tagType: 'info' },
+                { code: 'MY01', label: 'MY01', tagType: 'info' }
+              ]"
+            />
           </el-form-item>
 
           <div class="form-options">
@@ -148,6 +145,7 @@ import { ElMessage } from 'element-plus'
 import { authApi } from '@/api/auth'
 import { useUserStore } from '@/stores/user'
 import { useI18n } from '@/composables/useI18n'
+import GcSelect from '@/components/GcSelect.vue'
 import { User, Lock, Check, MapLocation, ArrowDown, CircleCheck } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -159,7 +157,6 @@ const rememberMe = ref(false)
 const loginMode = ref<'local' | 'qad'>('local')
 const form = ref({ username: '', password: '', domain: '' })
 const selectedSite = ref('')
-const domainOptions = ['NT01', 'MY01']
 
 const domainValue = computed({
   get() {

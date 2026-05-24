@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="site-setup">
     <el-form :model="form" label-width="120px" class="setup-form">
       <el-form-item :label="t('siteSetup.site')">
@@ -6,16 +6,32 @@
         <span class="form-tip">{{ t('siteSetup.siteTip') }}</span>
       </el-form-item>
 
+      <el-form-item :label="t('siteSetup.siteCode')">
+        <el-input
+          v-model="form.siteCode"
+          :placeholder="t('siteSetup.siteCodePlaceholder')"
+          style="max-width: 300px;"
+          maxlength="20"
+          show-word-limit
+        />
+        <span class="form-tip">{{ t('siteSetup.siteCodeTip') }}</span>
+      </el-form-item>
+
       <el-form-item :label="t('siteSetup.currency')">
-        <el-select v-model="form.currency" style="max-width: 300px;">
-          <el-option label="CNY" value="CNY" />
-          <el-option label="USD" value="USD" />
-          <el-option label="MYN" value="MYN" />
-          <el-option label="SGD" value="SGD" />
-          <el-option label="EUR" value="EUR" />
-          <el-option label="JPY" value="JPY" />
-          <el-option label="HKD" value="HKD" />
-        </el-select>
+        <GcSelect
+          v-model="form.currency"
+          domain="CURRENCY"
+          style="max-width: 300px;"
+          :fallback="[
+            { code: 'CNY', label: 'CNY', tagType: 'info' },
+            { code: 'USD', label: 'USD', tagType: 'info' },
+            { code: 'MYN', label: 'MYN', tagType: 'info' },
+            { code: 'SGD', label: 'SGD', tagType: 'info' },
+            { code: 'EUR', label: 'EUR', tagType: 'info' },
+            { code: 'JPY', label: 'JPY', tagType: 'info' },
+            { code: 'HKD', label: 'HKD', tagType: 'info' }
+          ]"
+        />
       </el-form-item>
 
       <el-form-item :label="t('siteSetup.description')">
@@ -44,17 +60,17 @@ import { useI18n } from '@/composables/useI18n'
 import { getSiteSettings, saveSiteSettings } from '@/api/siteSettings'
 import type { SiteSettings } from '@/api/siteSettings'
 import { useUserStore } from '@/stores/user'
+import GcSelect from '@/components/GcSelect.vue'
 
 const { t } = useI18n()
 const userStore = useUserStore()
 
 const form = ref<SiteSettings>({
   site: userStore.currentSite || '',
+  siteCode: '',
   currency: 'CNY',
   description: '',
 })
-
-const loading = ref(false)
 
 async function loadSettings() {
   try {
@@ -62,6 +78,7 @@ async function loadSettings() {
     if (res.data) {
       form.value = {
         site: res.data.site || userStore.currentSite || '',
+        siteCode: res.data.siteCode || '',
         currency: res.data.currency || 'CNY',
         description: res.data.description || '',
       }

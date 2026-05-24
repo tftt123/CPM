@@ -22,26 +22,26 @@
     </div>
 
     <div class="content-card" style="padding: 0;">
-      <el-table :data="tableData" v-loading="loading" stripe style="width: 100%">
+      <el-table border :data="tableData" v-loading="loading" stripe style="width: 100%">
         <el-table-column type="index" label="#" width="50" align="center" />
-        <el-table-column prop="templateName" :label="t('approval.templateDesc')" min-width="200">
+        <el-table-column v-if="isVisible('templateNameCol')" prop="templateName" :label="t('approval.templateDesc')" min-width="200">
           <template #default="{ row }">
             <span class="template-name">{{ row.templateName }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="moduleType" :label="t('approval.moduleType')" min-width="110">
+        <el-table-column v-if="isVisible('moduleTypeCol')" prop="moduleType" :label="t('approval.moduleType')" min-width="110">
           <template #default="{ row }">
             <el-tag size="small" effect="light">{{ row.moduleType }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column :label="t('approval.steps')" min-width="200">
+        <el-table-column v-if="isVisible('stepsCol')" :label="t('approval.steps')" min-width="200">
           <template #default="{ row }">
             <div class="steps-preview">
               <el-tag
                 v-for="(step, idx) in row.steps"
                 :key="idx"
                 size="small"
-                :type="step.stepType === 'REVIEW' ? 'primary' : step.stepType === 'APPROVAL' ? 'warning' : 'info'"
+                :type="getStepTypeTag(step.stepType)"
                 class="step-tag"
               >
                 {{ step.stepName }}
@@ -49,13 +49,13 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="isDefault" :label="t('approval.isDefault')" min-width="80" align="center">
+        <el-table-column v-if="isVisible('isDefaultCol')" prop="isDefault" :label="t('approval.isDefault')" min-width="80" align="center">
           <template #default="{ row }">
             <el-tag v-if="row.isDefault" type="success" size="small">{{ t('common.yes') }}</el-tag>
             <span v-else class="text-secondary">-</span>
           </template>
         </el-table-column>
-        <el-table-column prop="isActive" :label="t('common.status')" min-width="80" align="center">
+        <el-table-column v-if="isVisible('isActiveCol')" prop="isActive" :label="t('common.status')" min-width="80" align="center">
           <template #default="{ row }">
             <el-switch v-model="row.isActive" disabled size="small" />
           </template>
@@ -86,12 +86,12 @@
         <el-form :model="form" label-width="100px" :rules="rules" ref="formRef" class="slds-form">
           <el-row :gutter="16">
             <el-col :span="12">
-              <el-form-item :label="t('approval.templateDesc')" prop="templateName">
+              <el-form-item v-if="isVisible('templateName')" :label="t('approval.templateDesc')" prop="templateName">
                 <el-input v-model="form.templateName" :placeholder="t('common.pleaseInput')" />
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item :label="t('approval.moduleType')" prop="moduleType">
+              <el-form-item v-if="isVisible('moduleType')" :label="t('approval.moduleType')" prop="moduleType">
                 <el-select v-model="form.moduleType" :placeholder="t('common.pleaseSelect')" style="width: 100%">
                   <el-option
                     v-for="item in moduleTypeList"
@@ -106,18 +106,18 @@
 
           <el-row :gutter="16">
             <el-col :span="12">
-              <el-form-item :label="t('approval.isDefault')">
+              <el-form-item v-if="isVisible('isDefault')" :label="t('approval.isDefault')">
                 <el-switch v-model="form.isDefault" />
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item :label="t('common.status')">
+              <el-form-item v-if="isVisible('isActive')" :label="t('common.status')">
                 <el-switch v-model="form.isActive" />
               </el-form-item>
             </el-col>
           </el-row>
 
-          <el-form-item :label="t('common.detail')">
+          <el-form-item v-if="isVisible('description')" :label="t('common.detail')">
             <el-input v-model="form.description" type="textarea" :rows="2" :placeholder="t('common.pleaseInput')" />
           </el-form-item>
 
@@ -142,22 +142,23 @@
                 </div>
                 <div class="step-field">
                   <div class="step-label">{{ t('approval.stepType') }} *</div>
-                  <el-select v-model="step.stepType" :placeholder="t('common.pleaseSelect')" style="width: 100%">
-                    <el-option :label="t('approval.stepTypeReview')" value="REVIEW" />
-                    <el-option :label="t('approval.stepTypeApproval')" value="APPROVAL" />
-                    <el-option :label="t('approval.stepTypeNotify')" value="NOTIFY" />
-                  </el-select>
+                  <GcSelect
+                    v-model="step.stepType"
+                    domain="APPROVAL_STEP_TYPE"
+                    :placeholder="t('common.pleaseSelect')"
+                    style="width: 100%"
+                    :fallback="stepTypeFallback"
+                  />
                 </div>
                 <div class="step-field">
                   <div class="step-label">{{ t('approval.stepMode') }}</div>
-                  <el-select v-model="step.stepMode" :placeholder="t('common.pleaseSelect')" style="width: 100%">
-                    <el-option :label="t('approval.stepModeSequential')" value="SEQUENTIAL" />
-                    <el-option :label="t('approval.stepModeParallel')" value="PARALLEL" />
-                    <el-option :label="t('approval.stepModeParallelAny')" value="PARALLEL_ANY" />
-                    <el-option :label="t('approval.stepModeConditional')" value="CONDITIONAL" />
-                    <el-option :label="t('approval.stepModeCC')" value="CC" />
-
-                  </el-select>
+                  <GcSelect
+                    v-model="step.stepMode"
+                    domain="APPROVAL_STEP_MODE"
+                    :placeholder="t('common.pleaseSelect')"
+                    style="width: 100%"
+                    :fallback="stepModeFallback"
+                  />
                 </div>
                 <div class="step-field">
                   <div class="step-label">{{ t('approval.approverRole') }}</div>
@@ -177,13 +178,13 @@
                 </div>
                 <div class="step-field">
                   <div class="step-label">{{ t('approval.rejectBehavior') }}</div>
-                  <el-select v-model="step.rejectBehavior" :placeholder="t('common.pleaseSelect')" style="width: 100%">
-                    <el-option :label="t('approval.rejectBehaviorClose')" value="REJECT_AND_CLOSE" />
-                    <el-option :label="t('approval.rejectBehaviorPrev')" value="REJECT_TO_PREV" />
-                    <el-option :label="t('approval.rejectBehaviorStep')" value="REJECT_TO_STEP" />
-                    <el-option :label="t('approval.rejectBehaviorStart')" value="REJECT_TO_START" />
-                    <el-option :label="t('approval.rejectBehaviorRequestor')" value="REJECT_TO_REQUESTOR" />
-                  </el-select>
+                  <GcSelect
+                    v-model="step.rejectBehavior"
+                    domain="REJECT_BEHAVIOR"
+                    :placeholder="t('common.pleaseSelect')"
+                    style="width: 100%"
+                    :fallback="rejectBehaviorFallback"
+                  />
                 </div>
                 <div class="step-field">
                   <div class="step-label">{{ t('approval.rejectTargetStep') }}</div>
@@ -247,11 +248,13 @@
                 </el-collapse-item>
                 <el-collapse-item :title="t('approval.rules')" name="rules">
                   <div v-for="(rule, rIdx) in step.rules" :key="rIdx" class="sub-item-row">
-                    <el-select v-model="rule.ruleType" :placeholder="t('approval.ruleType')" style="width: 120px">
-                      <el-option :label="t('approval.ruleTypeFixedRole')" value="FIXED_ROLE" />
-                      <el-option :label="t('approval.ruleTypeFixedUser')" value="FIXED_USER" />
-                      <el-option :label="t('approval.ruleTypeOrgTree')" value="ORG_TREE" />
-                    </el-select>
+                    <GcSelect
+                      v-model="rule.ruleType"
+                      domain="RULE_TYPE"
+                      :placeholder="t('approval.ruleType')"
+                      style="width: 120px"
+                      :fallback="ruleTypeFallback"
+                    />
                     <el-select
                       v-model="rule.ruleValue"
                       :placeholder="t('approval.ruleValue')"
@@ -313,10 +316,47 @@ import { userApi } from '@/api/user'
 import { roleApi } from '@/api/role'
 import { getModuleTypeList } from '@/api/moduleTypeConfig'
 import { useI18n } from '@/composables/useI18n'
+import { useFieldControl } from '@/composables/useFieldControl'
+import { useGeneralizedCode, type GcOption } from '@/composables/useGeneralizedCode'
+import GcSelect from '@/components/GcSelect.vue'
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 
 const props = defineProps<{ embedded?: boolean }>()
 const { t } = useI18n()
+const { isVisible, load: loadFieldConfig } = useFieldControl('Approval', 'ApprovalConfig')
+const { getOptions } = useGeneralizedCode()
+
+const stepTypeOptions = ref<GcOption[]>([])
+const stepModeOptions = ref<GcOption[]>([])
+const rejectBehaviorOptions = ref<GcOption[]>([])
+const ruleTypeOptions = ref<GcOption[]>([])
+
+const stepTypeFallback = [
+  { code: 'REVIEW', label: t('approval.stepTypeReview'), tagType: 'primary' },
+  { code: 'APPROVAL', label: t('approval.stepTypeApproval'), tagType: 'warning' },
+  { code: 'NOTIFY', label: t('approval.stepTypeNotify'), tagType: 'info' }
+]
+const stepModeFallback = [
+  { code: 'SEQUENTIAL', label: t('approval.stepModeSequential'), tagType: 'info' },
+  { code: 'PARALLEL', label: t('approval.stepModeParallel'), tagType: 'info' },
+  { code: 'PARALLEL_ANY', label: t('approval.stepModeParallelAny'), tagType: 'info' },
+  { code: 'CONDITIONAL', label: t('approval.stepModeConditional'), tagType: 'info' },
+  { code: 'CC', label: t('approval.stepModeCC'), tagType: 'info' }
+]
+const rejectBehaviorFallback = [
+  { code: 'REJECT_AND_CLOSE', label: t('approval.rejectBehaviorClose'), tagType: 'info' },
+  { code: 'REJECT_TO_PREV', label: t('approval.rejectBehaviorPrev'), tagType: 'info' },
+  { code: 'REJECT_TO_STEP', label: t('approval.rejectBehaviorStep'), tagType: 'info' },
+  { code: 'REJECT_TO_START', label: t('approval.rejectBehaviorStart'), tagType: 'info' },
+  { code: 'REJECT_TO_REQUESTOR', label: t('approval.rejectBehaviorRequestor'), tagType: 'info' }
+]
+const ruleTypeFallback = [
+  { code: 'FIXED_ROLE', label: t('approval.ruleTypeFixedRole'), tagType: 'info' },
+  { code: 'FIXED_USER', label: t('approval.ruleTypeFixedUser'), tagType: 'info' },
+  { code: 'ORG_TREE', label: t('approval.ruleTypeOrgTree'), tagType: 'info' }
+]
+
+const getStepTypeTag = (code: string) => stepTypeOptions.value.find(o => o.value === code)?.tagType || 'info'
 
 const loading = ref(false)
 const dialogVisible = ref(false)
@@ -554,11 +594,18 @@ const handleClose = () => {
   editId.value = null
 }
 
-onMounted(() => {
-  loadData()
-  loadUsers()
-  loadRoles()
-  loadModuleTypes()
+onMounted(async () => {
+  const [stepTypes, stepModes, rejectBehaviors, ruleTypes] = await Promise.all([
+    getOptions('APPROVAL_STEP_TYPE', stepTypeFallback),
+    getOptions('APPROVAL_STEP_MODE', stepModeFallback),
+    getOptions('REJECT_BEHAVIOR', rejectBehaviorFallback),
+    getOptions('RULE_TYPE', ruleTypeFallback),
+  ])
+  stepTypeOptions.value = stepTypes
+  stepModeOptions.value = stepModes
+  rejectBehaviorOptions.value = rejectBehaviors
+  ruleTypeOptions.value = ruleTypes
+  await Promise.all([loadFieldConfig(), loadUsers(), loadRoles(), loadModuleTypes(), loadData()])
 })
 </script>
 

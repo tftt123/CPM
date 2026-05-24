@@ -42,6 +42,9 @@ namespace CpmServer.Core.Migrations
                     b.Property<long?>("CreatedBy")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("Currency")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("CustomerCode")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -313,6 +316,9 @@ namespace CpmServer.Core.Migrations
                     b.Property<long?>("QuotationId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("Site")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -326,6 +332,8 @@ namespace CpmServer.Core.Migrations
                     b.HasIndex("ProductId");
 
                     b.HasIndex("QuotationId");
+
+                    b.HasIndex("Site");
 
                     b.HasIndex("CustomerName", "ProductCode", "Status", "CreatedAt");
 
@@ -389,12 +397,17 @@ namespace CpmServer.Core.Migrations
                     b.Property<decimal?>("SettingDays")
                         .HasColumnType("decimal(18,4)");
 
+                    b.Property<string>("Site")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<int>("StepOrder")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ProjectTraceId");
+
+                    b.HasIndex("Site");
 
                     b.ToTable("PmProjectTraceStep");
                 });
@@ -422,6 +435,9 @@ namespace CpmServer.Core.Migrations
                     b.Property<string>("Remarks")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Site")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -431,6 +447,8 @@ namespace CpmServer.Core.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ProjectTraceStepId");
+
+                    b.HasIndex("Site");
 
                     b.ToTable("PmProjectTraceStepActualCycleTime");
                 });
@@ -461,12 +479,17 @@ namespace CpmServer.Core.Migrations
                     b.Property<long>("RequestId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("Site")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<long?>("TargetRecordId")
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
                     b.HasIndex("RequestId");
+
+                    b.HasIndex("Site");
 
                     b.ToTable("PmStepCycleTimeChangeDetail");
                 });
@@ -491,6 +514,9 @@ namespace CpmServer.Core.Migrations
                     b.Property<string>("Remarks")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Site")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<long>("StepId")
                         .HasColumnType("bigint");
 
@@ -510,6 +536,8 @@ namespace CpmServer.Core.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Site");
 
                     b.HasIndex("StepId", "ApprovalStatus");
 
@@ -595,12 +623,13 @@ namespace CpmServer.Core.Migrations
                     b.Property<long>("OpportunityId")
                         .HasColumnType("bigint");
 
-                    b.Property<decimal?>("PackagingCost")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<string>("QuotationNo")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("RfqNo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Site")
                         .HasColumnType("nvarchar(max)");
@@ -608,10 +637,11 @@ namespace CpmServer.Core.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<decimal?>("TotalAmount")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal?>("TransportCost")
+                    b.Property<decimal?>("TotalAmount")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -658,6 +688,9 @@ namespace CpmServer.Core.Migrations
                     b.Property<decimal?>("LineAmount")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<decimal?>("PackagingCost")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("ProcessType")
                         .HasColumnType("nvarchar(max)");
 
@@ -673,6 +706,9 @@ namespace CpmServer.Core.Migrations
                     b.Property<string>("Site")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal?>("TransportCost")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<decimal?>("UnitPrice")
                         .HasColumnType("decimal(18,4)");
 
@@ -683,6 +719,48 @@ namespace CpmServer.Core.Migrations
                     b.HasIndex("QuotationId");
 
                     b.ToTable("QuoQuotationItem");
+                });
+
+            modelBuilder.Entity("CpmServer.Models.SysAlertRecipient", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AlertType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("RecipientType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("RecipientValue")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Site")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Site");
+
+                    b.ToTable("SysAlertRecipient");
                 });
 
             modelBuilder.Entity("CpmServer.Models.SysApprovalCondition", b =>
@@ -1061,6 +1139,9 @@ namespace CpmServer.Core.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Site")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("SmtpPassword")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -1077,6 +1158,8 @@ namespace CpmServer.Core.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Site");
 
                     b.ToTable("SysEmailConfig");
                 });
@@ -1105,6 +1188,9 @@ namespace CpmServer.Core.Migrations
                     b.Property<DateTime?>("SentAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Site")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -1117,6 +1203,8 @@ namespace CpmServer.Core.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Site");
 
                     b.ToTable("SysEmailLog");
                 });
@@ -1142,6 +1230,9 @@ namespace CpmServer.Core.Migrations
                     b.Property<bool>("IsSystem")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Site")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("Subject")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -1159,10 +1250,60 @@ namespace CpmServer.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TemplateCode")
-                        .IsUnique();
+                    b.HasIndex("Site");
+
+                    b.HasIndex("TemplateCode", "Site")
+                        .IsUnique()
+                        .HasFilter("[Site] IS NOT NULL");
 
                     b.ToTable("SysEmailTemplate");
+                });
+
+            modelBuilder.Entity("CpmServer.Models.SysFieldControl", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FieldCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ModuleCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("PageCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Site")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModuleCode", "PageCode", "FieldCode", "Site")
+                        .IsUnique()
+                        .HasFilter("[Site] IS NOT NULL");
+
+                    b.ToTable("SysFieldControl");
                 });
 
             modelBuilder.Entity("CpmServer.Models.SysFileRecord", b =>
@@ -1208,6 +1349,122 @@ namespace CpmServer.Core.Migrations
                     b.ToTable("SysFileRecord");
                 });
 
+            modelBuilder.Entity("CpmServer.Models.SysGeneralizedCode", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("App")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("Attributes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Domain")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Label")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("LabelEn")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("Site")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TagType")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("App");
+
+                    b.HasIndex("Site");
+
+                    b.HasIndex("Domain", "App", "Site");
+
+                    b.HasIndex("Domain", "Code", "App", "Site")
+                        .IsUnique()
+                        .HasFilter("[App] IS NOT NULL AND [Site] IS NOT NULL");
+
+                    b.ToTable("SysGeneralizedCode");
+                });
+
+            modelBuilder.Entity("CpmServer.Models.SysI18nMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EnValue")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MessageKey")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Site")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ZhValue")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MessageKey", "Site")
+                        .IsUnique()
+                        .HasFilter("[Site] IS NOT NULL");
+
+                    b.ToTable("SysI18nMessage");
+                });
+
             modelBuilder.Entity("CpmServer.Models.SysModuleTypeConfig", b =>
                 {
                     b.Property<long>("Id")
@@ -1238,6 +1495,78 @@ namespace CpmServer.Core.Migrations
                         .IsUnique();
 
                     b.ToTable("SysModuleTypeConfig");
+                });
+
+            modelBuilder.Entity("CpmServer.Models.SysNavigationConfig", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("IconName")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ModuleCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ModuleLabel")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ModuleLabelEn")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("NavCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("NavLabel")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("NavLabelEn")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("RoutePath")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Site")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Site");
+
+                    b.HasIndex("NavCode", "Site")
+                        .IsUnique()
+                        .HasFilter("[Site] IS NOT NULL");
+
+                    b.ToTable("SysNavigationConfig");
                 });
 
             modelBuilder.Entity("CpmServer.Models.SysRefreshToken", b =>
@@ -1296,6 +1625,63 @@ namespace CpmServer.Core.Migrations
                     b.ToTable("SysRole");
                 });
 
+            modelBuilder.Entity("CpmServer.Models.SysSequenceRule", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("CurrentSequence")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("LastGeneratedNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("LastResetDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ModuleName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ModuleType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Prefix")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("ResetRule")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SequenceLength")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Site")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModuleType", "Site")
+                        .IsUnique()
+                        .HasFilter("[Site] IS NOT NULL");
+
+                    b.ToTable("SysSequenceRule");
+                });
+
             modelBuilder.Entity("CpmServer.Models.SysSiteSettings", b =>
                 {
                     b.Property<long>("Id")
@@ -1318,6 +1704,10 @@ namespace CpmServer.Core.Migrations
 
                     b.Property<string>("Site")
                         .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("SiteCode")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 

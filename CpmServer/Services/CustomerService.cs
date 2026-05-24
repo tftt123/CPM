@@ -42,6 +42,7 @@ public class CustomerService : ICustomerService
                 CustomerCode = c.CustomerCode,
                 CustomerName = c.CustomerName,
                 Industry = c.Industry,
+                Currency = c.Currency,
                 ContactName = c.ContactName,
                 Site = c.Site
             })
@@ -64,6 +65,7 @@ public class CustomerService : ICustomerService
                 CustomerCode = c.CustomerCode,
                 CustomerName = c.CustomerName,
                 Industry = c.Industry,
+                Currency = c.Currency,
                 ContactName = c.ContactName,
                 Site = c.Site
             })
@@ -81,6 +83,7 @@ public class CustomerService : ICustomerService
             CustomerCode = dto.CustomerCode,
             CustomerName = dto.CustomerName,
             Industry = dto.Industry,
+            Currency = dto.Currency,
             ContactName = dto.ContactName,
             Site = !string.IsNullOrWhiteSpace(dto.Site) ? dto.Site : _currentUser.Site,
             CreatedAt = DateTime.Now,
@@ -100,6 +103,7 @@ public class CustomerService : ICustomerService
 
         entity.CustomerName = dto.CustomerName;
         entity.Industry = dto.Industry;
+        entity.Currency = dto.Currency;
         entity.ContactName = dto.ContactName;
         entity.UpdatedAt = DateTime.Now;
 

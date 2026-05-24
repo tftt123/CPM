@@ -1,9 +1,10 @@
-﻿import request from './request'
+import request from './request'
 import type { ApiResponse } from './pmProjectTrace'
 
 export interface SiteSettings {
   id?: number
   site: string
+  siteCode?: string
   currency: string
   description?: string
 }

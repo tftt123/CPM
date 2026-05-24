@@ -9,6 +9,8 @@ using CpmServer.Modules.Quotation.Contracts;
 using CpmServer.Modules.Quotation.Services;
 using CpmServer.Modules.PM.Contracts;
 using CpmServer.Modules.PM.Services;
+using CpmServer.Modules.SequenceRule.Contracts;
+using CpmServer.Modules.SequenceRule.Services;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +23,10 @@ using CpmServer.Core.Repositories;
 using CpmServer.Middleware;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
+using OfficeOpenXml;
+
+// EPPlus license for non-commercial use
+ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,7 +40,11 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonDateTimeUtcConverter());
+    });
 builder.Services.AddApiVersioning(options =>
 {
     options.DefaultApiVersion = new ApiVersion(1, 0);
@@ -175,6 +185,7 @@ builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 builder.Services.AddScoped<IBusinessVariableProvider, QuotationBusinessVariableProvider>();
 builder.Services.AddScoped<IBusinessStatusUpdater, QuotationBusinessStatusUpdater>();
 builder.Services.AddScoped<IBusinessStatusUpdater, PmStepCycleTimeBusinessStatusUpdater>();
+builder.Services.AddScoped<IAlertService, AlertService>();
 
 // Phase 1 - 审批人解析策略
 builder.Services.AddScoped<IApproverResolver, FixedRoleResolver>();
@@ -182,8 +193,17 @@ builder.Services.AddScoped<IApproverResolver, FixedUserResolver>();
 builder.Services.AddScoped<IApproverResolver, OrgTreeResolver>();
 builder.Services.AddScoped<IApproverResolver, SubmitterResolver>();
 
+// 流水号规则
+builder.Services.AddScoped<ISequenceRuleService, SequenceRuleService>();
+
 // 工艺维护
 builder.Services.AddScoped<IMfgProcessService, MfgProcessService>();
+
+// 字段控制
+builder.Services.AddScoped<IFieldControlService, FieldControlService>();
+
+// i18n 翻译管理
+builder.Services.AddScoped<II18nMessageService, I18nMessageService>();
 
 // QAD (Progress OpenEdge) 认证服务
 builder.Services.AddSingleton<IQadAuthService, QadAuthService>();

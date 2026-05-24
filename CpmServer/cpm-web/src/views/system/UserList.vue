@@ -38,7 +38,7 @@
 
     <div class="search-area">
       <el-form :model="query" inline class="search-form">
-        <el-form-item :label="t('common.search')">
+        <el-form-item>
           <el-input
             v-model="query.keyword"
             :placeholder="t('common.pleaseInput')"
@@ -55,7 +55,7 @@
     </div>
 
     <div class="content-card" style="padding: 0;">
-      <el-table :data="tableData" v-loading="loading" stripe style="width: 100%">
+      <el-table border :data="tableData" v-loading="loading" stripe style="width: 100%">
         <el-table-column type="index" label="#" width="50" align="center" />
         <el-table-column :label="t('common.user')" min-width="180">
           <template #default="{ row }">
@@ -68,22 +68,22 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="email" :label="t('common.email')" width="180">
+        <el-table-column v-if="isVisible('email')" prop="email" :label="t('common.email')" width="180">
           <template #default="{ row }">
             <span class="text-secondary">{{ row.email || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="phone" :label="t('common.phone')" width="130">
+        <el-table-column v-if="isVisible('phone')" prop="phone" :label="t('common.phone')" width="130">
           <template #default="{ row }">
             <span class="text-secondary">{{ row.phone || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="site" :label="t('common.site')" min-width="100">
+        <el-table-column v-if="isVisible('site')" prop="site" :label="t('common.site')" min-width="100">
           <template #default="{ row }">
             <span class="text-secondary">{{ row.site || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column :label="t('common.role')" min-width="150">
+        <el-table-column v-if="isVisible('role')" :label="t('common.role')" min-width="150">
           <template #default="{ row }">
             <div class="role-tags">
               <el-tag v-for="role in row.roles" :key="role" size="small" class="role-tag">
@@ -93,7 +93,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="isActive" :label="t('common.status')" min-width="80" align="center">
+        <el-table-column v-if="isVisible('isActive')" prop="isActive" :label="t('common.status')" min-width="80" align="center">
           <template #default="{ row }">
             <el-tag :type="row.isActive ? 'success' : 'info'" size="small">
               {{ row.isActive ? t('common.active') : t('common.inactive') }}
@@ -116,7 +116,6 @@
       </el-table>
 
       <div class="table-footer">
-        <span class="table-info">{{ t('common.total') }} {{ total }}</span>
         <el-pagination
           v-model:current-page="query.pageNum"
           v-model:page-size="query.pageSize"
@@ -125,6 +124,7 @@
           :page-sizes="[10, 20, 50]"
           @change="loadData"
         />
+        <span class="table-info">{{ t('common.total') }} {{ total }}</span>
       </div>
     </div>
 
@@ -167,6 +167,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { userApi } from '@/api/user'
 import UserForm from './UserForm.vue'
 import { useI18n } from '@/composables/useI18n'
+import { useFieldControl } from '@/composables/useFieldControl'
 import {
   Plus,
   Search,
@@ -179,6 +180,7 @@ import {
 
 const props = defineProps<{ embedded?: boolean }>()
 const { t } = useI18n()
+const { isVisible } = useFieldControl('System', 'UserList')
 
 const loading = ref(false)
 const dialogVisible = ref(false)
@@ -398,8 +400,9 @@ onMounted(loadData)
 
 .table-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
+  gap: var(--slds-spacing-lg);
   padding: var(--slds-spacing-md) var(--slds-spacing-lg);
   border-top: 1px solid var(--slds-border-color-light);
 }

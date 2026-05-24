@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CpmServer.Models;
@@ -14,6 +14,10 @@ public class SysSiteSettings
     [Required]
     [StringLength(20)]
     public string Site { get; set; } = string.Empty;
+
+    /// <summary>站点简码（用于流水号前缀，如 NT01）</summary>
+    [StringLength(20)]
+    public string? SiteCode { get; set; }
 
     /// <summary>货币代码（如 CNY, USD, MYN, SGD）</summary>
     [Required]

@@ -82,4 +82,13 @@ export const mfgProcessApi = {
   createEquipment: (data: MfgEquipmentCreate) => request.post('/MfgProcess/equipments', data),
   updateEquipment: (id: number, data: MfgEquipmentCreate) => request.put(`/MfgProcess/equipments/${id}`, data),
   deleteEquipment: (id: number) => request.delete(`/MfgProcess/equipments/${id}`),
+
+  // Import
+  importExcel: (file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return request.post('/MfgProcess/import', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
 }

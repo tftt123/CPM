@@ -32,6 +32,12 @@ public class QuoQuotationItem
     [Column(TypeName = "decimal(18,4)")]
     public decimal? Cost { get; set; }
 
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? PackagingCost { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? TransportCost { get; set; }
+
     public bool IsProcessRow { get; set; }
 
     [ForeignKey("QuotationId")]

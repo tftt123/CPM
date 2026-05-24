@@ -12,17 +12,14 @@ public class QuoQuotation
     [Required]
     public string QuotationNo { get; set; } = string.Empty;
 
+    public string RfqNo { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+
     public long OpportunityId { get; set; }
     public long CustomerId { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]
     public decimal? TotalAmount { get; set; }
-
-    [Column(TypeName = "decimal(18,2)")]
-    public decimal? PackagingCost { get; set; }
-
-    [Column(TypeName = "decimal(18,2)")]
-    public decimal? TransportCost { get; set; }
 
     public long? CurrentStepId { get; set; }
 

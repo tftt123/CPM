@@ -72,6 +72,8 @@ public class PmProjectTraceStep
     /// <summary>实际节拍历史记录</summary>
     public List<PmProjectTraceStepActualCycleTime> ActualCycleTimes { get; set; } = new();
 
+    public string? Site { get; set; }
+
     [ForeignKey("ProjectTraceId")]
     public PmProjectTrace? ProjectTrace { get; set; }
 }

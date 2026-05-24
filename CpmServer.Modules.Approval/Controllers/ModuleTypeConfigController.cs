@@ -1,4 +1,5 @@
 using CpmServer.Common;
+using CpmServer.Constants;
 using CpmServer.Models;
 using CpmServer.Modules.Approval.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -23,6 +24,12 @@ public class ModuleTypeConfigController : ControllerBase
     {
         var list = await _service.GetListAsync(!all);
         return ApiResult<List<SysModuleTypeConfig>>.Success(list);
+    }
+
+    [HttpGet("system-types")]
+    public ApiResult<List<string>> GetSystemTypes()
+    {
+        return ApiResult<List<string>>.Success(SystemModuleTypes.All.ToList());
     }
 
     [HttpGet("{id:long}")]

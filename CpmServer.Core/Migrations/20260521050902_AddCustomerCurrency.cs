@@ -1,0 +1,28 @@
+﻿using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace CpmServer.Migrations
+{
+    /// <inheritdoc />
+    public partial class AddCustomerCurrency : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.AddColumn<string>(
+                name: "Currency",
+                table: "CrmCustomer",
+                type: "nvarchar(max)",
+                nullable: true);
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropColumn(
+                name: "Currency",
+                table: "CrmCustomer");
+        }
+    }
+}

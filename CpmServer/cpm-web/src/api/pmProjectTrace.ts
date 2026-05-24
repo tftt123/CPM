@@ -117,3 +117,29 @@ export function submitCycleTimeChangeRequest(data: {
 }): Promise<ApiResponse<number>> {
   return request.post('/PmProjectTrace/steps/actual-cycle-time/change-request', data)
 }
+
+export interface PmStepCycleTimeChangeRequestDetail {
+  id: number
+  stepId: number
+  traceId: number
+  submitterName?: string
+  submittedAt: string
+  approvalStatus: number
+  remarks?: string
+  processName?: string
+  customerName?: string
+  productCode?: string
+  productName?: string
+  cycleTime?: number
+  details: {
+    changeType: number
+    targetRecordId?: number
+    recordDate: string
+    actualCycleTime?: number
+    remarks?: string
+  }[]
+}
+
+export function getCycleTimeChangeRequest(requestId: number): Promise<ApiResponse<PmStepCycleTimeChangeRequestDetail>> {
+  return request.get(`/PmProjectTrace/steps/actual-cycle-time/change-request/${requestId}`)
+}

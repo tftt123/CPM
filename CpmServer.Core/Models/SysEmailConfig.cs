@@ -18,4 +18,6 @@ public class SysEmailConfig
     public bool EnableSsl { get; set; } = true;
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+    public string? Site { get; set; }
 }

@@ -37,7 +37,7 @@
 
     <div class="search-area">
       <el-form :model="query" inline class="search-form">
-        <el-form-item :label="t('common.search')">
+        <el-form-item>
           <el-input
             v-model="query.keyword"
             :placeholder="t('common.pleaseInput')"
@@ -47,12 +47,14 @@
           />
         </el-form-item>
         <el-form-item :label="t('common.status')">
-          <el-select v-model="query.status" :placeholder="t('common.all')" clearable style="width: 140px">
-            <el-option :label="t('quotation.draft')" :value="0" />
-            <el-option :label="t('quotation.pendingReview')" :value="1" />
-            <el-option :label="t('quotation.pendingApproval')" :value="2" />
-            <el-option :label="t('quotation.issued')" :value="3" />
-          </el-select>
+          <GcSelect
+            v-model="query.status"
+            domain="QUO_STATUS"
+            :placeholder="t('common.all')"
+            clearable
+            style="width: 140px"
+            :fallback="statusFallback"
+          />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :icon="Search" @click="handleSearch">{{ t('common.search') }}</el-button>
@@ -62,9 +64,9 @@
     </div>
 
     <div class="content-card" style="padding: 0;">
-      <el-table :data="tableData" v-loading="loading" stripe style="width: 100%">
+      <el-table border :data="tableData" v-loading="loading" stripe style="width: 100%">
         <el-table-column type="index" label="#" width="50" align="center" />
-        <el-table-column prop="quotationNo" :label="t('quotation.quotationNo')" width="200">
+        <el-table-column v-if="isVisible('quotationNo')" prop="quotationNo" :label="t('quotation.quotationNo')" width="200">
           <template #default="{ row }">
             <span class="code-link" @click="$router.push(`/quotation/detail/${row.id}`)">
               {{ row.quotationNo }}
@@ -76,7 +78,7 @@
             <span class="text-secondary">{{ row.opportunityTitle }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="customerName" :label="t('quotation.customer')" width="150">
+        <el-table-column v-if="isVisible('customer')" prop="customerName" :label="t('quotation.customer')" width="330">
           <template #default="{ row }">
             <div class="customer-cell">
               <el-avatar :size="24" :icon="UserFilled" class="customer-avatar-small" />
@@ -84,24 +86,24 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="totalAmount" :label="t('quotation.totalAmount')" width="130" align="right">
+        <el-table-column v-if="isVisible('totalAmount')" prop="totalAmount" :label="t('quotation.totalAmount')" width="130" align="right">
           <template #default="{ row }">
             <span class="amount">{{ row.totalAmount ? '¥' + row.totalAmount.toLocaleString() : '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="status" :label="t('common.status')" min-width="100">
+        <el-table-column v-if="isVisible('status')" prop="status" :label="t('common.status')" min-width="100">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)" size="small" effect="light">
               {{ getStatusLabel(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="currentStepName" :label="t('approval.stepName')" min-width="110">
+        <el-table-column prop="currentStepName" :label="t('approval.stepName')" width="150">
           <template #default="{ row }">
             <span class="step-name">{{ row.currentStepName || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="createdByName" :label="t('common.user')" min-width="100">
+        <el-table-column prop="createdByName" :label="t('quotation.requestor')" min-width="100">
           <template #default="{ row }">
             <span class="text-secondary">{{ row.createdByName }}</span>
           </template>
@@ -122,7 +124,6 @@
       </el-table>
 
       <div class="table-footer">
-        <span class="table-info">{{ t('common.total') }} {{ total }}</span>
         <el-pagination
           v-model:current-page="query.pageNum"
           v-model:page-size="query.pageSize"
@@ -131,6 +132,7 @@
           :page-sizes="[10, 20, 50]"
           @change="loadData"
         />
+        <span class="table-info">{{ t('common.total') }} {{ total }}</span>
       </div>
     </div>
 
@@ -148,6 +150,9 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { quotationApi } from '@/api/quotation'
 import QuotationForm from './QuotationForm.vue'
 import { useI18n } from '@/composables/useI18n'
+import { useFieldControl } from '@/composables/useFieldControl'
+import { useGeneralizedCode, type GcOption } from '@/composables/useGeneralizedCode'
+import GcSelect from '@/components/GcSelect.vue'
 import {
   Plus,
   Search,
@@ -159,16 +164,28 @@ import {
 } from '@element-plus/icons-vue'
 
 const { t } = useI18n()
+const { isVisible, load: loadFieldConfig } = useFieldControl('Quotation', 'QuotationList')
+const { getOptions } = useGeneralizedCode()
 const loading = ref(false)
 const dialogVisible = ref(false)
 const tableData = ref<any[]>([])
 const total = ref(0)
 const statusCount = reactive<Record<number, number>>({})
 const query = ref({ pageNum: 1, pageSize: 10, keyword: '', status: undefined as number | undefined })
+const statusOptions = ref<GcOption[]>([])
+
+const statusFallback = [
+  { code: '0', label: t('quotation.draft'), tagType: 'info' },
+  { code: '1', label: t('quotation.pendingReview'), tagType: 'warning' },
+  { code: '2', label: t('quotation.pendingApproval'), tagType: 'warning' },
+  { code: '3', label: t('quotation.issued'), tagType: 'success' },
+  { code: '9', label: t('quotation.completed'), tagType: 'success' }
+]
 
 const loadData = async () => {
   loading.value = true
   try {
+    await loadFieldConfig()
     const res = await quotationApi.list(query.value)
     tableData.value = res.data.list
     total.value = res.data.total
@@ -194,23 +211,20 @@ const handleDelete = async (row: any) => {
   loadData()
 }
 
-const getStatusType = (status: number) => {
-  const map: Record<number, any> = { 0: 'info', 1: 'warning', 2: 'warning', 3: 'success', 9: 'success' }
-  return map[status] || 'info'
+const getStatusOption = (status: number) => statusOptions.value.find(o => o.value === String(status))
+
+function getStatusType(status: number) {
+  return getStatusOption(status)?.tagType || 'info'
 }
 
-const getStatusLabel = (status: number) => {
-  const map: Record<number, string> = {
-    0: t('quotation.draft'),
-    1: t('quotation.pendingReview'),
-    2: t('quotation.pendingApproval'),
-    3: t('quotation.issued'),
-    9: t('quotation.completed')
-  }
-  return map[status] || t('common.noData')
+function getStatusLabel(status: number) {
+  return getStatusOption(status)?.label || t('common.noData')
 }
 
-onMounted(loadData)
+onMounted(async () => {
+  statusOptions.value = await getOptions('QUO_STATUS', statusFallback)
+  loadData()
+})
 </script>
 
 <style scoped>
@@ -347,8 +361,9 @@ onMounted(loadData)
 
 .table-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
+  gap: var(--slds-spacing-lg);
   padding: var(--slds-spacing-md) var(--slds-spacing-lg);
   border-top: 1px solid var(--slds-border-color-light);
 }

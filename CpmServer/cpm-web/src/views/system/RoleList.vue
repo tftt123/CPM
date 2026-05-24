@@ -22,15 +22,15 @@
     </div>
 
     <div class="content-card" style="padding: 0;">
-      <el-table :data="tableData" v-loading="loading" stripe style="width: 100%">
+      <el-table border :data="tableData" v-loading="loading" stripe style="width: 100%">
         <el-table-column type="index" label="#" width="50" align="center" />
-        <el-table-column prop="roleCode" :label="t('approval.templateCode')" width="140">
+        <el-table-column v-if="isVisible('roleCode')" prop="roleCode" :label="t('approval.templateCode')" width="140">
           <template #default="{ row }">
             <span class="code-link">{{ row.roleCode }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="roleName" :label="t('approval.templateName')" min-width="160" />
-        <el-table-column prop="site" :label="t('common.site')" min-width="100">
+        <el-table-column v-if="isVisible('roleName')" prop="roleName" :label="t('approval.templateName')" min-width="160" />
+        <el-table-column v-if="isVisible('site')" prop="site" :label="t('common.site')" min-width="100">
           <template #default="{ row }">
             <span class="text-secondary">{{ row.site || '-' }}</span>
           </template>
@@ -59,15 +59,15 @@
     >
       <div class="dialog-body">
         <el-form :model="form" label-width="100px" :rules="rules" ref="formRef" class="slds-form">
-          <el-form-item :label="t('common.code')" prop="roleCode">
+          <el-form-item v-if="isVisible('roleCode')" :label="t('common.code')" prop="roleCode">
             <el-input v-model="form.roleCode" :placeholder="t('common.pleaseInput')" :disabled="isEdit" />
           </el-form-item>
 
-          <el-form-item :label="t('common.name')" prop="roleName">
+          <el-form-item v-if="isVisible('roleName')" :label="t('common.name')" prop="roleName">
             <el-input v-model="form.roleName" :placeholder="t('common.pleaseInput')" />
           </el-form-item>
 
-          <el-form-item :label="t('common.site')">
+          <el-form-item v-if="isVisible('site')" :label="t('common.site')">
             <el-input v-model="form.site" :placeholder="t('common.pleaseInput')" />
           </el-form-item>
         </el-form>
@@ -89,10 +89,12 @@ import { ref, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { roleApi } from '@/api/role'
 import { useI18n } from '@/composables/useI18n'
+import { useFieldControl } from '@/composables/useFieldControl'
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 
 const props = defineProps<{ embedded?: boolean }>()
 const { t } = useI18n()
+const { isVisible, load: loadFieldConfig } = useFieldControl('System', 'RoleList')
 
 const loading = ref(false)
 const dialogVisible = ref(false)
@@ -170,7 +172,9 @@ const handleClose = () => {
   editId.value = null
 }
 
-onMounted(loadData)
+onMounted(async () => {
+  await Promise.all([loadData(), loadFieldConfig()])
+})
 </script>
 
 <style scoped>

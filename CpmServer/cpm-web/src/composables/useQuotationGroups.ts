@@ -33,6 +33,10 @@ export interface ProductGroup {
   processes: QuotationItem[]
   /** 工艺成本小计 */
   processCost: number
+  /** 包装费 */
+  packagingCost: number
+  /** 运输费 */
+  transportCost: number
   /** 行金额小计 */
   lineAmount: number
 }
@@ -100,6 +104,8 @@ function createGroup(item: QuotationItem): ProductGroup {
     masterRow: item,
     processes: [item],
     processCost: item.cost || 0,
+    packagingCost: item.packagingCost || 0,
+    transportCost: item.transportCost || 0,
     lineAmount: item.lineAmount || 0,
   }
 }
@@ -107,6 +113,8 @@ function createGroup(item: QuotationItem): ProductGroup {
 function appendToGroup(group: ProductGroup, item: QuotationItem): void {
   group.processes.push(item)
   group.processCost += item.cost || 0
+  group.packagingCost += item.packagingCost || 0
+  group.transportCost += item.transportCost || 0
   group.lineAmount += item.lineAmount || 0
 }
 
@@ -117,11 +125,14 @@ export function flattenQuotationGroups(groups: ProductGroup[]): QuotationItem[] 
   const result: QuotationItem[] = []
   for (const group of groups) {
     for (let i = 0; i < group.processes.length; i++) {
-      const item = { ...group.processes[i] }
-      item.isProcessRow = i > 0
-      item.productId = group.productId
-      item.productName = group.productName
-      item.qty = group.qty
+      const src = group.processes[i]
+      const item: QuotationItem = {
+        ...src,
+        isProcessRow: i > 0,
+        productId: group.productId,
+        productName: group.productName,
+        qty: group.qty,
+      }
       result.push(item)
     }
   }

@@ -1,4 +1,4 @@
-﻿using CpmServer.Models;
+using CpmServer.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace CpmServer.Data;
@@ -6,6 +6,37 @@ namespace CpmServer.Data;
 public class CpmDbContext : DbContext
 {
     public CpmDbContext(DbContextOptions<CpmDbContext> options) : base(options) { }
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        NormalizeDateTimeKinds();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        NormalizeDateTimeKinds();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    private void NormalizeDateTimeKinds()
+    {
+        var entries = ChangeTracker.Entries()
+            .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified);
+
+        foreach (var entry in entries)
+        {
+            foreach (var property in entry.Properties)
+            {
+                if (property.CurrentValue is DateTime dt && dt.Kind != DateTimeKind.Utc)
+                {
+                    property.CurrentValue = dt.Kind == DateTimeKind.Local
+                        ? dt.ToUniversalTime()
+                        : DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+                }
+            }
+        }
+    }
 
     // P1 - System
     public DbSet<SysUser> Users => Set<SysUser>();
@@ -39,6 +70,9 @@ public class CpmDbContext : DbContext
     public DbSet<SysEmailLog> EmailLogs => Set<SysEmailLog>();
     public DbSet<SysEmailConfig> EmailConfigs => Set<SysEmailConfig>();
 
+    // Alert
+    public DbSet<SysAlertRecipient> AlertRecipients => Set<SysAlertRecipient>();
+
     // Manufacturing Process
     public DbSet<MfgProcess> MfgProcesses => Set<MfgProcess>();
     public DbSet<MfgSubCategory> MfgSubCategories => Set<MfgSubCategory>();
@@ -56,6 +90,21 @@ public class CpmDbContext : DbContext
     public DbSet<PmProjectTraceStepActualCycleTime> StepActualCycleTimes => Set<PmProjectTraceStepActualCycleTime>();
     public DbSet<PmStepCycleTimeChangeRequest> StepCycleTimeChangeRequests => Set<PmStepCycleTimeChangeRequest>();
     public DbSet<PmStepCycleTimeChangeDetail> StepCycleTimeChangeDetails => Set<PmStepCycleTimeChangeDetail>();
+
+    // Sequence Rule
+    public DbSet<SysSequenceRule> SequenceRules => Set<SysSequenceRule>();
+
+    // Field Control
+    public DbSet<SysFieldControl> FieldControls => Set<SysFieldControl>();
+
+    // i18n Translation
+    public DbSet<SysI18nMessage> I18nMessages => Set<SysI18nMessage>();
+
+    // Navigation Config
+    public DbSet<SysNavigationConfig> NavigationConfigs => Set<SysNavigationConfig>();
+
+    // Generalized Code
+    public DbSet<SysGeneralizedCode> GeneralizedCodes => Set<SysGeneralizedCode>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -96,7 +145,7 @@ public class CpmDbContext : DbContext
             .IsUnique();
 
         modelBuilder.Entity<SysEmailTemplate>()
-            .HasIndex(e => e.TemplateCode)
+            .HasIndex(e => new { e.TemplateCode, e.Site })
             .IsUnique();
 
         // Approval Workflow - indexes
@@ -129,7 +178,73 @@ public class CpmDbContext : DbContext
         modelBuilder.Entity<PmProjectTrace>()
             .HasIndex(e => new { e.CustomerName, e.ProductCode, e.Status, e.CreatedAt });
 
+        modelBuilder.Entity<PmProjectTrace>()
+            .HasIndex(e => e.Site);
+
+        modelBuilder.Entity<PmProjectTraceStep>()
+            .HasIndex(e => e.Site);
+
+        modelBuilder.Entity<PmProjectTraceStepActualCycleTime>()
+            .HasIndex(e => e.Site);
+
         modelBuilder.Entity<PmStepCycleTimeChangeRequest>()
             .HasIndex(e => new { e.StepId, e.ApprovalStatus });
+
+        modelBuilder.Entity<PmStepCycleTimeChangeRequest>()
+            .HasIndex(e => e.Site);
+
+        modelBuilder.Entity<PmStepCycleTimeChangeDetail>()
+            .HasIndex(e => e.Site);
+
+        // Email - Site indexes
+        modelBuilder.Entity<SysEmailTemplate>()
+            .HasIndex(e => e.Site);
+
+        modelBuilder.Entity<SysEmailConfig>()
+            .HasIndex(e => e.Site);
+
+        modelBuilder.Entity<SysEmailLog>()
+            .HasIndex(e => e.Site);
+
+        // Alert - Site index
+        modelBuilder.Entity<SysAlertRecipient>()
+            .HasIndex(e => e.Site);
+
+        // Sequence Rule - unique index on ModuleType + Site
+        modelBuilder.Entity<SysSequenceRule>()
+            .HasIndex(e => new { e.ModuleType, e.Site })
+            .IsUnique();
+
+        // Field Control - unique index on ModuleCode + PageCode + FieldCode + Site
+        modelBuilder.Entity<SysFieldControl>()
+            .HasIndex(e => new { e.ModuleCode, e.PageCode, e.FieldCode, e.Site })
+            .IsUnique();
+
+        // i18n - unique index on MessageKey + Site
+        modelBuilder.Entity<SysI18nMessage>()
+            .HasIndex(e => new { e.MessageKey, e.Site })
+            .IsUnique();
+
+        // Navigation Config - unique index on NavCode + Site
+        modelBuilder.Entity<SysNavigationConfig>()
+            .HasIndex(e => new { e.NavCode, e.Site })
+            .IsUnique();
+
+        modelBuilder.Entity<SysNavigationConfig>()
+            .HasIndex(e => e.Site);
+
+        // Generalized Code - unique index on Domain + Code + App + Site
+        modelBuilder.Entity<SysGeneralizedCode>()
+            .HasIndex(e => new { e.Domain, e.Code, e.App, e.Site })
+            .IsUnique();
+
+        modelBuilder.Entity<SysGeneralizedCode>()
+            .HasIndex(e => new { e.Domain, e.App, e.Site });
+
+        modelBuilder.Entity<SysGeneralizedCode>()
+            .HasIndex(e => e.Site);
+
+        modelBuilder.Entity<SysGeneralizedCode>()
+            .HasIndex(e => e.App);
     }
 }

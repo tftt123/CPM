@@ -46,6 +46,37 @@ public class PmProjectTraceController : ControllerBase
         return ApiResult<long>.Success(id);
     }
 
+    [HttpGet("steps/actual-cycle-time/change-request/{requestId:long}")]
+    public async Task<ApiResult<object>> GetChangeRequestDetail(long requestId)
+    {
+        var detail = await _pmService.GetChangeRequestDetailAsync(requestId);
+        if (detail == null) return ApiResult<object>.Error("Request not found");
+
+        return ApiResult<object>.Success(new
+        {
+            detail.Id,
+            detail.StepId,
+            detail.TraceId,
+            detail.SubmitterName,
+            detail.SubmittedAt,
+            detail.ApprovalStatus,
+            detail.Remarks,
+            detail.ProcessName,
+            detail.CustomerName,
+            detail.ProductCode,
+            detail.ProductName,
+            detail.CycleTime,
+            Details = detail.Details.Select(d => new
+            {
+                d.ChangeType,
+                d.TargetRecordId,
+                d.RecordDate,
+                d.ActualCycleTime,
+                d.Remarks
+            })
+        });
+    }
+
     [HttpGet("{id:long}")]
     public async Task<ApiResult<object>> GetDetail(long id)
     {

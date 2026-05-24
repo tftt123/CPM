@@ -18,6 +18,16 @@
           <el-button type="danger" :icon="CircleClose" @click="showApproveDialog('REJECT')" v-if="canReject">
             {{ t('quotation.reject') }}
           </el-button>
+          <el-button
+            link
+            type="primary"
+            size="small"
+            :icon="View"
+            @click="showForecast"
+            :loading="forecastLoading"
+          >
+            {{ t('quotation.forecast') || '审批预测' }}
+          </el-button>
         </template>
       </el-page-header>
     </div>
@@ -28,7 +38,7 @@
         <div class="content-card info-card">
           <div class="card-header">
             <el-icon size="18"><Document /></el-icon>
-            <span>{{ t('common.detail') }}</span>
+            <span>{{ detail?.opportunityTitle || t('common.detail') }}</span>
           </div>
           <div class="info-grid">
             <div class="info-item">
@@ -40,8 +50,8 @@
               <div class="info-value">{{ detail?.customerName }}</div>
             </div>
             <div class="info-item">
-              <div class="info-label">{{ t('opportunity.title') }}</div>
-              <div class="info-value">{{ detail?.opportunityTitle }}</div>
+              <div class="info-label">{{ t('customer.currency') }}</div>
+              <div class="info-value">{{ detail?.customerCurrency || '-' }}</div>
             </div>
             <div class="info-item">
               <div class="info-label">{{ t('common.status') }}</div>
@@ -50,10 +60,6 @@
                   {{ getStatusLabel(detail?.status) }}
                 </el-tag>
               </div>
-            </div>
-            <div class="info-item">
-              <div class="info-label">{{ t('quotation.totalAmount') }}</div>
-              <div class="info-value amount">{{ formatCurrency(detail?.totalAmount || 0) }}</div>
             </div>
             <div class="info-item">
               <div class="info-label">{{ t('common.user') }}</div>
@@ -71,9 +77,6 @@
           <div class="card-header">
             <el-icon size="18"><Tickets /></el-icon>
             <span>{{ t('quotation.items') }}</span>
-            <span class="items-count" v-if="productGroups.length > 0">
-              {{ productGroups.length }} {{ t('quotation.products') }}, {{ totalProcessCount }} {{ t('quotation.processes') }}
-            </span>
           </div>
 
           <div class="product-groups" v-if="productGroups.length > 0">
@@ -86,10 +89,12 @@
               <div class="group-header">
                 <div class="group-product">
                   <el-icon size="16"><Box /></el-icon>
-                  <span class="group-product-name">{{ group.productName }}</span>
+                  <span v-if="isVisible('productName')" class="group-product-name">{{ group.productName }}</span>
                   <el-tag size="small" type="info">x{{ group.qty }}</el-tag>
                 </div>
                 <div class="group-summary">
+                  <span class="group-cost">{{ t('quotation.packaging') }}: {{ formatCurrency(group.packagingCost) }}</span>
+                  <span class="group-cost">{{ t('quotation.transport') }}: {{ formatCurrency(group.transportCost) }}</span>
                   <span class="group-cost">{{ t('quotation.processingFee') }}: {{ formatCurrency(group.processCost) }}</span>
                   <span class="group-amount">{{ formatCurrency(group.lineAmount) }}</span>
                 </div>
@@ -98,11 +103,11 @@
               <!-- Process Table -->
               <div class="group-table">
                 <div class="group-table-header">
-                  <span class="th">{{ t('quotation.processType') }}</span>
-                  <span class="th">{{ t('quotation.equipmentType') }}</span>
-                  <span class="th">{{ t('quotation.equipment') }}</span>
-                  <span class="th" align="right">{{ t('quotation.cycleTime') }}</span>
-                  <span class="th" align="right">{{ t('quotation.hourlyRate') }}</span>
+                  <span v-if="isVisible('processType')" class="th">{{ t('quotation.processType') }}</span>
+                  <span v-if="isVisible('equipmentType')" class="th">{{ t('quotation.equipmentType') }}</span>
+                  <span v-if="isVisible('equipment')" class="th">{{ t('quotation.equipment') }}</span>
+                  <span v-if="isVisible('cycleTime')" class="th" align="right">{{ t('quotation.cycleTime') }}</span>
+                  <span v-if="isVisible('hourlyRate')" class="th" align="right">{{ t('quotation.hourlyRate') }}</span>
                   <span class="th" align="right">{{ t('quotation.processingFee') }}</span>
                   <span class="th" align="right">{{ t('quotation.lineAmount') }}</span>
                 </div>
@@ -112,11 +117,11 @@
                   class="group-table-row"
                   :class="{ 'is-master': pIdx === 0 }"
                 >
-                  <span class="td">{{ process.processType || '-' }}</span>
-                  <span class="td">{{ process.equipmentType || '-' }}</span>
-                  <span class="td">{{ process.equipment || '-' }}</span>
-                  <span class="td" align="right">{{ process.cycleTime?.toFixed(2) || '-' }}</span>
-                  <span class="td" align="right">{{ process.hourlyRate?.toFixed(2) || '-' }}</span>
+                  <span v-if="isVisible('processType')" class="td">{{ process.processType || '-' }}</span>
+                  <span v-if="isVisible('equipmentType')" class="td">{{ process.equipmentType || '-' }}</span>
+                  <span v-if="isVisible('equipment')" class="td">{{ process.equipment || '-' }}</span>
+                  <span v-if="isVisible('cycleTime')" class="td" align="right">{{ process.cycleTime != null ? Math.round(process.cycleTime) : '-' }}</span>
+                  <span v-if="isVisible('hourlyRate')" class="td" align="right">{{ process.hourlyRate?.toFixed(2) || '-' }}</span>
                   <span class="td cost" align="right">{{ formatCurrency(process.cost || 0) }}</span>
                   <span class="td amount" align="right">{{ formatCurrency(process.lineAmount || 0) }}</span>
                 </div>
@@ -127,10 +132,6 @@
 
           <!-- Grand Total -->
           <div class="items-total" v-if="productGroups.length > 0">
-            <div class="total-breakdown">
-              <span class="extra-cost-label">{{ t('quotation.packaging') }}: {{ formatCurrency(detail?.packagingCost || 0) }}</span>
-              <span class="extra-cost-label">{{ t('quotation.transport') }}: {{ formatCurrency(detail?.transportCost || 0) }}</span>
-            </div>
             <div class="total-final">
               <span>{{ t('quotation.totalAmount') }}: </span>
               <span class="total-amount">{{ formatCurrency(detail?.totalAmount || 0) }}</span>
@@ -151,74 +152,23 @@
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Right: Approval Flow -->
-      <div class="detail-right">
-        <div class="content-card approval-card">
-          <div class="card-header" style="justify-content: space-between;">
-            <div style="display: flex; align-items: center; gap: var(--slds-spacing-sm);">
-              <el-icon size="18"><Timer /></el-icon>
-              <span>{{ t('quotation.approvalFlow') }}</span>
-            </div>
-            <el-button
-              link
-              type="primary"
-              size="small"
-              :icon="View"
-              @click="showForecast"
-              :loading="forecastLoading"
-            >
-              {{ t('quotation.forecast') || '审批预测' }}
-            </el-button>
+        <!-- Approval Flow -->
+        <!-- Approval Records -->
+        <div class="content-card approval-card" v-if="approvalRecords.length > 0">
+          <div class="card-header">
+            <el-icon size="18"><List /></el-icon>
+            <span>{{ t('quotation.approvalRecords') }}</span>
           </div>
-
-          <!-- Approval Steps -->
-          <div class="approval-steps" v-if="approvalSteps.length > 0">
-            <div
-              v-for="(step, index) in approvalSteps"
-              :key="step.id"
-              class="approval-step"
-              :class="{ 'is-current': step.isCurrent, 'is-completed': step.isCompleted }"
-            >
-              <div class="step-icon">
-                <el-icon v-if="step.isCompleted" size="20" color="#2E844A"><CircleCheck /></el-icon>
-                <el-icon v-else-if="step.isCurrent" size="20" color="#0176D3"><Timer /></el-icon>
-                <span v-else class="step-number">{{ index + 1 }}</span>
-              </div>
-              <div class="step-content">
-                <div class="step-name">{{ step.stepName }}</div>
-                <div class="step-meta">
-                  <span class="step-type">{{ getStepTypeLabel(step.stepType) }}</span>
-                  <span class="step-approver" v-if="step.approverUserName">
-                    {{ step.approverUserName }}
-                  </span>
-                  <span class="step-role" v-else-if="step.approverRole">
-                    {{ step.approverRole }}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <el-empty v-else :description="t('common.noData')" />
-
-          <!-- Approval Records -->
-          <div class="approval-records" v-if="approvalRecords.length > 0">
-            <div class="records-title">{{ t('quotation.approvalRecords') }}</div>
-            <div class="record-list">
-              <div v-for="record in approvalRecords" :key="record.id" class="record-item">
-                <div class="record-header">
-                  <span class="record-step">{{ record.stepName }}</span>
-                  <el-tag :type="record.action === 'APPROVE' ? 'success' : record.action === 'REJECT' ? 'danger' : 'info'" size="small">
-                    {{ getActionLabel(record.action) }}
-                  </el-tag>
-                </div>
-                <div class="record-body">
-                  <span class="record-approver">{{ record.approverName }}</span>
-                  <span class="record-comment" v-if="record.comment">：{{ record.comment }}</span>
-                </div>
-                <div class="record-time">{{ formatDateTime(record.createdAt) }}</div>
-              </div>
+          <div class="record-list">
+            <div v-for="record in approvalRecords" :key="record.id" class="record-item">
+              <div class="record-step">{{ record.stepName }}</div>
+              <div class="record-approver">{{ record.approverName }}</div>
+              <div class="record-comment" v-if="record.comment">{{ record.comment }}</div>
+              <div class="record-time">{{ formatDateTime(record.createdAt) }}</div>
+              <el-tag :type="record.action === 'APPROVE' ? 'success' : record.action === 'REJECT' ? 'danger' : 'info'" size="small">
+                {{ getActionLabel(record.action) }}
+              </el-tag>
             </div>
           </div>
         </div>
@@ -304,6 +254,8 @@ import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { quotationApi } from '@/api/quotation'
 import { useI18n } from '@/composables/useI18n'
+import { useFieldControl } from '@/composables/useFieldControl'
+import { useGeneralizedCode, type GcOption } from '@/composables/useGeneralizedCode'
 import { groupQuotationItems, type ProductGroup } from '@/composables/useQuotationGroups'
 import {
   Document,
@@ -316,11 +268,14 @@ import {
   User,
   UserFilled,
   Box,
-  Paperclip
+  Paperclip,
+  List
 } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const { t } = useI18n()
+const { isVisible, load: loadFieldConfig } = useFieldControl('Quotation', 'QuotationDetail')
+const { getOptions } = useGeneralizedCode()
 const loading = ref(false)
 const detail = ref<any>(null)
 const approvalSteps = ref<any[]>([])
@@ -328,6 +283,15 @@ const approvalRecords = ref<any[]>([])
 const canApprove = ref(false)
 const canReject = ref(false)
 const isReviewStep = ref(false)
+const statusOptions = ref<GcOption[]>([])
+
+const statusFallback = [
+  { code: '0', label: t('quotation.draft'), tagType: 'info' },
+  { code: '1', label: t('quotation.pendingReview'), tagType: 'warning' },
+  { code: '2', label: t('quotation.pendingApproval'), tagType: 'warning' },
+  { code: '3', label: t('quotation.issued'), tagType: 'success' },
+  { code: '9', label: t('quotation.completed'), tagType: 'success' }
+]
 
 /** 产品分组数据 */
 const productGroups = computed<ProductGroup[]>(() => {
@@ -338,6 +302,16 @@ const productGroups = computed<ProductGroup[]>(() => {
 /** 总工艺数 */
 const totalProcessCount = computed(() =>
   productGroups.value.reduce((sum, g) => sum + g.processes.length, 0)
+)
+
+/** 总包装费 */
+const totalPackagingCost = computed(() =>
+  productGroups.value.reduce((sum, g) => sum + g.packagingCost, 0)
+)
+
+/** 总运输费 */
+const totalTransportCost = computed(() =>
+  productGroups.value.reduce((sum, g) => sum + g.transportCost, 0)
 )
 
 /** 货币格式化 */
@@ -354,20 +328,14 @@ const approveAction = ref('APPROVE')
 const approveLoading = ref(false)
 const approveForm = ref({ comment: '', reviewCost: undefined as number | undefined })
 
-const getStatusType = (status?: number) => {
-  const map: Record<number, any> = { 0: 'info', 1: 'warning', 2: 'warning', 3: 'success', 9: 'success' }
-  return map[status ?? -1] || 'info'
+const getStatusOption = (status?: number) => statusOptions.value.find(o => o.value === String(status))
+
+function getStatusType(status?: number) {
+  return getStatusOption(status)?.tagType || 'info'
 }
 
-const getStatusLabel = (status?: number) => {
-  const map: Record<number, string> = {
-    0: t('quotation.draft'),
-    1: t('quotation.pendingReview'),
-    2: t('quotation.pendingApproval'),
-    3: t('quotation.issued'),
-    9: t('quotation.completed')
-  }
-  return map[status ?? -1] || t('common.noData')
+function getStatusLabel(status?: number) {
+  return getStatusOption(status)?.label || t('common.noData')
 }
 
 const getStepTypeLabel = (type: string) => {
@@ -399,6 +367,7 @@ const formatDateTime = (date: string) => {
 const loadDetail = async () => {
   loading.value = true
   try {
+    await loadFieldConfig()
     const id = Number(route.params.id)
     const res = await quotationApi.getById(id)
     detail.value = res.data
@@ -470,7 +439,10 @@ const showForecast = async () => {
   }
 }
 
-onMounted(loadDetail)
+onMounted(async () => {
+  statusOptions.value = await getOptions('QUO_STATUS', statusFallback)
+  loadDetail()
+})
 </script>
 
 <style scoped>
@@ -506,7 +478,7 @@ onMounted(loadDetail)
 
 .detail-grid {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
+  grid-template-columns: 1fr;
   gap: var(--slds-spacing-lg);
 }
 
@@ -539,8 +511,8 @@ onMounted(loadDetail)
 
 .info-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--slds-spacing-md);
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
   padding: var(--slds-spacing-lg);
 }
 
@@ -826,24 +798,26 @@ onMounted(loadDetail)
 }
 
 .records-title {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--slds-text-primary);
-  margin-bottom: var(--slds-spacing-md);
-  padding-top: var(--slds-spacing-md);
-  border-top: 1px solid var(--slds-border-color-light);
+  padding: var(--slds-spacing-md) var(--slds-spacing-lg);
 }
 
 .record-list {
   display: flex;
   flex-direction: column;
   gap: var(--slds-spacing-md);
+  padding: 0 var(--slds-spacing-lg) var(--slds-spacing-md);
 }
 
 .record-item {
+  display: flex;
+  align-items: center;
+  gap: 60px;
   background: #FAFBFC;
   border-radius: var(--slds-border-radius);
-  padding: var(--slds-spacing-md);
+  padding: var(--slds-spacing-md) var(--slds-spacing-lg);
   border-left: 3px solid var(--slds-border-color);
 }
 
@@ -855,38 +829,30 @@ onMounted(loadDetail)
   border-left-color: var(--slds-error);
 }
 
-.record-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-}
-
 .record-step {
   font-size: 13px;
   font-weight: 600;
   color: var(--slds-text-primary);
-}
-
-.record-body {
-  font-size: 13px;
-  color: var(--slds-text-secondary);
-  margin-bottom: 4px;
+  min-width: 80px;
 }
 
 .record-approver {
+  font-size: 13px;
   font-weight: 600;
   color: var(--slds-text-primary);
 }
 
 .record-comment {
+  font-size: 13px;
   color: var(--slds-text-secondary);
+  flex: 1;
 }
 
 .record-time {
   font-size: 11px;
   color: var(--slds-text-secondary);
   opacity: 0.7;
+  white-space: nowrap;
 }
 
 .dialog-body {

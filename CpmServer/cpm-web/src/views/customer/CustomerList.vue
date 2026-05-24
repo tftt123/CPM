@@ -20,7 +20,7 @@
     <!-- Search Area -->
     <div class="search-area">
       <el-form :model="query" inline class="search-form">
-        <el-form-item :label="t('common.search')">
+        <el-form-item>
           <el-input
             v-model="query.keyword"
             :placeholder="t('common.pleaseInput')"
@@ -38,14 +38,14 @@
 
     <!-- Data Table -->
     <div class="content-card" style="padding: 0;">
-      <el-table :data="tableData" v-loading="loading" stripe style="width: 100%">
+      <el-table border :data="tableData" v-loading="loading" stripe style="width: 100%">
         <el-table-column type="index" label="#" width="50" align="center" />
-        <el-table-column prop="customerCode" :label="t('customer.customerCode')" width="200">
+        <el-table-column v-if="isVisible('customerCode')" prop="customerCode" :label="t('customer.customerCode')" width="200">
           <template #default="{ row }">
             <span class="code-link">{{ row.customerCode }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="customerName" :label="t('customer.customerName')" min-width="180">
+        <el-table-column v-if="isVisible('customerName')" prop="customerName" :label="t('customer.customerName')" min-width="180">
           <template #default="{ row }">
             <div class="customer-name-cell">
               <el-avatar :size="28" :icon="UserFilled" class="customer-avatar" />
@@ -53,12 +53,17 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="industry" :label="t('customer.industry')" min-width="120">
+        <el-table-column v-if="isVisible('industry')" prop="industry" :label="t('customer.industry')" min-width="140">
           <template #default="{ row }">
             <span class="badge badge-primary">{{ row.industry || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="contactName" :label="t('customer.contactName')" min-width="120">
+        <el-table-column v-if="isVisible('currency')" prop="currency" :label="t('customer.currency')" min-width="100" align="center">
+          <template #default="{ row }">
+            <span class="text-secondary">{{ row.currency || '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column v-if="isVisible('contactName')" prop="contactName" :label="t('customer.contactName')" min-width="120">
           <template #default="{ row }">
             <div class="contact-cell">
               <el-icon size="14"><User /></el-icon>
@@ -79,7 +84,6 @@
       </el-table>
 
       <div class="table-footer">
-        <span class="table-info">{{ t('common.total') }} {{ total }}</span>
         <el-pagination
           v-model:current-page="query.pageNum"
           v-model:page-size="query.pageSize"
@@ -88,6 +92,7 @@
           :page-sizes="[10, 20, 50]"
           @change="loadData"
         />
+        <span class="table-info">{{ t('common.total') }} {{ total }}</span>
       </div>
     </div>
 
@@ -105,6 +110,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { customerApi } from '@/api/customer'
 import CustomerForm from './CustomerForm.vue'
 import { useI18n } from '@/composables/useI18n'
+import { useFieldControl } from '@/composables/useFieldControl'
 import {
   Plus,
   Search,
@@ -116,6 +122,7 @@ import {
 } from '@element-plus/icons-vue'
 
 const { t } = useI18n()
+const { isVisible } = useFieldControl('Customer', 'CustomerList')
 const loading = ref(false)
 const dialogVisible = ref(false)
 const editData = ref<any>(null)
@@ -251,8 +258,9 @@ onMounted(loadData)
 
 .table-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
+  gap: var(--slds-spacing-lg);
   padding: var(--slds-spacing-md) var(--slds-spacing-lg);
   border-top: 1px solid var(--slds-border-color-light);
 }
@@ -260,5 +268,10 @@ onMounted(loadData)
 .table-info {
   font-size: var(--slds-font-size-sm);
   color: var(--slds-text-secondary);
+}
+
+.text-secondary {
+  color: var(--slds-text-secondary);
+  font-size: 13px;
 }
 </style>

@@ -445,6 +445,11 @@ html, body, #app {
   border-radius: var(--cpm-radius-md) var(--cpm-radius-md) 0 0;
 }
 
+/* Prevent text wrapping in all table cells - applies to all tables */
+.el-table td .cell {
+  white-space: nowrap;
+}
+
 /* Numeric columns: tabular nums for alignment */
 .el-table .cell.numeric,
 .el-table td.is-right .cell {

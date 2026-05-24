@@ -17,6 +17,14 @@ export interface ApprovalTask {
   dueDate?: string
   createdAt: string
   completedAt?: string
+  // Quotation detail fields
+  rfqNo?: string
+  customerName?: string
+  title?: string
+  // PmStepCycleTime fields
+  pmStepId?: number
+  traceId?: number
+  processName?: string
 }
 
 export function getMyPendingTasks() {

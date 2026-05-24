@@ -37,6 +37,20 @@ public class EmailController : ControllerBase
         await _emailService.SendTestEmailAsync(dto.ToAddress, dto.Subject, dto.Body);
         return ApiResult.Success();
     }
+
+    [HttpGet("templates")]
+    public async Task<ApiResult<List<EmailTemplateDto>>> GetTemplates()
+    {
+        var list = await _emailService.GetTemplatesAsync();
+        return ApiResult<List<EmailTemplateDto>>.Success(list);
+    }
+
+    [HttpPut("templates/{id:long}")]
+    public async Task<ApiResult> UpdateTemplate(long id, [FromBody] EmailTemplateDto dto)
+    {
+        await _emailService.UpdateTemplateAsync(id, dto);
+        return ApiResult.Success();
+    }
 }
 
 public class TestEmailRequest

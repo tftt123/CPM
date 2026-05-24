@@ -16,6 +16,7 @@ public class CrmCustomer
     public string CustomerName { get; set; } = string.Empty;
 
     public string? Industry { get; set; }
+    public string? Currency { get; set; }
     public string? Region { get; set; }
     public string? ContactName { get; set; }
     public string? ContactPhone { get; set; }

@@ -1,3 +1,4 @@
+using CpmServer.Constants;
 using CpmServer.Data;
 using CpmServer.Models;
 using Microsoft.EntityFrameworkCore;
@@ -46,6 +47,11 @@ public class ModuleTypeConfigService : IModuleTypeConfigService
 
     public async Task<long> CreateAsync(SysModuleTypeConfig entity)
     {
+        if (!SystemModuleTypes.All.Contains(entity.ModuleType))
+        {
+            throw new InvalidOperationException($"模块类型 '{entity.ModuleType}' 不是系统预定义类型");
+        }
+
         var exists = await _db.ModuleTypeConfigs
             .AnyAsync(x => x.ModuleType == entity.ModuleType);
         if (exists)

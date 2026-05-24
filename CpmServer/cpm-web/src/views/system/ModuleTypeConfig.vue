@@ -4,7 +4,7 @@
       <el-button type="primary" :icon="Plus" @click="handleAdd">{{ t('common.create') }}</el-button>
     </div>
 
-    <el-table :data="tableData" v-loading="loading" stripe>
+    <el-table border :data="tableData" v-loading="loading" stripe>
       <el-table-column type="index" label="#" width="50" align="center" />
       <el-table-column prop="moduleType" :label="t('system.moduleType')" width="160" />
       <el-table-column prop="moduleName" :label="t('system.moduleName')" width="160" />
@@ -38,7 +38,9 @@
     >
       <el-form :model="form" label-width="100px" :rules="rules" ref="formRef">
         <el-form-item :label="t('system.moduleType')" prop="moduleType">
-          <el-input v-model="form.moduleType" :placeholder="t('common.pleaseInput')" />
+          <el-select v-model="form.moduleType" :placeholder="t('common.pleaseSelect')" style="width: 100%" :disabled="isEdit">
+            <el-option v-for="type in availableTypes" :key="type" :label="type" :value="type" />
+          </el-select>
         </el-form-item>
         <el-form-item :label="t('system.moduleName')">
           <el-input v-model="form.moduleName" :placeholder="t('common.pleaseInput')" />
@@ -61,12 +63,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import { useI18n } from '@/composables/useI18n'
 import {
   getModuleTypeList,
+  getSystemModuleTypes,
   createModuleType,
   updateModuleType,
   deleteModuleType,
@@ -79,10 +82,19 @@ const loading = ref(false)
 const dialogVisible = ref(false)
 const submitting = ref(false)
 const tableData = ref<ModuleTypeConfig[]>([])
+const systemTypeList = ref<string[]>([])
 const editId = ref<number | null>(null)
 const formRef = ref()
 
 const isEdit = computed(() => !!editId.value)
+
+const availableTypes = computed(() => {
+  const configured = new Set(tableData.value.map((x) => x.moduleType))
+  return systemTypeList.value.filter((type) => {
+    if (isEdit.value && form.value.moduleType === type) return true
+    return !configured.has(type)
+  })
+})
 
 const form = ref<ModuleTypeConfig>({
   id: 0,
@@ -94,6 +106,11 @@ const form = ref<ModuleTypeConfig>({
 
 const rules = {
   moduleType: [{ required: true, message: t('validation.required', { field: t('system.moduleType') }), trigger: 'blur' }],
+}
+
+const loadSystemTypes = async () => {
+  const res = await getSystemModuleTypes()
+  systemTypeList.value = res.data
 }
 
 const loadData = async () => {
@@ -149,7 +166,10 @@ const handleSubmit = async () => {
   }
 }
 
-loadData()
+onMounted(() => {
+  loadData()
+  loadSystemTypes()
+})
 </script>
 
 <style scoped>

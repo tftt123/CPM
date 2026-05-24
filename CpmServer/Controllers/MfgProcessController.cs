@@ -154,4 +154,24 @@ public class MfgProcessController : ControllerBase
     }
 
     #endregion
+
+    #region Import
+
+    [HttpPost("import")]
+    public async Task<ApiResult> ImportFromExcel(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return ApiResult.Error("请上传Excel文件");
+
+        using var stream = file.OpenReadStream();
+        var (imported, skipped, errors) = await _mfgService.ImportFromExcelAsync(stream);
+
+        var message = $"导入完成: 成功{imported}条, 跳过{skipped}条";
+        if (errors.Count > 0)
+            message += $", 失败{errors.Count}条";
+
+        return ApiResult.Success(new { imported, skipped, errors, message });
+    }
+
+    #endregion
 }

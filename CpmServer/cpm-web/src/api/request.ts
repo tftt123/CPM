@@ -6,12 +6,14 @@ const request = axios.create({
   timeout: 30000
 })
 
-// 请求拦截器：加 token
+// 请求拦截器：加 token + app code
 request.interceptors.request.use(config => {
   const token = localStorage.getItem('token')
   if (token) {
     config.headers.Authorization = 'Bearer ' + token
   }
+  const appCode = localStorage.getItem('current_app') || 'cpm'
+  config.headers['X-App-Code'] = appCode
   return config
 })
 

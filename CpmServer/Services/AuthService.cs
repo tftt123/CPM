@@ -78,7 +78,7 @@ public class AuthService : IAuthService
             loginSite = user.Site ?? allowedSites.FirstOrDefault() ?? string.Empty;
         }
 
-        var token = _jwt.GenerateToken(user.Id, user.Username, roles, loginSite);
+        var token = _jwt.GenerateToken(user.Id, user.Username, roles, loginSite, "cpm");
         var refreshToken = await StoreRefreshTokenAsync(user.Id);
 
         return new LoginResponse

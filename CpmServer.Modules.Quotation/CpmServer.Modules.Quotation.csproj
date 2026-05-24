@@ -17,6 +17,7 @@
     <ProjectReference Include="..\CpmServer.SharedKernel\CpmServer.SharedKernel.csproj" />
     <ProjectReference Include="..\CpmServer.Core\CpmServer.Core.csproj" />
     <ProjectReference Include="..\CpmServer.Modules.Approval\CpmServer.Modules.Approval.csproj" />
+    <ProjectReference Include="..\CpmServer.Modules.SequenceRule\CpmServer.Modules.SequenceRule.csproj" />
   </ItemGroup>
 
 </Project>

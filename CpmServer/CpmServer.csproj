@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="EPPlus" Version="7.0.0" />
     <PackageReference Include="Hangfire.AspNetCore" Version="1.8.23" />
     <PackageReference Include="Hangfire.SqlServer" Version="1.8.23" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.26" />
@@ -80,6 +81,7 @@
     <ProjectReference Include="..\CpmServer.Modules.Approval\CpmServer.Modules.Approval.csproj" />
     <ProjectReference Include="..\CpmServer.Modules.Quotation\CpmServer.Modules.Quotation.csproj" />
     <ProjectReference Include="..\CpmServer.Modules.PM\CpmServer.Modules.PM.csproj" />
+    <ProjectReference Include="..\CpmServer.Modules.SequenceRule\CpmServer.Modules.SequenceRule.csproj" />
   </ItemGroup>
 
 </Project>

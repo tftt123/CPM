@@ -29,6 +29,22 @@ public class CurrentUser : ICurrentUser
 
     public string? Site => Principal?.FindFirst("Site")?.Value;
 
+    public string? App
+    {
+        get
+        {
+            // 优先从 JWT Claim 读取
+            var claim = Principal?.FindFirst("App")?.Value;
+            if (!string.IsNullOrWhiteSpace(claim))
+                return claim;
+            // 回退到请求头
+            var header = _httpContextAccessor.HttpContext?.Request.Headers["X-App-Code"].FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(header))
+                return header;
+            return "cpm"; // 默认应用
+        }
+    }
+
     public bool IsAuthenticated => Principal?.Identity?.IsAuthenticated ?? false;
 
     public bool IsInRole(string role)

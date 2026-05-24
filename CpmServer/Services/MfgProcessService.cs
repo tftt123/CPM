@@ -424,4 +424,111 @@ public class MfgProcessService : IMfgProcessService
     }
 
     #endregion
+
+    #region Import from Excel
+
+    public async Task<(int imported, int skipped, List<string> errors)> ImportFromExcelAsync(Stream excelStream)
+    {
+        using var package = new OfficeOpenXml.ExcelPackage(excelStream);
+        var worksheet = package.Workbook.Worksheets[0];
+        if (worksheet == null)
+            throw new BusinessException("Excel文件格式错误");
+
+        int imported = 0;
+        int skipped = 0;
+        var errors = new List<string>();
+
+        // Cache existing processes and subcategories to avoid repeated queries
+        var existingProcesses = await ProcessQuery.ToListAsync();
+        var existingSubCategories = await SubCategoryQuery.ToListAsync();
+
+        // Read rows (skip header row)
+        int rowCount = worksheet.Dimension?.Rows ?? 0;
+        for (int row = 2; row <= rowCount; row++)
+        {
+            var processName = worksheet.Cells[row, 1].Text?.Trim();
+            var subCategoryName = worksheet.Cells[row, 2].Text?.Trim();
+            var equipmentName = worksheet.Cells[row, 3].Text?.Trim();
+
+            if (string.IsNullOrEmpty(processName) || string.IsNullOrEmpty(equipmentName))
+            {
+                skipped++;
+                continue;
+            }
+
+            // SubCategory defaults to process name if not present
+            if (string.IsNullOrEmpty(subCategoryName))
+                subCategoryName = processName;
+
+            var owner = worksheet.Cells[row, 4].Text?.Trim();
+            var costRateText = worksheet.Cells[row, 5].Text?.Trim();
+            if (!decimal.TryParse(costRateText, out var costRate))
+                costRate = 0;
+
+            try
+            {
+                // Find or create process
+                var process = existingProcesses.FirstOrDefault(p => p.ProcessName == processName);
+                if (process == null)
+                {
+                    process = new MfgProcess
+                    {
+                        Category = "通用",
+                        ProcessName = processName,
+                        SortOrder = 0,
+                        Site = CurrentSite,
+                        IsActive = true,
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now
+                    };
+                    _db.MfgProcesses.Add(process);
+                    await _db.SaveChangesAsync();
+                    existingProcesses.Add(process);
+                }
+
+                // Find or create subcategory
+                var subCategory = existingSubCategories.FirstOrDefault(s => s.ProcessId == process.Id && s.SubCategoryName == subCategoryName);
+                if (subCategory == null)
+                {
+                    subCategory = new MfgSubCategory
+                    {
+                        ProcessId = process.Id,
+                        SubCategoryName = subCategoryName,
+                        SortOrder = 0,
+                        Site = CurrentSite,
+                        IsActive = true,
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now
+                    };
+                    _db.MfgSubCategories.Add(subCategory);
+                    await _db.SaveChangesAsync();
+                    existingSubCategories.Add(subCategory);
+                }
+
+                // Create equipment
+                var entity = new MfgEquipment
+                {
+                    SubCategoryId = subCategory.Id,
+                    EquipmentName = equipmentName,
+                    Owner = string.IsNullOrEmpty(owner) ? null : owner,
+                    CostRate = costRate,
+                    Site = CurrentSite,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
+                };
+                _db.MfgEquipments.Add(entity);
+                await _db.SaveChangesAsync();
+                imported++;
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"第{row}行导入失败: {ex.Message}");
+                skipped++;
+            }
+        }
+
+        return (imported, skipped, errors);
+    }
+
+    #endregion
 }

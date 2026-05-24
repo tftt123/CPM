@@ -30,4 +30,7 @@ public interface IMfgProcessService
 
     // Flat records for maintenance page
     Task<List<MfgProcessRecordDto>> GetFlatRecordsAsync(string? category, string? keyword);
+
+    // Import from Excel
+    Task<(int imported, int skipped, List<string> errors)> ImportFromExcelAsync(Stream excelStream);
 }

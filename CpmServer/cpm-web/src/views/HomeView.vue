@@ -17,6 +17,16 @@
 
     <!-- Stats Cards -->
     <div class="stats-grid">
+      <div class="stat-card dashboard-stat stat-clickable" @click="$router.push('/approval/center')">
+        <div class="stat-icon" style="background: var(--cpm-error-bg); color: var(--cpm-error);">
+          <el-icon size="24"><Timer /></el-icon>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value" style="color: var(--cpm-error);">{{ stats.pending }}</div>
+          <div class="stat-label">{{ t('common.pending') }}</div>
+        </div>
+      </div>
+
       <div class="stat-card dashboard-stat">
         <div class="stat-icon" style="background: var(--cpm-info-bg); color: var(--cpm-info);">
           <el-icon size="24"><UserFilled /></el-icon>
@@ -24,10 +34,6 @@
         <div class="stat-info">
           <div class="stat-value">{{ stats.customers }}</div>
           <div class="stat-label">{{ t('nav.customer') }}</div>
-        </div>
-        <div class="stat-trend trend-up">
-          <el-icon><ArrowUp /></el-icon>
-          <span>+12%</span>
         </div>
       </div>
 
@@ -39,10 +45,6 @@
           <div class="stat-value" style="color: var(--cpm-success);">{{ stats.products }}</div>
           <div class="stat-label">{{ t('nav.product') }}</div>
         </div>
-        <div class="stat-trend trend-up">
-          <el-icon><ArrowUp /></el-icon>
-          <span>+8%</span>
-        </div>
       </div>
 
       <div class="stat-card dashboard-stat">
@@ -52,24 +54,6 @@
         <div class="stat-info">
           <div class="stat-value" style="color: var(--cpm-warning);">{{ stats.deals }}</div>
           <div class="stat-label">{{ t('nav.salesReport') }}</div>
-        </div>
-        <div class="stat-trend trend-down">
-          <el-icon><ArrowDown /></el-icon>
-          <span>-3%</span>
-        </div>
-      </div>
-
-      <div class="stat-card dashboard-stat">
-        <div class="stat-icon" style="background: var(--cpm-error-bg); color: var(--cpm-error);">
-          <el-icon size="24"><Timer /></el-icon>
-        </div>
-        <div class="stat-info">
-          <div class="stat-value" style="color: var(--cpm-error);">{{ stats.pending }}</div>
-          <div class="stat-label">{{ t('common.pending') }}</div>
-        </div>
-        <div class="stat-trend trend-up">
-          <el-icon><ArrowUp /></el-icon>
-          <span>+5</span>
         </div>
       </div>
     </div>
@@ -171,6 +155,7 @@
 import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import request from '@/api/request'
+import { getMyPendingTasks } from '@/api/approval'
 import { useI18n } from '@/composables/useI18n'
 import {
   Plus,
@@ -212,14 +197,15 @@ const recentActivities = ref([
 
 const refreshData = async () => {
   try {
-    const [customerRes, productRes] = await Promise.all([
+    const [customerRes, productRes, taskRes] = await Promise.all([
       request.get('/customer/list', { params: { pageNum: 1, pageSize: 1 } }),
-      request.get('/product/list', { params: { pageNum: 1, pageSize: 1 } })
+      request.get('/product/list', { params: { pageNum: 1, pageSize: 1 } }),
+      getMyPendingTasks()
     ])
     stats.value.customers = customerRes?.data?.total || 0
     stats.value.products = productRes?.data?.total || 0
     stats.value.deals = 0
-    stats.value.pending = 0
+    stats.value.pending = taskRes?.data?.length || 0
   } catch (e) {
     console.log('Dashboard data load failed:', e)
   }
@@ -276,6 +262,16 @@ onMounted(() => {
   align-items: center;
   gap: var(--cpm-space-4);
   padding: var(--cpm-space-6);
+}
+
+.stat-clickable {
+  cursor: pointer;
+  transition: transform var(--cpm-duration-normal) var(--cpm-easing-default), box-shadow var(--cpm-duration-normal) var(--cpm-easing-default);
+}
+
+.stat-clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--cpm-shadow-md);
 }
 
 .stat-icon {

@@ -22,25 +22,31 @@
         <label>{{ t('pmTrace.partNo') }}</label>
         <span>{{ form.productCode || '-' }}</span>
       </div>
-      <div class="info-cell">
+      <div v-if="isVisible('plannedQty')" class="info-cell">
         <label>{{ t('pmTrace.plannedQty') }}</label>
         <el-input-number v-model="form.plannedQty" :min="1" controls-position="right" style="width: 100px" size="small" />
       </div>
-      <div class="info-cell">
+      <div v-if="isVisible('projectStartDate')" class="info-cell">
         <label>{{ t('pmTrace.startDate') }}</label>
         <el-date-picker v-model="form.projectStartDate" type="date" value-format="YYYY-MM-DD" size="small" style="width: 140px" />
       </div>
-      <div class="info-cell">
+      <div v-if="isVisible('displayWeeks')" class="info-cell">
         <label>{{ t('pmTrace.displayWeeks') }}</label>
         <el-input-number v-model="form.displayWeeks" :min="1" :max="52" controls-position="right" style="width: 80px" size="small" />
       </div>
-      <div class="info-cell">
+      <div v-if="isVisible('status')" class="info-cell">
         <label>{{ t('common.status') }}</label>
-        <el-select v-model="form.status" size="small" style="width: 100px">
-          <el-option :label="t('pmTrace.statusDraft')" :value="0" />
-          <el-option :label="t('pmTrace.statusRunning')" :value="1" />
-          <el-option :label="t('pmTrace.statusCompleted')" :value="2" />
-        </el-select>
+        <GcSelect
+          v-model="form.status"
+          domain="PM_TRACE_STATUS"
+          size="small"
+          style="width: 100px"
+          :fallback="[
+            { code: '0', label: t('pmTrace.statusDraft'), tagType: 'info' },
+            { code: '1', label: t('pmTrace.statusRunning'), tagType: 'warning' },
+            { code: '2', label: t('pmTrace.statusCompleted'), tagType: 'success' }
+          ]"
+        />
       </div>
     </div>
 
@@ -176,42 +182,42 @@
       </template>
       <el-table :data="form.steps" border stripe size="small">
         <el-table-column type="index" width="50" align="center" />
-        <el-table-column :label="t('pmTrace.process')" min-width="120">
+        <el-table-column v-if="isVisible('processName')" :label="t('pmTrace.process')" min-width="120">
           <template #default="{ row }">{{ row.processName }}</template>
         </el-table-column>
-        <el-table-column :label="t('mfg.equipment')" min-width="120">
+        <el-table-column v-if="isVisible('equipment')" :label="t('mfg.equipment')" min-width="120">
           <template #default="{ row }">
             <el-input v-model="row.equipment" size="small" />
           </template>
         </el-table-column>
-        <el-table-column :label="t('pmTrace.person')" min-width="100">
+        <el-table-column v-if="isVisible('personInCharge')" :label="t('pmTrace.person')" min-width="100">
           <template #default="{ row }">
             <el-input v-model="row.personInCharge" size="small" disabled />
           </template>
         </el-table-column>
-        <el-table-column :label="t('pmTrace.cycleTime')" min-width="100" align="center">
+        <el-table-column v-if="isVisible('cycleTime')" :label="t('pmTrace.cycleTime')" min-width="100" align="center">
           <template #default="{ row }">
             <el-input-number v-model="row.cycleTime" :min="0" size="small" controls-position="right" style="width: 80px" />
           </template>
         </el-table-column>
-        <el-table-column :label="t('pmTrace.actualCycleTime')" width="130" align="center">
+        <el-table-column v-if="isVisible('actualCycleTime')" :label="t('pmTrace.actualCycleTime')" width="130" align="center">
           <template #default="{ row }">
             <span :class="{ 'text-warning': getLatestActualCycleTimeValue(row) != null && row.cycleTime != null && getLatestActualCycleTimeValue(row)! > row.cycleTime }">
               {{ getLatestActualCycleTime(row) }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column :label="t('pmTrace.settingDays')" min-width="100" align="center">
+        <el-table-column v-if="isVisible('settingDays')" :label="t('pmTrace.settingDays')" min-width="100" align="center">
           <template #default="{ row }">
             <el-input-number v-model="row.settingDays" :min="0" size="small" controls-position="right" style="width: 80px" />
           </template>
         </el-table-column>
-        <el-table-column :label="t('pmTrace.estimatedHours')" min-width="110" align="center">
+        <el-table-column v-if="isVisible('estimatedHours')" :label="t('pmTrace.estimatedHours')" min-width="110" align="center">
           <template #default="{ row }">
             <el-input-number v-model="row.estimatedHours" :min="0" size="small" controls-position="right" style="width: 80px" />
           </template>
         </el-table-column>
-      <el-table-column :label="t('pmTrace.remarks')">
+        <el-table-column v-if="isVisible('remarks')" :label="t('pmTrace.remarks')">
           <template #default="{ row }">
             <el-input v-model="row.remarks" size="small" />
           </template>
@@ -229,6 +235,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { ArrowLeft, Check, Plus, Delete } from '@element-plus/icons-vue'
 import { useI18n } from '@/composables/useI18n'
+import { useFieldControl } from '@/composables/useFieldControl'
+import GcSelect from '@/components/GcSelect.vue'
 import { getTraceDetail, createTrace, updateTrace } from '@/api/pmProjectTrace'
 import type { PmProjectTrace, PmProjectTraceStep, PmProjectTraceStepActualCycleTime } from '@/api/pmProjectTrace'
 import { mfgProcessApi, type MfgCascadeOption } from '@/api/mfgProcess'
@@ -236,6 +244,7 @@ import { mfgProcessApi, type MfgCascadeOption } from '@/api/mfgProcess'
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
+const { isVisible, load: loadFieldConfig } = useFieldControl('PM', 'ProductTraceDetail')
 
 const isEdit = computed(() => !!route.params.id)
 const traceId = computed(() => Number(route.params.id))
@@ -259,7 +268,7 @@ function getLatestActualCycleTime(step: PmProjectTraceStep): string {
   if (!step.actualCycleTimes || step.actualCycleTimes.length === 0) return '-'
   const latest = step.actualCycleTimes[step.actualCycleTimes.length - 1]
   if (!latest) return '-'
-  return latest.actualCycleTime != null ? latest.actualCycleTime.toFixed(4) : '-'
+  return latest.actualCycleTime != null ? String(Math.round(latest.actualCycleTime)) : '-'
 }
 
 function formatDate(d: Date): string {
@@ -401,7 +410,7 @@ async function loadDetail() {
 }
 
 onMounted(async () => {
-  await loadProcessOptions()
+  await Promise.all([loadProcessOptions(), loadFieldConfig()])
   await loadDetail()
 })
 </script>

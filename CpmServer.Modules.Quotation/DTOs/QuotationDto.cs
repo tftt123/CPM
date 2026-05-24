@@ -4,10 +4,13 @@ public class QuotationDto
 {
     public long? Id { get; set; }
     public string QuotationNo { get; set; } = string.Empty;
+    public string RfqNo { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
     public long OpportunityId { get; set; }
     public string OpportunityTitle { get; set; } = string.Empty;
     public long CustomerId { get; set; }
     public string CustomerName { get; set; } = string.Empty;
+    public string? CustomerCurrency { get; set; }
     public decimal? TotalAmount { get; set; }
     public long? CurrentStepId { get; set; }
     public string? CurrentStepName { get; set; }
@@ -16,8 +19,6 @@ public class QuotationDto
     public string CreatedByName { get; set; } = string.Empty;
     public string? Site { get; set; }
     public DateTime CreatedAt { get; set; }
-    public decimal? PackagingCost { get; set; }
-    public decimal? TransportCost { get; set; }
     public List<long> FileIds { get; set; } = new();
     public List<QuotationItemDto> Items { get; set; } = new();
 }
@@ -25,11 +26,11 @@ public class QuotationDto
 public class QuotationCreateDto
 {
     public long OpportunityId { get; set; }
+    public string RfqNo { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
     public long CustomerId { get; set; }
     public List<QuotationItemDto> Items { get; set; } = new();
     public string? Site { get; set; }
-    public decimal? PackagingCost { get; set; }
-    public decimal? TransportCost { get; set; }
     public List<long> FileIds { get; set; } = new();
 }
 
@@ -47,6 +48,8 @@ public class QuotationItemDto
     public decimal? CycleTime { get; set; }
     public decimal? HourlyRate { get; set; }
     public decimal? Cost { get; set; }
+    public decimal? PackagingCost { get; set; }
+    public decimal? TransportCost { get; set; }
     public bool IsProcessRow { get; set; }
 }
 

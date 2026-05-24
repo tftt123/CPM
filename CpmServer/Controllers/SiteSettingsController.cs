@@ -1,4 +1,4 @@
-﻿using CpmServer.Common;
+using CpmServer.Common;
 using CpmServer.Data;
 using CpmServer.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -35,6 +35,7 @@ public class SiteSettingsController : ControllerBase
             settings = new SysSiteSettings
             {
                 Site = dto.Site,
+                SiteCode = dto.SiteCode,
                 Currency = dto.Currency,
                 Description = dto.Description,
                 CreatedAt = DateTime.Now,
@@ -45,6 +46,7 @@ public class SiteSettingsController : ControllerBase
         else
         {
             settings.Site = dto.Site;
+            settings.SiteCode = dto.SiteCode;
             settings.Currency = dto.Currency;
             settings.Description = dto.Description;
             settings.UpdatedAt = DateTime.Now;
@@ -58,6 +60,7 @@ public class SiteSettingsController : ControllerBase
 public class SiteSettingsRequest
 {
     public string Site { get; set; } = string.Empty;
+    public string? SiteCode { get; set; }
     public string Currency { get; set; } = string.Empty;
     public string? Description { get; set; }
 }
