@@ -13,6 +13,10 @@ export function getModuleTypeList(all?: boolean) {
   return request.get('/ModuleTypeConfig', { params: { all } })
 }
 
+export function getSystemModuleTypes() {
+  return request.get('/ModuleTypeConfig/system-types')
+}
+
 export function createModuleType(data: ModuleTypeConfig) {
   return request.post('/ModuleTypeConfig', data)
 }

@@ -17,4 +17,7 @@ public class SysEmailLog
     public int RetryCount { get; set; }
     public DateTime? SentAt { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+    public string? Site { get; set; }
+    public string? App { get; set; }
 }

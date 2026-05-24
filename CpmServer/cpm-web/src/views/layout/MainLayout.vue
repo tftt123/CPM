@@ -1,19 +1,38 @@
-<template>
+﻿<template>
   <el-container style="height: 100vh; background: var(--slds-bg-page);">
-    <!-- 顶部 Global Header -->
+    <!-- 椤堕儴 Global Header -->
     <el-header class="global-header">
       <div class="header-left">
         <div class="app-logo">
-          <el-icon size="24" color="#0176D3"><Cloudy /></el-icon>
-          <span class="app-name">{{ t('layout.appName') }}</span>
+          <img src="/spxlogo/SPINDEX_HRZ_FA.png" class="app-logo-img" alt="logo" />
         </div>
         <div class="app-divider"></div>
-        <div class="current-app">
-          <el-icon size="16"><Grid /></el-icon>
-          <span>{{ t('layout.appFullName') }}</span>
-        </div>
-      </div>
 
+        <el-dropdown @command="handleSwitchApp" trigger="click">
+          <div class="current-app">
+            <el-icon size="16"><Grid /></el-icon>
+            <span>{{ currentAppLabel }}</span>
+            <el-icon class="dropdown-arrow"><ArrowDown /></el-icon>
+          </div>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="cpm" :class="{ 'is-active': currentApp === 'cpm' }">
+                <el-icon v-if="currentApp === 'cpm'"><CircleCheck /></el-icon>
+                <span v-else style="display:inline-block;width:16px"></span>
+                {{ t('app.cpm') }}
+              </el-dropdown-item>
+              <el-dropdown-item command="sp" disabled>
+                <el-icon><Lock /></el-icon>
+                {{ t('app.sp') }} ({{ t('app.comingSoon') }})
+              </el-dropdown-item>
+              <el-dropdown-item command="mes" disabled>
+                <el-icon><Lock /></el-icon>
+                {{ t('app.mes') }} ({{ t('app.comingSoon') }})
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
       <div class="header-center">
         <el-input
           v-model="searchQuery"
@@ -25,7 +44,7 @@
       </div>
 
       <div class="header-right">
-        <!-- Workspace 切换器 -->
+        <!-- Workspace 鍒囨崲鍣?-->
         <div class="workspace-selector" v-if="userStore.siteList.length > 0">
           <el-dropdown @command="handleSwitchSite" trigger="click">
             <div class="workspace-trigger">
@@ -52,7 +71,7 @@
 
         <div class="header-divider"></div>
 
-        <!-- Language 切换器 -->
+        <!-- Language 鍒囨崲鍣?-->
         <div class="language-selector">
           <el-dropdown @command="handleSwitchLanguage" trigger="click">
             <div class="lang-trigger">
@@ -65,8 +84,7 @@
                 <el-dropdown-item command="zh" :class="{ 'is-active': locale === 'zh' }">
                   <el-icon v-if="locale === 'zh'"><CircleCheck /></el-icon>
                   <span v-else style="display:inline-block;width:16px"></span>
-                  简体中文
-                </el-dropdown-item>
+                  简体中文                </el-dropdown-item>
                 <el-dropdown-item command="en" :class="{ 'is-active': locale === 'en' }">
                   <el-icon v-if="locale === 'en'"><CircleCheck /></el-icon>
                   <span v-else style="display:inline-block;width:16px"></span>
@@ -98,7 +116,7 @@
               <el-dropdown-item command="profile">
                 <el-icon><User /></el-icon>{{ t('common.personalInfo') }}
               </el-dropdown-item>
-              <el-dropdown-item command="settings" v-if="isAdmin">
+              <el-dropdown-item command="settings" v-if="canViewSettings">
                 <el-icon><Setting /></el-icon>{{ t('common.systemSettings') }}
               </el-dropdown-item>
               <el-dropdown-item divided command="logout">
@@ -113,102 +131,102 @@
     <el-container style="flex: 1; overflow: hidden;">
       <!-- 左侧导航栏 -->
       <el-aside width="240px" class="sidebar">
-        <div class="nav-section">
-          <div class="nav-section-title">{{ t('nav.home') }}</div>
-          <el-menu
-            router
-            :default-active="$route.path"
-            class="nav-menu"
-            :collapse="false"
-            :collapse-transition="false"
-          >
-            <el-menu-item index="/home" class="nav-item">
-              <el-icon size="18"><HomeFilled /></el-icon>
-              <span>{{ t('nav.home') }}</span>
-            </el-menu-item>
-          </el-menu>
-        </div>
+        <!-- Dynamic Navigation -->
+        <template v-if="groupedModules.length > 0">
+          <div class="nav-section" v-for="module in groupedModules" :key="module.moduleCode">
+            <div class="nav-section-title">{{ module.moduleLabel }}</div>
+            <div class="nav-menu">
+              <div
+                v-for="item in module.items"
+                :key="item.navCode"
+                class="nav-item"
+                :class="{ 'is-active': isActiveRoute(item.routePath) }"
+                @click="router.push(item.routePath)"
+              >
+                <el-icon size="18">
+                  <component :is="getIconComponent(item.iconName)" />
+                </el-icon>
+                <span>{{ resolveNavLabel(item) }}</span>
+              </div>
+            </div>
+          </div>
+        </template>
 
-        <div class="nav-section">
-          <div class="nav-section-title">{{ t('nav.rfq') }}</div>
-          <el-menu
-            router
-            :default-active="$route.path"
-            class="nav-menu"
-            :collapse="false"
-            :collapse-transition="false"
-          >
-            <el-menu-item index="/customer" class="nav-item">
-              <el-icon size="18"><UserFilled /></el-icon>
-              <span>{{ t('nav.customer') }}</span>
-            </el-menu-item>
-            <el-menu-item index="/product" class="nav-item">
-              <el-icon size="18"><Box /></el-icon>
-              <span>{{ t('nav.product') }}</span>
-            </el-menu-item>
-            <el-menu-item index="/opportunity" class="nav-item">
-              <el-icon size="18"><FolderOpened /></el-icon>
-              <span>{{ t('nav.opportunity') }}</span>
-            </el-menu-item>
-            <el-menu-item index="/quotation/list" class="nav-item">
-              <el-icon size="18"><Document /></el-icon>
-              <span>{{ t('nav.quotation') }}</span>
-            </el-menu-item>
-            <el-menu-item index="/mfg/process" class="nav-item">
-              <el-icon size="18"><Setting /></el-icon>
-              <span>{{ t('nav.mfgProcess') }}</span>
-            </el-menu-item>
-          </el-menu>
-        </div>
+        <!-- Fallback: hardcoded navigation when dynamic config is unavailable -->
+        <template v-else>
+          <div class="nav-section">
+            <div class="nav-section-title">{{ t('nav.home') }}</div>
+            <div class="nav-menu">
+              <div class="nav-item" :class="{ 'is-active': isActiveRoute('/home') }" @click="router.push('/home')">
+                <el-icon size="18"><HomeFilled /></el-icon>
+                <span>{{ t('nav.home') }}</span>
+              </div>
+            </div>
+          </div>
 
-        <div class="nav-section">
-          <div class="nav-section-title">{{ t('nav.pm') }}</div>
-          <el-menu
-            router
-            :default-active="$route.path"
-            class="nav-menu"
-            :collapse="false"
-            :collapse-transition="false"
-          >
-            <el-menu-item index="/pm/actual-cycle-time" class="nav-item">
-              <el-icon size="18"><Timer /></el-icon>
-              <span>{{ t('nav.actualCycleTime') }}</span>
-            </el-menu-item>
-            <el-menu-item index="/pm/trace" class="nav-item">
-              <el-icon size="18"><TrendCharts /></el-icon>
-              <span>{{ t('nav.productTrace') }}</span>
-            </el-menu-item>
-          </el-menu>
-        </div>
+          <div class="nav-section">
+            <div class="nav-section-title">{{ t('nav.rfq') }}</div>
+            <div class="nav-menu">
+              <div class="nav-item" :class="{ 'is-active': isActiveRoute('/customer') }" @click="router.push('/customer')">
+                <el-icon size="18"><UserFilled /></el-icon>
+                <span>{{ t('nav.customer') }}</span>
+              </div>
+              <div class="nav-item" :class="{ 'is-active': isActiveRoute('/product') }" @click="router.push('/product')">
+                <el-icon size="18"><Box /></el-icon>
+                <span>{{ t('nav.product') }}</span>
+              </div>
+              <div class="nav-item" :class="{ 'is-active': isActiveRoute('/opportunity') }" @click="router.push('/opportunity')">
+                <el-icon size="18"><FolderOpened /></el-icon>
+                <span>{{ t('nav.opportunity') }}</span>
+              </div>
+              <div class="nav-item" :class="{ 'is-active': isActiveRoute('/quotation/list') }" @click="router.push('/quotation/list')">
+                <el-icon size="18"><Document /></el-icon>
+                <span>{{ t('nav.quotation') }}</span>
+              </div>
+              <div class="nav-item" :class="{ 'is-active': isActiveRoute('/mfg/process') }" @click="router.push('/mfg/process')">
+                <el-icon size="18"><Setting /></el-icon>
+                <span>{{ t('nav.mfgProcess') }}</span>
+              </div>
+            </div>
+          </div>
 
-        <div class="nav-section">
-          <div class="nav-section-title">{{ t('nav.approval') }}</div>
-          <el-menu
-            router
-            :default-active="$route.path"
-            class="nav-menu"
-            :collapse="false"
-            :collapse-transition="false"
-          >
-            <el-menu-item index="/approval/center" class="nav-item">
-              <el-icon size="18"><CircleCheck /></el-icon>
-              <span>{{ t('nav.approvalCenter') }}</span>
-            </el-menu-item>
-          </el-menu>
-        </div>
+          <div class="nav-section">
+            <div class="nav-section-title">{{ t('nav.pm') }}</div>
+            <div class="nav-menu">
+              <div class="nav-item" :class="{ 'is-active': isActiveRoute('/pm/actual-cycle-time') }" @click="router.push('/pm/actual-cycle-time')">
+                <el-icon size="18"><Timer /></el-icon>
+                <span>{{ t('nav.actualCycleTime') }}</span>
+              </div>
+              <div class="nav-item" :class="{ 'is-active': isActiveRoute('/pm/trace') }" @click="router.push('/pm/trace')">
+                <el-icon size="18"><TrendCharts /></el-icon>
+                <span>{{ t('nav.productTrace') }}</span>
+              </div>
+            </div>
+          </div>
 
-        <div class="nav-section">
-          <div class="nav-section-title">{{ t('nav.salesReport') }}</div>
-          <el-menu class="nav-menu">
-            <el-menu-item index="/report/analysis" class="nav-item">
-              <el-icon size="18"><DataAnalysis /></el-icon>
-              <span>{{ t('nav.dataAnalysis') }}</span>
-            </el-menu-item>
-          </el-menu>
-        </div>
+          <div class="nav-section">
+            <div class="nav-section-title">{{ t('nav.approval') }}</div>
+            <div class="nav-menu">
+              <div class="nav-item" :class="{ 'is-active': isActiveRoute('/approval/center') }" @click="router.push('/approval/center')">
+                <el-icon size="18"><CircleCheck /></el-icon>
+                <span>{{ t('nav.approvalCenter') }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-section-title">{{ t('nav.salesReport') }}</div>
+            <div class="nav-menu">
+              <div class="nav-item" :class="{ 'is-active': isActiveRoute('/report/analysis') }" @click="router.push('/report/analysis')">
+                <el-icon size="18"><DataAnalysis /></el-icon>
+                <span>{{ t('nav.dataAnalysis') }}</span>
+              </div>
+            </div>
+          </div>
+        </template>
       </el-aside>
 
-      <!-- 主内容区域 -->
+      <!-- 涓诲唴瀹瑰尯鍩?-->
       <el-main class="main-content">
         <router-view />
       </el-main>
@@ -217,15 +235,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useI18n } from '@/composables/useI18n'
+import { useNavigationConfig } from '@/composables/useNavigationConfig'
 import {
   HomeFilled,
   UserFilled,
   Box,
-  Cloudy,
   Grid,
   Search,
   Bell,
@@ -240,19 +258,55 @@ import {
   OfficeBuilding,
   CircleCheck,
   MapLocation,
-  Timer
+  Timer,
+  Lock
 } from '@element-plus/icons-vue'
 import { authApi } from '@/api/auth'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 const { t, locale, setLocale } = useI18n()
+const { loadNavigationConfig, groupedModules, resolveNavLabel, getIconComponent } = useNavigationConfig()
 const searchQuery = ref('')
 
+const isActiveRoute = (path: string) => route.path === path || route.path.startsWith(path + '/')
+
+onMounted(() => {
+  loadNavigationConfig()
+  // 空闲时预加载所有页面组件，消除首次切换的懒加载延迟
+  requestIdleCallback?.(() => {
+    import('@/views/HomeView.vue').catch(() => {})
+    import('@/views/customer/CustomerList.vue').catch(() => {})
+    import('@/views/product/ProductList.vue').catch(() => {})
+    import('@/views/quotation/OpportunityList.vue').catch(() => {})
+    import('@/views/quotation/QuotationList.vue').catch(() => {})
+    import('@/views/quotation/QuotationDetail.vue').catch(() => {})
+    import('@/views/mfg/MfgProcessManage.vue').catch(() => {})
+    import('@/views/pm/ProductTraceList.vue').catch(() => {})
+    import('@/views/pm/ProductTraceDetail.vue').catch(() => {})
+    import('@/views/pm/ActualCycleTimeManage.vue').catch(() => {})
+    import('@/views/approval/ApprovalCenter.vue').catch(() => {})
+    import('@/views/system/SystemSettings.vue').catch(() => {})
+    import('@/views/profile/ProfileView.vue').catch(() => {})
+  })
+})
+
+
+// Current App / Subsystem
+const currentApp = ref(localStorage.getItem('current_app') || 'cpm')
+const currentAppLabel = computed(() => {
+  const map: Record<string, string> = {
+    cpm: t('app.cpm'),
+    sp: t('app.sp'),
+    mes: t('app.mes'),
+  }
+  return map[currentApp.value] || currentApp.value
+})
 const currentLangLabel = computed(() => locale.value === 'zh' ? 'CH' : 'EN')
 
-const isAdmin = computed(() => userStore.roles.some(r => r.toUpperCase() === 'ADMIN'))
+const canViewSettings = computed(() => userStore.hasPermission('settings.view'))
 
 const handleUserCommand = (command: string) => {
   switch (command) {
@@ -274,9 +328,15 @@ const handleSwitchSite = async (site: string) => {
   try {
     const res = await authApi.switchSite(site)
     userStore.setToken(res.data.token)
-    userStore.switchSite(site)
+    userStore.setUserInfo({
+      username: res.data.username,
+      realName: res.data.realName,
+      site: res.data.site,
+      roles: res.data.roles,
+      permissions: res.data.permissions || []
+    })
     ElMessage.success(t('message.switchSiteSuccess', { site }))
-    window.location.reload()
+    router.replace('/home')
   } catch {
     ElMessage.error(t('common.failed'))
   }
@@ -285,7 +345,17 @@ const handleSwitchSite = async (site: string) => {
 const handleSwitchLanguage = (lang: 'zh' | 'en') => {
   if (lang === locale.value) return
   setLocale(lang)
-  window.location.reload()
+}
+
+const handleSwitchApp = (command: string) => {
+  if (command === currentApp.value) return
+  if (command === 'cpm') {
+    currentApp.value = command
+    localStorage.setItem('current_app', command)
+    router.push('/home')
+  } else {
+    ElMessage.info(t('app.comingSoon'))
+  }
 }
 </script>
 
@@ -309,17 +379,27 @@ const handleSwitchLanguage = (lang: 'zh' | 'en') => {
   gap: var(--slds-spacing-md);
 }
 
+
+
 .app-logo {
   display: flex;
   align-items: center;
   gap: var(--slds-spacing-sm);
 }
 
+.app-logo-img {
+  height: 30px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
 .app-name {
-  font-size: var(--slds-font-size-lg);
-  font-weight: 700;
+  font-size: calc(var(--slds-font-size-lg) + 2px);
+  font-weight: 900;
   color: var(--slds-brand-primary);
-  letter-spacing: -0.5px;
+  letter-spacing: -0.3px;
+  -webkit-text-stroke: 0.3px currentColor;
 }
 
 .app-divider {
@@ -338,11 +418,13 @@ const handleSwitchLanguage = (lang: 'zh' | 'en') => {
   cursor: pointer;
   padding: var(--slds-spacing-sm) var(--slds-spacing-md);
   border-radius: var(--slds-border-radius);
+  border: 1px solid transparent;
   transition: background 0.2s;
 }
 
 .current-app:hover {
   background: var(--slds-bg-hover);
+  border-color: var(--slds-border-color-light);
 }
 
 :deep(.el-dropdown-menu__item.is-active) {
@@ -380,7 +462,7 @@ const handleSwitchLanguage = (lang: 'zh' | 'en') => {
   margin: 0 var(--slds-spacing-xs);
 }
 
-/* Workspace 切换器 - 右上角 */
+/* Workspace 鍒囨崲鍣?- 鍙充笂瑙?*/
 .workspace-selector {
   display: flex;
   align-items: center;
@@ -389,14 +471,14 @@ const handleSwitchLanguage = (lang: 'zh' | 'en') => {
 .workspace-trigger {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: var(--slds-spacing-sm) var(--slds-spacing-md);
   border-radius: var(--slds-border-radius);
   background: transparent;
   border: 1px solid var(--slds-border-color);
   cursor: pointer;
   transition: all 0.2s;
-  height: 34px;
 }
 
 .workspace-trigger:hover {
@@ -409,9 +491,18 @@ const handleSwitchLanguage = (lang: 'zh' | 'en') => {
   font-weight: 600;
   color: var(--slds-text-primary);
   letter-spacing: 0.5px;
+  flex: 0 0 auto;
+  text-align: center;
 }
 
-/* Language 切换器 */
+.workspace-trigger .el-icon:first-child,
+.workspace-trigger .dropdown-arrow {
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* Language 鍒囨崲鍣?*/
 .language-selector {
   display: flex;
   align-items: center;
@@ -420,14 +511,14 @@ const handleSwitchLanguage = (lang: 'zh' | 'en') => {
 .lang-trigger {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  padding: 6px 10px;
+  padding: var(--slds-spacing-sm) var(--slds-spacing-md);
   border-radius: var(--slds-border-radius);
   background: transparent;
   border: 1px solid var(--slds-border-color);
   cursor: pointer;
   transition: all 0.2s;
-  height: 34px;
 }
 
 .lang-trigger:hover {
@@ -441,6 +532,14 @@ const handleSwitchLanguage = (lang: 'zh' | 'en') => {
   color: var(--slds-text-primary);
   min-width: 18px;
   text-align: center;
+  flex: 0 0 auto;
+}
+
+.lang-trigger .el-icon:first-child,
+.lang-trigger .dropdown-arrow {
+  width: 14px;
+  text-align: center;
+  flex-shrink: 0;
 }
 
 .notification-badge :deep(.el-badge__content) {
@@ -517,8 +616,7 @@ const handleSwitchLanguage = (lang: 'zh' | 'en') => {
   color: rgba(255, 255, 255, 0.5);
   font-size: 10px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   padding: var(--slds-spacing-sm) var(--slds-spacing-lg);
 }
 
@@ -528,7 +626,10 @@ const handleSwitchLanguage = (lang: 'zh' | 'en') => {
 }
 
 .nav-item {
-  color: rgba(255, 255, 255, 0.85) !important;
+  display: flex;
+  align-items: center;
+  gap: var(--slds-spacing-sm);
+  color: rgba(255, 255, 255, 0.85);
   margin: 2px var(--slds-spacing-sm);
   border-radius: var(--slds-border-radius);
   height: 44px;
@@ -536,27 +637,25 @@ const handleSwitchLanguage = (lang: 'zh' | 'en') => {
   font-size: var(--slds-font-size-md);
   font-weight: 500;
   transition: all 0.2s;
+  padding-left: var(--slds-spacing-lg);
+  cursor: pointer;
+  user-select: none;
 }
 
 .nav-item:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
-  color: #fff !important;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
 }
 
 .nav-item.is-active {
-  background: rgba(255, 255, 255, 0.12) !important;
-  color: #fff !important;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
   border-left: 3px solid #90D0FE;
 }
 
-.nav-item :deep(.el-icon) {
-  margin-right: var(--slds-spacing-sm);
+.nav-item .el-icon {
   color: inherit;
-}
-
-.nav-item :deep(.el-menu-tooltip__trigger) {
-  justify-content: flex-start !important;
-  padding-left: var(--slds-spacing-lg) !important;
+  flex-shrink: 0;
 }
 
 /* Main Content */
@@ -565,8 +664,5 @@ const handleSwitchLanguage = (lang: 'zh' | 'en') => {
   padding: var(--slds-spacing-lg);
   overflow-y: auto;
 }
-
-:deep(.el-menu-item) {
-  padding-left: var(--slds-spacing-lg) !important;
-}
 </style>
+

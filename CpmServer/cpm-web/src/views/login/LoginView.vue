@@ -2,8 +2,10 @@
   <div class="login-page">
     <div class="login-left">
       <div class="brand-section">
-        <el-icon size="48" color="#90D0FE"><Cloudy /></el-icon>
-        <h1 class="brand-title">{{ t('login.title') }}</h1>
+        <div class="brand-header">
+          <img src="/spxlogo/logo.png" alt="SIP" class="brand-logo" />
+          <h1 class="brand-title">{{ t('login.title') }}</h1>
+        </div>
         <p class="brand-subtitle">{{ t('login.subtitle') }}</p>
       </div>
       <div class="feature-list">
@@ -20,7 +22,7 @@
           <span>{{ t('login.feature3') }}</span>
         </div>
       </div>
-      <div class="login-footer">
+      <div v-if="false" class="login-footer">
         <span>{{ t('login.copyright') }}</span>
       </div>
     </div>
@@ -32,15 +34,8 @@
           <p class="login-desc">{{ t('login.desc') }}</p>
         </div>
 
-        <!-- Login Mode Toggle -->
-        <div class="login-mode-toggle">
-          <el-radio-group v-model="loginMode" size="default" fill="#1890ff">
-            <el-radio-button label="local">{{ t('login.localLogin') }}</el-radio-button>
-            <el-radio-button label="qad">{{ t('login.qadLogin') }}</el-radio-button>
-          </el-radio-group>
-        </div>
-
         <el-form :model="form" @submit.prevent="handleLogin" class="login-form">
+          <!-- Username -->
           <el-form-item>
             <label class="form-label">{{ t('login.username') }}</label>
             <el-input
@@ -51,6 +46,7 @@
             />
           </el-form-item>
 
+          <!-- Password -->
           <el-form-item>
             <label class="form-label">{{ t('login.password') }}</label>
             <el-input
@@ -64,39 +60,40 @@
             />
           </el-form-item>
 
-          <!-- QAD Login: Domain -->
-          <el-form-item v-if="loginMode === 'qad'">
-            <label class="form-label">{{ t('login.domain') }}</label>
-            <el-input
-              v-model="form.domain"
-              :placeholder="t('login.domainPlaceholder')"
-              size="large"
-              :prefix-icon="OfficeBuilding"
-            />
-          </el-form-item>
-
-          <!-- Local Login: Site -->
-          <el-form-item v-if="loginMode === 'local'">
-            <label class="form-label">{{ t('common.site') }}</label>
+          <!-- Login Type (dropdown) -->
+          <el-form-item>
+            <label class="form-label">{{ t('login.loginType') }}</label>
             <el-select
-              v-model="selectedSite"
-              :placeholder="t('login.sitePlaceholder')"
+              v-model="loginMode"
+              :placeholder="t('login.loginTypePlaceholder')"
               size="large"
               style="width: 100%"
-              clearable
+              @change="onLoginModeChange"
             >
-              <el-option
-                v-for="site in siteList"
-                :key="site"
-                :label="site"
-                :value="site"
-              />
+              <el-option :label="t('login.qadLogin')" value="qad" />
+              <el-option :label="t('login.localLogin')" value="local" />
             </el-select>
+          </el-form-item>
+
+          <!-- Unified Domain field -->
+          <el-form-item>
+            <label class="form-label">{{ t('login.domain') }}</label>
+            <GcSelect
+              v-model="domainValue"
+              domain="LOGIN_DOMAIN"
+              :placeholder="t('login.domainPlaceholder')"
+              style="width: 100%"
+              clearable
+              :fallback="[
+                { code: 'NT01', label: 'NT01', tagType: 'info' },
+                { code: 'MY01', label: 'MY01', tagType: 'info' }
+              ]"
+            />
           </el-form-item>
 
           <div class="form-options">
             <el-checkbox v-model="rememberMe">{{ t('login.rememberMe') }}</el-checkbox>
-            <el-link type="primary" :underline="false">{{ t('login.forgotPassword') }}</el-link>
+            <el-link v-if="false" type="primary" :underline="false">{{ t('login.forgotPassword') }}</el-link>
           </div>
 
           <el-form-item class="submit-item">
@@ -142,13 +139,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { authApi } from '@/api/auth'
 import { useUserStore } from '@/stores/user'
 import { useI18n } from '@/composables/useI18n'
-import { User, Lock, Cloudy, Check, MapLocation, ArrowDown, CircleCheck, OfficeBuilding } from '@element-plus/icons-vue'
+import GcSelect from '@/components/GcSelect.vue'
+import { User, Lock, Check, MapLocation, ArrowDown, CircleCheck } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -156,27 +154,65 @@ const { t, locale, setLocale } = useI18n()
 
 const loading = ref(false)
 const rememberMe = ref(false)
-const siteList = ref<string[]>([])
 const loginMode = ref<'local' | 'qad'>('local')
 const form = ref({ username: '', password: '', domain: '' })
 const selectedSite = ref('')
+
+const domainValue = computed({
+  get() {
+    return loginMode.value === 'qad' ? form.value.domain : selectedSite.value
+  },
+  set(val: string) {
+    if (loginMode.value === 'qad') {
+      form.value.domain = val
+    } else {
+      selectedSite.value = val
+    }
+  }
+})
 
 const currentLanguageLabel = computed(() => locale.value === 'zh' ? 'CH' : 'EN')
 
 const handleSwitchLanguage = (lang: 'zh' | 'en') => {
   if (lang !== locale.value) {
     setLocale(lang)
-    window.location.reload()
   }
 }
 
-const loadSites = async () => {
-  try {
-    const res = await authApi.getSites()
-    siteList.value = res.data || []
-  } catch {
-    siteList.value = []
+const loadRemembered = () => {
+  const saved = localStorage.getItem('login_remember')
+  if (saved) {
+    try {
+      const data = JSON.parse(saved)
+      form.value.username = data.username || ''
+      loginMode.value = data.loginMode || 'local'
+      if (loginMode.value === 'qad') {
+        form.value.domain = data.domain || ''
+      } else {
+        selectedSite.value = data.site || ''
+      }
+      rememberMe.value = true
+    } catch {
+      // ignore parse error
+    }
   }
+}
+
+const saveRemembered = () => {
+  if (rememberMe.value) {
+    localStorage.setItem('login_remember', JSON.stringify({
+      username: form.value.username,
+      site: selectedSite.value,
+      domain: form.value.domain,
+      loginMode: loginMode.value,
+    }))
+  } else {
+    localStorage.removeItem('login_remember')
+  }
+}
+
+const onLoginModeChange = () => {
+  domainValue.value = ''
 }
 
 const handleLogin = async () => {
@@ -217,10 +253,12 @@ const handleLogin = async () => {
       username: res.data.username,
       realName: res.data.realName,
       site: res.data.site,
-      roles: res.data.roles
+      roles: res.data.roles,
+      permissions: res.data.permissions || []
     })
     const sitesRes = await authApi.getMySites()
     userStore.setSiteList(sitesRes.data || [res.data.site])
+    saveRemembered()
     ElMessage.success(t('login.loginSuccess'))
     router.push('/')
   } finally {
@@ -228,7 +266,9 @@ const handleLogin = async () => {
   }
 }
 
-loadSites()
+onMounted(() => {
+  loadRemembered()
+})
 </script>
 
 <style scoped>
@@ -240,35 +280,54 @@ loadSites()
 
 .login-left {
   flex: 1;
-  background: var(--slds-bg-sidebar);
+  background: var(--cpm-bg-sidebar);
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
   padding: 80px;
   position: relative;
 }
 
 .brand-section {
   margin-bottom: 48px;
+  text-align: center;
+}
+
+.brand-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 8px;
+}
+
+.brand-logo {
+  width: 80px;
+  height: 48px;
+  object-fit: contain;
 }
 
 .brand-title {
   color: #fff;
   font-size: 36px;
   font-weight: 700;
-  margin: 24px 0 8px;
-  letter-spacing: -0.5px;
+  margin: 0;
+  letter-spacing: 1.5px;
+  transform: translateX(-5px);
 }
 
 .brand-subtitle {
   color: rgba(255, 255, 255, 0.65);
   font-size: 18px;
   font-weight: 400;
+  text-align: center;
 }
 
 .feature-list {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 16px;
 }
 
@@ -291,7 +350,7 @@ loadSites()
 
 .login-right {
   flex: 1;
-  background: var(--slds-bg-page);
+  background: var(--cpm-bg-page);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -299,30 +358,12 @@ loadSites()
 }
 
 .login-card {
-  background: var(--slds-bg-card);
-  border-radius: var(--slds-border-radius);
-  box-shadow: var(--slds-shadow-card);
+  background: var(--cpm-bg-card);
+  border-radius: var(--cpm-radius-md);
+  box-shadow: var(--cpm-shadow-sm);
   padding: 48px;
   width: 100%;
   max-width: 440px;
-}
-
-.login-mode-toggle {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 24px;
-}
-
-.login-mode-toggle :deep(.el-radio-group) {
-  width: 100%;
-}
-
-.login-mode-toggle :deep(.el-radio-button) {
-  flex: 1;
-}
-
-.login-mode-toggle :deep(.el-radio-button__inner) {
-  width: 100%;
 }
 
 .login-header {
@@ -331,26 +372,27 @@ loadSites()
 }
 
 .login-title {
-  font-size: 28px;
+  font-size: var(--cpm-text-display);
   font-weight: 700;
-  color: var(--slds-text-primary);
+  color: var(--cpm-text-primary);
   margin: 0 0 8px;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
 }
 
 .login-desc {
-  font-size: 14px;
-  color: var(--slds-text-secondary);
+  font-size: var(--cpm-text-body);
+  color: var(--cpm-text-secondary);
   margin: 0;
 }
 
 .form-label {
   display: block;
-  font-size: 12px;
+  font-size: var(--cpm-text-small);
   font-weight: 600;
-  color: var(--slds-text-secondary);
+  color: var(--cpm-text-secondary);
   margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .login-form :deep(.el-input__wrapper) {
@@ -362,6 +404,11 @@ loadSites()
   font-size: 15px;
 }
 
+.login-form :deep(.el-select .el-input__wrapper) {
+  min-height: 44px;
+  height: 44px;
+}
+
 .form-options {
   display: flex;
   justify-content: space-between;
@@ -371,7 +418,7 @@ loadSites()
 
 .form-options :deep(.el-checkbox__label) {
   font-size: 13px;
-  color: var(--slds-text-secondary);
+  color: var(--cpm-text-secondary);
 }
 
 .submit-item {
@@ -383,7 +430,7 @@ loadSites()
   height: 48px;
   font-size: 16px;
   font-weight: 600;
-  border-radius: var(--slds-border-radius);
+  border-radius: var(--cpm-radius-sm);
 }
 
 .language-selector {
@@ -391,7 +438,7 @@ loadSites()
   justify-content: center;
   margin-top: 24px;
   padding-top: 24px;
-  border-top: 1px solid var(--slds-border-color-light);
+  border-top: 1px solid var(--cpm-border-light);
 }
 
 .lang-trigger {
@@ -399,23 +446,23 @@ loadSites()
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
-  border-radius: var(--slds-border-radius);
+  border-radius: var(--cpm-radius-sm);
   background: transparent;
-  border: 1px solid var(--slds-border-color);
+  border: 1px solid var(--cpm-border);
   cursor: pointer;
   transition: all 0.2s;
   font-size: 13px;
-  color: var(--slds-text-secondary);
+  color: var(--cpm-text-secondary);
 }
 
 .lang-trigger:hover {
-  background: var(--slds-bg-hover);
-  border-color: var(--slds-border-color-light);
-  color: var(--slds-text-primary);
+  background: var(--cpm-bg-hover);
+  border-color: var(--cpm-border-light);
+  color: var(--cpm-text-primary);
 }
 
 :deep(.el-dropdown-menu__item.is-active) {
-  color: var(--slds-brand-primary);
+  color: var(--cpm-brand-accent);
   font-weight: 600;
 }
 

@@ -1,3 +1,4 @@
+﻿using CpmServer.Constants;
 using CpmServer.Data;
 using CpmServer.Models;
 using CpmServer.Modules.Approval.Contracts;
@@ -21,25 +22,24 @@ public class QuotationBusinessStatusUpdater : IBusinessStatusUpdater
         var quotation = await _db.Quotations.FindAsync(businessId);
         if (quotation == null) return;
 
-        if (approvalStatus == 1)
+        if (approvalStatus == ApprovalConstants.InstanceStatus.Completed)
         {
-            quotation.Status = 3;
-            // 审批通过后自动创建产品跟踪记录
+            quotation.Status = QuotationConstants.Status.Issued;
             await CreateProjectTraceAsync(quotation);
         }
-        else if (approvalStatus == 2)
+        else if (approvalStatus == ApprovalConstants.InstanceStatus.Rejected)
         {
-            quotation.Status = 0;
+            quotation.Status = QuotationConstants.Status.Draft;
         }
         else
         {
             if (currentStepId.HasValue)
             {
                 var step = await _db.ApprovalSteps.FindAsync(currentStepId.Value);
-                if (step?.StepType == "REVIEW")
-                    quotation.Status = 1;
-                else if (step?.StepType == "APPROVAL")
-                    quotation.Status = 2;
+                if (step?.StepType == ApprovalConstants.StepType.Review)
+                    quotation.Status = QuotationConstants.Status.PendingReview;
+                else if (step?.StepType == ApprovalConstants.StepType.Approval)
+                    quotation.Status = QuotationConstants.Status.PendingApproval;
             }
         }
 
@@ -55,17 +55,11 @@ public class QuotationBusinessStatusUpdater : IBusinessStatusUpdater
 
     private async Task CreateProjectTraceAsync(QuoQuotation quotation)
     {
-        // 避免重复创建
-        var exists = await _db.ProjectTraces.AnyAsync(t => t.QuotationId == quotation.Id);
-        if (exists) return;
-
-        // 加载客户和产品信息
         var customer = await _db.Customers.FindAsync(quotation.CustomerId);
         var items = await _db.QuotationItems
             .Where(i => i.QuotationId == quotation.Id)
             .ToListAsync();
 
-        // 取第一个明细的产品信息
         var firstItem = items.FirstOrDefault();
         CrmProduct? product = null;
         if (firstItem?.ProductId.HasValue == true)
@@ -73,33 +67,51 @@ public class QuotationBusinessStatusUpdater : IBusinessStatusUpdater
             product = await _db.Products.FindAsync(firstItem.ProductId.Value);
         }
 
-        var trace = new PmProjectTrace
-        {
-            QuotationId = quotation.Id,
-            CustomerId = quotation.CustomerId,
-            CustomerName = customer?.CustomerName ?? string.Empty,
-            ProductId = firstItem?.ProductId,
-            ProductCode = product?.ProductCode ?? string.Empty,
-            ProductName = product?.ProductName,
-            Status = 0,
-            CreatedAt = DateTime.Now,
-            UpdatedAt = DateTime.Now,
-        };
+        var trace = await _db.ProjectTraces
+            .Include(t => t.Steps)
+            .FirstOrDefaultAsync(t => t.QuotationId == quotation.Id);
 
-        // 从报价单明细生成工序步骤
+        if (trace == null)
+        {
+            trace = new PmProjectTrace
+            {
+                QuotationId = quotation.Id,
+                CustomerId = quotation.CustomerId,
+                CustomerName = customer?.CustomerName ?? string.Empty,
+                ProductId = firstItem?.ProductId,
+                ProductCode = product?.ProductCode ?? string.Empty,
+                ProductName = product?.ProductName,
+                Status = 0,
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now,
+            };
+            _db.ProjectTraces.Add(trace);
+        }
+        else
+        {
+            trace.CustomerName = customer?.CustomerName ?? string.Empty;
+            trace.ProductId = firstItem?.ProductId;
+            trace.ProductCode = product?.ProductCode ?? string.Empty;
+            trace.ProductName = product?.ProductName;
+            trace.UpdatedAt = DateTime.Now;
+
+            _db.ProjectTraceSteps.RemoveRange(trace.Steps);
+            trace.Steps.Clear();
+        }
+
         int order = 1;
         foreach (var item in items)
         {
             var step = new PmProjectTraceStep
             {
                 StepOrder = order++,
-                ProcessName = item.ProcessType ?? item.EquipmentType ?? item.Equipment ?? $"步骤{order - 1}",
+                ProcessName = item.ProcessType ?? item.EquipmentType ?? item.Equipment ?? $"Step{order - 1}",
+                Equipment = item.Equipment,
                 CycleTime = item.CycleTime,
             };
             trace.Steps.Add(step);
         }
 
-        _db.ProjectTraces.Add(trace);
         await _db.SaveChangesAsync();
     }
 }

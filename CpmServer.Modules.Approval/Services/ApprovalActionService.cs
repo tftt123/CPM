@@ -1,6 +1,8 @@
+using CpmServer.Constants;
 using CpmServer.Data;
 using CpmServer.Models;
 using CpmServer.Modules.Approval.Contracts;
+using CpmServer.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -14,6 +16,7 @@ public class ApprovalActionService : IApprovalActionService
     private readonly ApprovalInstanceService _instanceService;
     private readonly IEnumerable<IBusinessVariableProvider> _variableProviders;
     private readonly IEnumerable<IBusinessStatusUpdater> _statusUpdaters;
+    private readonly ICurrentUser _currentUser;
 
     public ApprovalActionService(
         CpmDbContext db,
@@ -21,7 +24,8 @@ public class ApprovalActionService : IApprovalActionService
         ApprovalNotificationService notificationService,
         ApprovalInstanceService instanceService,
         IEnumerable<IBusinessVariableProvider> variableProviders,
-        IEnumerable<IBusinessStatusUpdater> statusUpdaters)
+        IEnumerable<IBusinessStatusUpdater> statusUpdaters,
+        ICurrentUser currentUser)
     {
         _db = db;
         _logger = logger;
@@ -29,6 +33,7 @@ public class ApprovalActionService : IApprovalActionService
         _instanceService = instanceService;
         _variableProviders = variableProviders;
         _statusUpdaters = statusUpdaters;
+        _currentUser = currentUser;
     }
 
     public async Task ApproveAsync(long instanceId, long approverId, string comment, decimal? reviewCost = null)
@@ -45,7 +50,7 @@ public class ApprovalActionService : IApprovalActionService
             throw new InvalidOperationException("审批实例不存在");
         }
 
-        if (instance.Status != 0)
+        if (instance.Status != ApprovalConstants.InstanceStatus.Active)
         {
             throw new InvalidOperationException("审批流程已结束");
         }
@@ -72,41 +77,42 @@ public class ApprovalActionService : IApprovalActionService
             StepName = currentStep.StepName,
             ApproverId = approverId,
             ApproverName = approver?.RealName ?? approver?.Username,
-            Action = "APPROVE",
+            Action = ApprovalConstants.Action.Approve,
             Comment = comment,
             Site = instance.Site,
+            App = instance.App,
             CreatedAt = DateTime.UtcNow
         });
 
         var myTask = instance.Tasks
-            .FirstOrDefault(t => t.StepId == currentStep.Id && t.Status == 0 &&
+            .FirstOrDefault(t => t.StepId == currentStep.Id && t.Status == ApprovalConstants.TaskStatus.Pending &&
                 (t.AssigneeId == approverId || t.AssigneeRole != null));
         if (myTask != null)
         {
-            myTask.Status = 1;
-            myTask.Action = "APPROVE";
+            myTask.Status = ApprovalConstants.TaskStatus.Approved;
+            myTask.Action = ApprovalConstants.Action.Approve;
             myTask.Comment = comment;
             myTask.CompletedAt = DateTime.UtcNow;
         }
 
         var pendingTasks = await _db.ApprovalInstanceTasks
-            .Where(t => t.InstanceId == instanceId && t.StepId == currentStep.Id && t.Status == 0)
+            .Where(t => t.InstanceId == instanceId && t.StepId == currentStep.Id && t.Status == ApprovalConstants.TaskStatus.Pending)
             .ToListAsync();
 
         bool shouldAdvance = currentStep.StepMode switch
         {
-            "PARALLEL" => !pendingTasks.Any(t => t.Status == 0 && t.Id != myTask?.Id),
-            "PARALLEL_ANY" => true,
-            "CC" => true,
+            ApprovalConstants.StepMode.Parallel => !pendingTasks.Any(t => t.Status == ApprovalConstants.TaskStatus.Pending && t.Id != myTask?.Id),
+            ApprovalConstants.StepMode.ParallelAny => true,
+            ApprovalConstants.StepMode.Cc => true,
             _ => true
         };
 
-        if (shouldAdvance && currentStep.StepMode == "PARALLEL_ANY")
+        if (shouldAdvance && currentStep.StepMode == ApprovalConstants.StepMode.ParallelAny)
         {
-            foreach (var task in pendingTasks.Where(t => t.Status == 0 && t.Id != myTask?.Id))
+            foreach (var task in pendingTasks.Where(t => t.Status == ApprovalConstants.TaskStatus.Pending && t.Id != myTask?.Id))
             {
-                task.Status = 1;
-                task.Action = "SKIP";
+                task.Status = ApprovalConstants.TaskStatus.Approved;
+                task.Action = ApprovalConstants.Action.Skip;
                 task.Comment = "或签模式，他人已审批";
                 task.CompletedAt = DateTime.UtcNow;
             }
@@ -133,7 +139,7 @@ public class ApprovalActionService : IApprovalActionService
             }
             else
             {
-                instance.Status = 1;
+                instance.Status = ApprovalConstants.InstanceStatus.Completed;
                 instance.CurrentStepId = null;
                 instance.CompletedAt = DateTime.UtcNow;
             }
@@ -143,7 +149,7 @@ public class ApprovalActionService : IApprovalActionService
 
         await UpdateBusinessStatusAsync(instance, reviewCost);
 
-        if (instance.Status == 0 && shouldAdvance)
+        if (instance.Status == ApprovalConstants.InstanceStatus.Active && shouldAdvance)
         {
             var variables = instance.Variables != null
                 ? System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(instance.Variables) ?? new Dictionary<string, string>()
@@ -154,7 +160,7 @@ public class ApprovalActionService : IApprovalActionService
                 await _notificationService.NotifyStepAsync(instance, nextStep, instance.BusinessType, instance.BusinessId);
             }
         }
-        else if (instance.Status == 1)
+        else if (instance.Status == ApprovalConstants.InstanceStatus.Completed)
         {
             await _notificationService.NotifyCompleteAsync(instance, instance.BusinessType, instance.BusinessId, true);
         }
@@ -171,7 +177,7 @@ public class ApprovalActionService : IApprovalActionService
             .Include(i => i.Tasks)
             .FirstOrDefaultAsync(i => i.Id == instanceId);
 
-        if (instance == null || instance.Status != 0)
+        if (instance == null || instance.Status != ApprovalConstants.InstanceStatus.Active)
         {
             throw new InvalidOperationException("审批实例不存在或已结束");
         }
@@ -203,16 +209,17 @@ public class ApprovalActionService : IApprovalActionService
             StepName = currentStep.StepName,
             ApproverId = approverId,
             ApproverName = approver?.RealName ?? approver?.Username,
-            Action = "REJECT",
+            Action = ApprovalConstants.Action.Reject,
             Comment = comment,
             Site = instance.Site,
+            App = instance.App,
             CreatedAt = DateTime.UtcNow
         });
 
-        foreach (var task in instance.Tasks.Where(t => t.StepId == currentStep.Id && t.Status == 0))
+        foreach (var task in instance.Tasks.Where(t => t.StepId == currentStep.Id && t.Status == ApprovalConstants.TaskStatus.Pending))
         {
-            task.Status = 1;
-            task.Action = "REJECT";
+            task.Status = ApprovalConstants.TaskStatus.Approved;
+            task.Action = ApprovalConstants.Action.Reject;
             task.Comment = comment;
             task.CompletedAt = DateTime.UtcNow;
         }
@@ -224,14 +231,14 @@ public class ApprovalActionService : IApprovalActionService
 
         SysApprovalStep? targetStep = currentStep.RejectBehavior switch
         {
-            "REJECT_TO_PREV" => steps
+            ApprovalConstants.RejectBehavior.RejectToPrev => steps
                 .Where(s => s.StepOrder < currentStep.StepOrder)
                 .OrderByDescending(s => s.StepOrder)
                 .FirstOrDefault(),
-            "REJECT_TO_STEP" => steps
+            ApprovalConstants.RejectBehavior.RejectToStep => steps
                 .FirstOrDefault(s => s.Id == currentStep.RejectTargetStepId),
-            "REJECT_TO_START" => steps.FirstOrDefault(),
-            "REJECT_TO_REQUESTOR" => steps
+            ApprovalConstants.RejectBehavior.RejectToStart => steps.FirstOrDefault(),
+            ApprovalConstants.RejectBehavior.RejectToRequestor => steps
                 .FirstOrDefault(s => s.StepMode == "START" || s.StepOrder == steps.Min(st => st.StepOrder)),
             _ => null
         };
@@ -240,7 +247,7 @@ public class ApprovalActionService : IApprovalActionService
         {
             instance.CurrentStepId = targetStep.Id;
             instance.CurrentStepOrder = targetStep.StepOrder;
-            instance.Status = 0;
+            instance.Status = ApprovalConstants.InstanceStatus.Active;
             instance.CompletedAt = null;
 
             await _db.SaveChangesAsync();
@@ -250,7 +257,7 @@ public class ApprovalActionService : IApprovalActionService
                 : new Dictionary<string, string>();
             await _instanceService.CreateStepTasksAsync(instance, targetStep, instance.SubmitterId ?? 0, variables);
 
-            if (targetStep.StepMode == "START" || currentStep.RejectBehavior == "REJECT_TO_REQUESTOR")
+            if (targetStep.StepMode == "START" || currentStep.RejectBehavior == ApprovalConstants.RejectBehavior.RejectToRequestor)
             {
                 var nextAfterStart = steps
                     .Where(s => s.StepOrder > targetStep.StepOrder)
@@ -280,7 +287,7 @@ public class ApprovalActionService : IApprovalActionService
         }
         else
         {
-            instance.Status = 2;
+            instance.Status = ApprovalConstants.InstanceStatus.Rejected;
             instance.CurrentStepId = null;
             instance.CompletedAt = DateTime.UtcNow;
 
@@ -303,7 +310,7 @@ public class ApprovalActionService : IApprovalActionService
             .Include(i => i.Tasks)
             .FirstOrDefaultAsync(i => i.Id == instanceId);
 
-        if (instance == null || instance.Status != 0)
+        if (instance == null || instance.Status != ApprovalConstants.InstanceStatus.Active)
         {
             throw new InvalidOperationException("审批实例不存在或已结束");
         }
@@ -330,12 +337,12 @@ public class ApprovalActionService : IApprovalActionService
         var toUser = await _db.Users.FindAsync(toUserId);
 
         var fromTask = instance.Tasks
-            .FirstOrDefault(t => t.StepId == currentStep.Id && t.Status == 0 && t.AssigneeId == fromUserId);
+            .FirstOrDefault(t => t.StepId == currentStep.Id && t.Status == ApprovalConstants.TaskStatus.Pending && t.AssigneeId == fromUserId);
 
         if (fromTask != null)
         {
-            fromTask.Status = 2;
-            fromTask.Action = "TRANSFER";
+            fromTask.Status = ApprovalConstants.TaskStatus.Rejected;
+            fromTask.Action = ApprovalConstants.Action.Transfer;
             fromTask.Comment = comment;
             fromTask.CompletedAt = DateTime.UtcNow;
         }
@@ -351,6 +358,8 @@ public class ApprovalActionService : IApprovalActionService
             AssigneeId = toUserId,
             Status = 0,
             DueDate = dueDate,
+            Site = instance.Site,
+            App = instance.App,
             CreatedAt = DateTime.UtcNow
         });
 
@@ -361,9 +370,10 @@ public class ApprovalActionService : IApprovalActionService
             StepName = currentStep.StepName,
             ApproverId = fromUserId,
             ApproverName = fromUser?.RealName ?? fromUser?.Username,
-            Action = "TRANSFER",
+            Action = ApprovalConstants.Action.Transfer,
             Comment = $"转交给:{toUser?.RealName ?? toUser?.Username}: {comment}",
             Site = instance.Site,
+            App = instance.App,
             CreatedAt = DateTime.UtcNow
         });
 
@@ -383,14 +393,14 @@ public class ApprovalActionService : IApprovalActionService
             .Include(i => i.Tasks)
             .FirstOrDefaultAsync(i => i.Id == instanceId);
 
-        if (instance == null || instance.Status != 0) return false;
+        if (instance == null || instance.Status != ApprovalConstants.InstanceStatus.Active) return false;
 
         var currentStep = instance.Template?.Steps
             .FirstOrDefault(s => s.Id == instance.CurrentStepId);
 
         if (currentStep == null) return false;
 
-        var pendingTasks = instance.Tasks.Where(t => t.StepId == currentStep.Id && t.Status == 0).ToList();
+        var pendingTasks = instance.Tasks.Where(t => t.StepId == currentStep.Id && t.Status == ApprovalConstants.TaskStatus.Pending).ToList();
         if (pendingTasks.Any())
         {
             var directTask = pendingTasks.FirstOrDefault(t => t.AssigneeId == userId);
@@ -402,7 +412,7 @@ public class ApprovalActionService : IApprovalActionService
                 .ToListAsync();
 
             var userRoleNames = await _db.Roles
-                .Where(r => userRoleIds.Contains(r.Id))
+                .Where(r => userRoleIds.Contains(r.Id) && (r.Site == _currentUser.Site || string.IsNullOrEmpty(r.Site)))
                 .Select(r => r.RoleName)
                 .ToListAsync();
 
@@ -422,7 +432,7 @@ public class ApprovalActionService : IApprovalActionService
                 .ToListAsync();
 
             var roleNames = await _db.Roles
-                .Where(r => userRoleIds.Contains(r.Id))
+                .Where(r => userRoleIds.Contains(r.Id) && (r.Site == _currentUser.Site || string.IsNullOrEmpty(r.Site)))
                 .Select(r => r.RoleName)
                 .ToListAsync();
 

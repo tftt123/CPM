@@ -1,6 +1,7 @@
 using CpmServer.Data;
 using CpmServer.Models;
 using CpmServer.Modules.Approval.Contracts;
+using CpmServer.Modules.PM.Contracts;
 using Microsoft.EntityFrameworkCore;
 
 namespace CpmServer.Modules.PM.Services;
@@ -8,10 +9,12 @@ namespace CpmServer.Modules.PM.Services;
 public class PmStepCycleTimeBusinessStatusUpdater : IBusinessStatusUpdater
 {
     private readonly CpmDbContext _db;
+    private readonly IAlertService _alertService;
 
-    public PmStepCycleTimeBusinessStatusUpdater(CpmDbContext db)
+    public PmStepCycleTimeBusinessStatusUpdater(CpmDbContext db, IAlertService alertService)
     {
         _db = db;
+        _alertService = alertService;
     }
 
     public bool Supports(string businessType) => businessType == "PmStepCycleTime";
@@ -34,6 +37,8 @@ public class PmStepCycleTimeBusinessStatusUpdater : IBusinessStatusUpdater
             .Include(r => r.Details)
             .Include(r => r.Step)
                 .ThenInclude(s => s!.ActualCycleTimes)
+            .Include(r => r.Step)
+                .ThenInclude(s => s!.ProjectTrace)
             .FirstOrDefaultAsync(r => r.Id == requestId);
 
         if (request == null || request.Step == null) return;
@@ -110,6 +115,17 @@ public class PmStepCycleTimeBusinessStatusUpdater : IBusinessStatusUpdater
         request.ApprovalStatus = 1;
         request.UpdatedAt = DateTime.Now;
         await _db.SaveChangesAsync();
+
+        // 检查实际节拍是否超过报价节拍，若超过则发送报警邮件
+        var latestActual = step.ActualCycleTimes
+            .Where(a => a.Status == 0)
+            .OrderByDescending(a => a.RecordDate)
+            .FirstOrDefault();
+
+        if (latestActual?.ActualCycleTime > step.CycleTime)
+        {
+            await _alertService.SendCycleTimeExceededAlertAsync(step, latestActual, request.SubmitterName);
+        }
     }
 
     private async Task RejectAsync(long requestId)

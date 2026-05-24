@@ -9,7 +9,7 @@
 
     <el-card class="search-card">
       <el-form :inline="true" :model="searchForm">
-        <el-form-item :label="t('common.keyword')">
+        <el-form-item>
           <el-input
             v-model="searchForm.keyword"
             :placeholder="t('pmTrace.searchPlaceholder')"
@@ -29,50 +29,56 @@
       </el-form>
     </el-card>
 
-    <el-table :data="tableData" v-loading="loading" stripe :span-method="objectSpanMethod">
-      <el-table-column prop="customerName" :label="t('pmTrace.customer')" min-width="140">
+    <el-table border :data="tableData" v-loading="loading" stripe :span-method="objectSpanMethod" :row-class-name="getRowClassName">
+      <el-table-column v-if="isVisible('quotationNo')" prop="quotationNo" :label="t('quotation.quotationNo')" min-width="140">
+        <template #default="{ row }">
+          <span v-if="isFirstRowOfTrace(row)">{{ row.quotationNo }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column v-if="isVisible('customerName')" prop="customerName" :label="t('pmTrace.customer')" min-width="140">
         <template #default="{ row }">
           <span v-if="isFirstRowOfTrace(row)">{{ row.customerName }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="productCode" :label="t('pmTrace.partNo')" min-width="140">
+      <el-table-column v-if="isVisible('productCode')" prop="productCode" :label="t('pmTrace.partNo')" min-width="140">
         <template #default="{ row }">
           <span v-if="isFirstRowOfTrace(row)">{{ row.productCode }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="productName" :label="t('pmTrace.productName')" min-width="160">
+      <el-table-column v-if="isVisible('productName')" prop="productName" :label="t('pmTrace.productName')" min-width="160">
         <template #default="{ row }">
           <span v-if="isFirstRowOfTrace(row)">{{ row.productName }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="stepOrder" :label="t('pmTrace.process')" width="240" align="left">
+
+      <el-table-column v-if="isVisible('processName')" prop="stepOrder" :label="t('pmTrace.process')" width="240" align="left">
         <template #default="{ row }">
           {{ row.stepOrder }}.{{ row.processName }}
         </template>
       </el-table-column>
-      <el-table-column prop="personInCharge" :label="t('pmTrace.person')" width="120">
+      <el-table-column v-if="isVisible('personInCharge')" prop="personInCharge" :label="t('pmTrace.person')" width="120">
         <template #default="{ row }">
           {{ getPersonInCharge(row) }}
         </template>
       </el-table-column>
-      <el-table-column prop="cycleTime" :label="t('pmTrace.cycleTime')" width="120" align="right">
+      <el-table-column v-if="isVisible('cycleTime')" prop="cycleTime" :label="t('pmTrace.cycleTime')" width="120" align="right">
         <template #default="{ row }">
-          {{ row.cycleTime ?? '-' }}
+          {{ row.cycleTime != null ? Math.round(row.cycleTime) : '-' }}
         </template>
       </el-table-column>
-      <el-table-column prop="latestActualCycleTime" :label="t('pmTrace.latestActualCycleTime')" width="150" align="right">
+      <el-table-column v-if="isVisible('latestActualCycleTime')" prop="latestActualCycleTime" :label="t('pmTrace.latestActualCycleTime')" width="150" align="right">
         <template #default="{ row }">
           <span :class="{ 'text-warning': row.latestActualCycleTime && row.cycleTime && row.latestActualCycleTime > row.cycleTime }">
-            {{ row.latestActualCycleTime ?? '-' }}
+            {{ row.latestActualCycleTime != null ? Math.round(row.latestActualCycleTime) : '-' }}
           </span>
         </template>
       </el-table-column>
-      <el-table-column prop="latestRecordDate" :label="t('pmTrace.latestRecordDate')" width="140">
+      <el-table-column v-if="isVisible('latestRecordDate')" prop="latestRecordDate" :label="t('pmTrace.latestRecordDate')" width="140">
         <template #default="{ row }">
           {{ formatDate(row.latestRecordDate) }}
         </template>
       </el-table-column>
-      <el-table-column :label="t('pmTrace.pendingApproval')" width="100" align="center">
+      <el-table-column v-if="isVisible('pendingRequestCount')" :label="t('pmTrace.pendingApproval')" width="100" align="center">
         <template #default="{ row }">
           <el-tag v-if="row.pendingRequestCount > 0" type="warning" size="small">{{ row.pendingRequestCount }}</el-tag>
           <span v-else>-</span>
@@ -171,6 +177,8 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Search, Plus } from '@element-plus/icons-vue'
 import { useI18n } from '@/composables/useI18n'
+import { useFieldControl } from '@/composables/useFieldControl'
+import { useGeneralizedCode, type GcOption } from '@/composables/useGeneralizedCode'
 import {
   getAllStepsActualCycleTime,
   getTraceDetail,
@@ -184,8 +192,17 @@ import type {
 import { mfgProcessApi, type MfgCascadeOption } from '@/api/mfgProcess'
 
 const { t } = useI18n()
+const { isVisible } = useFieldControl('PM', 'ActualCycleTimeManage')
+const { getOptions } = useGeneralizedCode()
 
 const processOptions = ref<MfgCascadeOption[]>([])
+const statusOptions = ref<GcOption[]>([])
+
+const statusFallback = [
+  { code: '0', label: t('pmTrace.statusActive'), tagType: 'success' },
+  { code: '1', label: t('pmTrace.statusExpired'), tagType: 'info' },
+  { code: '2', label: t('pmTrace.statusInvalidated'), tagType: 'danger' }
+]
 
 const loading = ref(false)
 const saving = ref(false)
@@ -235,22 +252,14 @@ function formatDateISO(d: Date): string {
   return `${year}-${month}-${day}`
 }
 
+const getStatusOption = (status?: number) => statusOptions.value.find(o => o.value === String(status))
+
 function statusLabel(status?: number): string {
-  switch (status) {
-    case 0: return t('pmTrace.statusActive')
-    case 1: return t('pmTrace.statusExpired')
-    case 2: return t('pmTrace.statusInvalidated')
-    default: return '-'
-  }
+  return getStatusOption(status)?.label || '-'
 }
 
 function statusTagType(status?: number): string {
-  switch (status) {
-    case 0: return 'success'
-    case 1: return 'info'
-    case 2: return 'danger'
-    default: return ''
-  }
+  return getStatusOption(status)?.tagType || ''
 }
 
 function computeSpans(data: PmProjectTraceStepCycleTimeItem[]) {
@@ -279,6 +288,17 @@ function objectSpanMethod({ rowIndex, columnIndex }: any) {
     return { rowspan: info.rowCount, colspan: 1 }
   }
   return { rowspan: 0, colspan: 0 }
+}
+
+function getRowClassName({ rowIndex }: { rowIndex: number }) {
+  const row = tableData.value[rowIndex]
+  if (!row) return ''
+  const info = traceSpanMap.value.get(row.traceId)
+  if (!info) return ''
+  if (rowIndex === info.startRow) {
+    return 'group-start'
+  }
+  return ''
 }
 
 function isFirstRowOfTrace(row: PmProjectTraceStepCycleTimeItem) {
@@ -454,6 +474,7 @@ async function submitApproval() {
 }
 
 onMounted(async () => {
+  statusOptions.value = await getOptions('ACT_STATUS', statusFallback)
   const res = await mfgProcessApi.getProcessOptions()
   processOptions.value = res.data || []
   await loadData()
@@ -515,5 +536,13 @@ onMounted(async () => {
 }
 :deep(.el-dialog .el-table--small td) {
   padding: 4px 0 !important;
+}
+
+/* 零件组分界线 - 用每组第一行顶边框实现，第一行除外 */
+:deep(.el-table .group-start td) {
+  border-top: 1px solid #bbb !important;
+}
+:deep(.el-table .el-table__body tr:first-child.group-start td) {
+  border-top: none !important;
 }
 </style>

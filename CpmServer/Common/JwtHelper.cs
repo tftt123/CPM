@@ -6,7 +6,7 @@ using System.Text;
 
 namespace CpmServer.Common;
 
-public class JwtHelper
+public class JwtHelper : IJwtHelper
 {
     private readonly JwtSettings _settings;
 
@@ -15,7 +15,7 @@ public class JwtHelper
         _settings = options.Value;
     }
 
-    public string GenerateToken(long userId, string username, List<string> roles, string? site = null)
+    public string GenerateToken(long userId, string username, List<string> roles, List<string> permissions, string? site = null, string? app = null)
     {
         var claims = new List<Claim>
         {
@@ -28,9 +28,19 @@ public class JwtHelper
             claims.Add(new Claim(ClaimTypes.Role, role.ToUpperInvariant()));
         }
 
+        foreach (var permission in permissions)
+        {
+            claims.Add(new Claim("Permission", permission));
+        }
+
         if (!string.IsNullOrWhiteSpace(site))
         {
             claims.Add(new Claim("Site", site));
+        }
+
+        if (!string.IsNullOrWhiteSpace(app))
+        {
+            claims.Add(new Claim("App", app));
         }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Secret));

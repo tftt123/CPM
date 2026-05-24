@@ -92,4 +92,14 @@ public class ApprovalTaskDto
     public DateTime? DueDate { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
+
+    // Quotation-specific fields for display
+    public string? RfqNo { get; set; }
+    public string? CustomerName { get; set; }
+    public string? Title { get; set; }
+
+    // PmStepCycleTime-specific fields
+    public long? PmStepId { get; set; }
+    public long? TraceId { get; set; }
+    public string? ProcessName { get; set; }
 }

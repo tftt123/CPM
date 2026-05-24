@@ -3,6 +3,7 @@ using CpmServer.Models;
 using CpmServer.Modules.Approval.Contracts;
 using CpmServer.Modules.PM.DTOs;
 using CpmServer.Modules.PM.Services;
+using CpmServer.Services;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Moq;
@@ -22,6 +23,25 @@ public class PmProjectTraceServiceTests
         return new CpmDbContext(options);
     }
 
+    private static ICurrentUser CreateMockCurrentUser(string? site = null)
+    {
+        var mock = new Mock<ICurrentUser>();
+        mock.Setup(x => x.Site).Returns(site);
+        return mock.Object;
+    }
+
+    private static IGeneralizedCodeService CreateMockGeneralizedCodeService()
+    {
+        var mock = new Mock<IGeneralizedCodeService>();
+        mock.Setup(x => x.ValidateAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>()))
+            .Returns(Task.CompletedTask);
+        return mock.Object;
+    }
+
     [Fact]
     public async Task SubmitCycleTimeChangeRequestAsync_Should_Create_Request_With_Status_Zero()
     {
@@ -37,7 +57,9 @@ public class PmProjectTraceServiceTests
                 It.IsAny<long>()))
             .ReturnsAsync(new SysApprovalInstance { Id = 99 });
 
-        var service = new PmProjectTraceService(db, mockApproval.Object);
+        var mockCurrentUser = CreateMockCurrentUser();
+        var mockGc = CreateMockGeneralizedCodeService();
+        var service = new PmProjectTraceService(db, mockApproval.Object, mockCurrentUser, mockGc);
 
         var step = new PmProjectTraceStep
         {
@@ -71,7 +93,9 @@ public class PmProjectTraceServiceTests
         // Arrange
         var db = CreateInMemoryContext();
         var mockApproval = new Mock<IApprovalService>();
-        var service = new PmProjectTraceService(db, mockApproval.Object);
+        var mockCurrentUser = CreateMockCurrentUser();
+        var mockGc = CreateMockGeneralizedCodeService();
+        var service = new PmProjectTraceService(db, mockApproval.Object, mockCurrentUser, mockGc);
 
         var trace = new PmProjectTrace
         {
@@ -123,7 +147,9 @@ public class PmProjectTraceServiceTests
         // Arrange
         var db = CreateInMemoryContext();
         var mockApproval = new Mock<IApprovalService>();
-        var service = new PmProjectTraceService(db, mockApproval.Object);
+        var mockCurrentUser = CreateMockCurrentUser();
+        var mockGc = CreateMockGeneralizedCodeService();
+        var service = new PmProjectTraceService(db, mockApproval.Object, mockCurrentUser, mockGc);
 
         var trace = new PmProjectTrace
         {

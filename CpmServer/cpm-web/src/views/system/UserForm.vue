@@ -15,7 +15,7 @@
         ref="formRef"
         class="slds-form"
       >
-        <el-form-item :label="t('common.user')" prop="username">
+        <el-form-item :label="t('common.user')" prop="username" v-if="isVisible('username')">
           <el-input
             v-model="form.username"
             :placeholder="t('common.pleaseInput')"
@@ -24,7 +24,7 @@
           />
         </el-form-item>
 
-        <el-form-item :label="t('common.password')" prop="password" v-if="!isEdit">
+        <el-form-item :label="t('common.password')" prop="password" v-if="!isEdit && isVisible('password')">
           <el-input
             v-model="form.password"
             type="password"
@@ -34,7 +34,7 @@
           />
         </el-form-item>
 
-        <el-form-item :label="t('common.name')" prop="realName">
+        <el-form-item :label="t('common.name')" prop="realName" v-if="isVisible('realName')">
           <el-input
             v-model="form.realName"
             :placeholder="t('common.pleaseInput')"
@@ -42,7 +42,7 @@
           />
         </el-form-item>
 
-        <el-form-item :label="t('common.email')">
+        <el-form-item :label="t('common.email')" v-if="isVisible('email')">
           <el-input
             v-model="form.email"
             :placeholder="t('common.pleaseInput')"
@@ -50,7 +50,7 @@
           />
         </el-form-item>
 
-        <el-form-item :label="t('common.phone')">
+        <el-form-item :label="t('common.phone')" v-if="isVisible('phone')">
           <el-input
             v-model="form.phone"
             :placeholder="t('common.pleaseInput')"
@@ -58,7 +58,7 @@
           />
         </el-form-item>
 
-        <el-form-item :label="t('common.site')">
+        <el-form-item :label="t('common.site')" v-if="isVisible('site')">
           <el-input
             v-model="form.site"
             :placeholder="t('common.pleaseInput')"
@@ -66,7 +66,7 @@
           />
         </el-form-item>
 
-        <el-form-item :label="t('common.role')">
+        <el-form-item :label="t('common.role')" v-if="isVisible('roleIds')">
           <el-select
             v-model="form.roleIds"
             :placeholder="t('common.pleaseSelect')"
@@ -82,7 +82,7 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item :label="t('common.status')">
+        <el-form-item :label="t('common.status')" v-if="isVisible('isActive')">
           <el-switch
             v-model="form.isActive"
             :active-text="t('common.active')"
@@ -109,7 +109,10 @@ import { ElMessage } from 'element-plus'
 import { userApi } from '@/api/user'
 import { roleApi } from '@/api/role'
 import { useI18n } from '@/composables/useI18n'
+import { useFieldControl } from '@/composables/useFieldControl'
 import { User, Lock, UserFilled, Message, Phone, OfficeBuilding } from '@element-plus/icons-vue'
+
+const { isVisible } = useFieldControl('System', 'UserForm')
 
 const props = defineProps<{ visible: boolean; data: any }>()
 const emit = defineEmits(['update:visible', 'success'])

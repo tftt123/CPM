@@ -60,3 +60,11 @@ CpmPlan/*.xlsm
 CpmPlan/~$*
 CpmPlan/Project Status Tracking List.xlsx
 CpmPlan/人工工时波动监控表_模板(1).xlsx
+
+# .kilo local dev files (skills, plans, node_modules)
+.kilo/skills/
+.kilo/node_modules/
+.kilo/plans/
+.kilo/.gitignore
+.kilo/kilo.json
+.kilo/package*.json

@@ -9,8 +9,11 @@ using CpmServer.Modules.Quotation.Contracts;
 using CpmServer.Modules.Quotation.Services;
 using CpmServer.Modules.PM.Contracts;
 using CpmServer.Modules.PM.Services;
+using CpmServer.Modules.SequenceRule.Contracts;
+using CpmServer.Modules.SequenceRule.Services;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Reflection;
@@ -21,6 +24,10 @@ using CpmServer.Core.Repositories;
 using CpmServer.Middleware;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
+using OfficeOpenXml;
+
+// EPPlus license for non-commercial use
+ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,7 +41,11 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonDateTimeUtcConverter());
+    });
 builder.Services.AddApiVersioning(options =>
 {
     options.DefaultApiVersion = new ApiVersion(1, 0);
@@ -43,10 +54,28 @@ builder.Services.AddApiVersioning(options =>
     });
 
 // 基于策略的授权
+builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy(Policies.CanApproveQuotation, policy => policy.RequireRole("ADMIN", "APPROVER_QUOTATION"));
-    options.AddPolicy(Policies.CanApproveCycleTime, policy => policy.RequireRole("ADMIN", "APPROVER_CYCLETIME"));
+    options.AddPolicy(Policies.CanApproveQuotation, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanApproveQuotation)));
+    options.AddPolicy(Policies.CanApproveCycleTime, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanApproveCycleTime)));
+    options.AddPolicy(Policies.CanManageSystem, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageSystem)));
+    options.AddPolicy(Policies.CanManageUsers, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageUsers)));
+    options.AddPolicy(Policies.CanManageRoles, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageRoles)));
+    options.AddPolicy(Policies.CanManageCustomers, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageCustomers)));
+    options.AddPolicy(Policies.CanManageProducts, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageProducts)));
+    options.AddPolicy(Policies.CanManageMfgProcesses, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageMfgProcesses)));
+    options.AddPolicy(Policies.CanManageQuotations, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageQuotations)));
+    options.AddPolicy(Policies.CanManageProjectTrace, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageProjectTrace)));
+    options.AddPolicy(Policies.CanManageApprovalTemplates, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageApprovalTemplates)));
+    options.AddPolicy(Policies.CanViewApprovalCenter, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanViewApprovalCenter)));
+    options.AddPolicy(Policies.CanManageGeneralizedCode, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageGeneralizedCode)));
+    options.AddPolicy(Policies.CanManageNavigation, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageNavigation)));
+    options.AddPolicy(Policies.CanManageFieldControl, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageFieldControl)));
+    options.AddPolicy(Policies.CanManageTranslations, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageTranslations)));
+    options.AddPolicy(Policies.CanManageEmailTemplates, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageEmailTemplates)));
+    options.AddPolicy(Policies.CanManageAlertRecipients, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanManageAlertRecipients)));
+    options.AddPolicy(Policies.CanViewSettings, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.CanViewSettings)));
 });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -86,11 +115,14 @@ builder.Services.AddDbContext<CpmDbContext>(options =>
 
 
 // CORS - 允许 Vue 前端访问
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? new[] { "http://localhost:5173" };
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowVueApp", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -98,7 +130,7 @@ builder.Services.AddCors(options =>
 
 // JWT 配置
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
-builder.Services.AddSingleton<JwtHelper>();
+builder.Services.AddSingleton<IJwtHelper, JwtHelper>();
 
 // JWT 认证
 var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>()!;
@@ -153,18 +185,12 @@ builder.Services.AddScoped<IProductService, ProductService>();
 // P3 - 报价流程服务
 builder.Services.AddScoped<IEmailService, EmailService>();
 
-// Approval 模块 - 拆分后的专用服务
-builder.Services.AddScoped<ApprovalTemplateService>();
-builder.Services.AddScoped<ApprovalInstanceService>();
-builder.Services.AddScoped<ApprovalTaskService>();
-builder.Services.AddScoped<ApprovalActionService>();
-builder.Services.AddScoped<ApprovalNotificationService>();
-
-// Approval 模块 - 接口注册（facade 保持向后兼容）
+// Approval 模块 - 接口注册
 builder.Services.AddScoped<IApprovalTemplateService, ApprovalTemplateService>();
 builder.Services.AddScoped<IApprovalInstanceService, ApprovalInstanceService>();
 builder.Services.AddScoped<IApprovalTaskService, ApprovalTaskService>();
 builder.Services.AddScoped<IApprovalActionService, ApprovalActionService>();
+builder.Services.AddScoped<IApprovalNotificationService, ApprovalNotificationService>();
 builder.Services.AddScoped<IApprovalService, ApprovalService>();
 builder.Services.AddScoped<IModuleTypeConfigService, ModuleTypeConfigService>();
 builder.Services.AddScoped<IQuotationService, QuotationService>();
@@ -175,6 +201,7 @@ builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 builder.Services.AddScoped<IBusinessVariableProvider, QuotationBusinessVariableProvider>();
 builder.Services.AddScoped<IBusinessStatusUpdater, QuotationBusinessStatusUpdater>();
 builder.Services.AddScoped<IBusinessStatusUpdater, PmStepCycleTimeBusinessStatusUpdater>();
+builder.Services.AddScoped<IAlertService, AlertService>();
 
 // Phase 1 - 审批人解析策略
 builder.Services.AddScoped<IApproverResolver, FixedRoleResolver>();
@@ -182,8 +209,20 @@ builder.Services.AddScoped<IApproverResolver, FixedUserResolver>();
 builder.Services.AddScoped<IApproverResolver, OrgTreeResolver>();
 builder.Services.AddScoped<IApproverResolver, SubmitterResolver>();
 
+// 流水号规则
+builder.Services.AddScoped<ISequenceRuleService, SequenceRuleService>();
+
 // 工艺维护
 builder.Services.AddScoped<IMfgProcessService, MfgProcessService>();
+
+// 字段控制
+builder.Services.AddScoped<IFieldControlService, FieldControlService>();
+
+// i18n 翻译管理
+builder.Services.AddScoped<II18nMessageService, I18nMessageService>();
+
+// 通用代码验证服务
+builder.Services.AddScoped<IGeneralizedCodeService, GeneralizedCodeService>();
 
 // QAD (Progress OpenEdge) 认证服务
 builder.Services.AddSingleton<IQadAuthService, QadAuthService>();
@@ -237,19 +276,23 @@ using (var scope = app.Services.CreateScope())
         Cron.MinuteInterval(5));
 }
 
-// 种子数据：自动创建 admin / 123456 账号
-using (var scope = app.Services.CreateScope())
+// 种子数据：自动创建 admin 账号（密码从配置读取，未配置则跳过）
+var defaultAdminPassword = builder.Configuration["SeedData:AdminPassword"];
+if (!string.IsNullOrEmpty(defaultAdminPassword))
 {
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<CpmDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    var seedSite = builder.Configuration["SeedData:AdminSite"] ?? "NT01";
 
     if (!db.Users.Any(u => u.Username == "admin"))
     {
         var admin = new SysUser
         {
             Username = "admin",
-            Password = BCrypt.Net.BCrypt.HashPassword("123456"),
+            Password = BCrypt.Net.BCrypt.HashPassword(defaultAdminPassword),
             RealName = "管理员",
-            Site = "NT01",
+            Site = seedSite,
             IsActive = true,
             CreatedAt = DateTime.Now,
             UpdatedAt = DateTime.Now
@@ -257,11 +300,10 @@ using (var scope = app.Services.CreateScope())
         db.Users.Add(admin);
         db.SaveChanges();
 
-        // 确保 ADMIN 角色存在
         var adminRole = db.Roles.FirstOrDefault(r => r.RoleCode == "ADMIN");
         if (adminRole == null)
         {
-            adminRole = new SysRole { RoleCode = "ADMIN", RoleName = "系统管理员", Site = "NT01" };
+            adminRole = new SysRole { RoleCode = "ADMIN", RoleName = "系统管理员", Site = seedSite };
             db.Roles.Add(adminRole);
             db.SaveChanges();
         }
@@ -269,17 +311,17 @@ using (var scope = app.Services.CreateScope())
         db.UserRoles.Add(new SysUserRole { UserId = admin.Id, RoleId = adminRole.Id });
         db.SaveChanges();
 
-        // 添加用户 Site 权限
-        db.UserSites.Add(new SysUserSite { UserId = admin.Id, Site = "NT01" });
+        db.UserSites.Add(new SysUserSite { UserId = admin.Id, Site = seedSite });
         db.SaveChanges();
+
+        logger.LogInformation("Seed admin user created for site {Site}", seedSite);
     }
     else
     {
-        // 为已有 admin 用户补充 Site 权限
         var admin = db.Users.First(u => u.Username == "admin");
         if (!db.UserSites.Any(us => us.UserId == admin.Id))
         {
-            db.UserSites.Add(new SysUserSite { UserId = admin.Id, Site = admin.Site ?? "NT01" });
+            db.UserSites.Add(new SysUserSite { UserId = admin.Id, Site = admin.Site ?? seedSite });
             db.SaveChanges();
         }
     }

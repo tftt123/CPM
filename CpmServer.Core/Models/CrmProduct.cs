@@ -22,4 +22,5 @@ public class CrmProduct
     public bool IsFromQad { get; set; }
     public string? QadItemCode { get; set; }
     public string? Site { get; set; }
+    public string? App { get; set; }
 }

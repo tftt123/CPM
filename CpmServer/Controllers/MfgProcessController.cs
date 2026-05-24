@@ -1,3 +1,4 @@
+using CpmServer.Authorization;
 using CpmServer.Common;
 using CpmServer.DTOs.MfgProcess;
 using CpmServer.Services;
@@ -8,7 +9,7 @@ namespace CpmServer.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "ADMIN")]
+[Authorize(Policy = Policies.CanManageSystem)]
 public class MfgProcessController : ControllerBase
 {
     private readonly IMfgProcessService _mfgService;
@@ -151,6 +152,26 @@ public class MfgProcessController : ControllerBase
     {
         await _mfgService.DeleteEquipmentAsync(id);
         return ApiResult.Success();
+    }
+
+    #endregion
+
+    #region Import
+
+    [HttpPost("import")]
+    public async Task<ApiResult> ImportFromExcel(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return ApiResult.Error("请上传Excel文件");
+
+        using var stream = file.OpenReadStream();
+        var (imported, skipped, errors) = await _mfgService.ImportFromExcelAsync(stream);
+
+        var message = $"导入完成: 成功{imported}条, 跳过{skipped}条";
+        if (errors.Count > 0)
+            message += $", 失败{errors.Count}条";
+
+        return ApiResult.Success(new { imported, skipped, errors, message });
     }
 
     #endregion

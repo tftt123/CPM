@@ -18,6 +18,7 @@ public class SysDept
     public long? ManagerId { get; set; }
 
     public string? Site { get; set; }
+    public string? App { get; set; }
 
     /// <summary>部门主管</summary>
     public SysUser? Manager { get; set; }

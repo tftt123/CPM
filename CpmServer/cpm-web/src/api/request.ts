@@ -6,12 +6,14 @@ const request = axios.create({
   timeout: 30000
 })
 
-// 请求拦截器：加 token
+// 请求拦截器：加 token + app code
 request.interceptors.request.use(config => {
   const token = localStorage.getItem('token')
   if (token) {
     config.headers.Authorization = 'Bearer ' + token
   }
+  const appCode = localStorage.getItem('current_app') || 'cpm'
+  config.headers['X-App-Code'] = appCode
   return config
 })
 
@@ -29,7 +31,9 @@ request.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
       localStorage.removeItem('userInfo')
-      window.location.href = '/login'
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login'
+      }
     } else if (error.response?.status === 403) {
       ElMessage.error('没有权限执行此操作')
     } else if (error.response?.status === 500) {

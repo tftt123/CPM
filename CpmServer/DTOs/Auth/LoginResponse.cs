@@ -9,4 +9,5 @@ public class LoginResponse
     public string? RealName { get; set; }
     public string? Site { get; set; }
     public List<string> Roles { get; set; } = new();
+    public List<string> Permissions { get; set; } = new();
 }

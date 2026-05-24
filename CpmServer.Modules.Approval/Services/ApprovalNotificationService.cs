@@ -1,3 +1,4 @@
+using CpmServer.Constants;
 using CpmServer.Data;
 using CpmServer.Models;
 using CpmServer.Modules.Approval.Contracts;
@@ -8,23 +9,26 @@ using Microsoft.Extensions.Logging;
 
 namespace CpmServer.Modules.Approval.Services;
 
-public class ApprovalNotificationService
+public class ApprovalNotificationService : IApprovalNotificationService
 {
     private readonly CpmDbContext _db;
     private readonly IEmailService _emailService;
     private readonly ILogger<ApprovalNotificationService> _logger;
     private readonly IEnumerable<IBusinessVariableProvider> _variableProviders;
+    private readonly ICurrentUser _currentUser;
 
     public ApprovalNotificationService(
         CpmDbContext db,
         IEmailService emailService,
         ILogger<ApprovalNotificationService> logger,
-        IEnumerable<IBusinessVariableProvider> variableProviders)
+        IEnumerable<IBusinessVariableProvider> variableProviders,
+        ICurrentUser currentUser)
     {
         _db = db;
         _emailService = emailService;
         _logger = logger;
         _variableProviders = variableProviders;
+        _currentUser = currentUser;
     }
 
     public async Task NotifyStepAsync(SysApprovalInstance instance, SysApprovalStep step, string businessType, long businessId)
@@ -55,8 +59,8 @@ public class ApprovalNotificationService
         try
         {
             var templateCode = approved
-                ? $"{businessType.ToUpperInvariant()}_APPROVED"
-                : $"{businessType.ToUpperInvariant()}_REJECTED";
+                ? EmailTemplateConstants.GetApprovalApprovedTemplate(businessType)
+                : EmailTemplateConstants.GetApprovalRejectedTemplate(businessType);
             var variables = await GetBusinessVariablesAsync(businessType, businessId);
 
             var creatorEmail = await GetBusinessCreatorEmailAsync(businessType, businessId);
@@ -85,8 +89,11 @@ public class ApprovalNotificationService
         }
         else if (!string.IsNullOrEmpty(step.ApproverRole))
         {
+            var currentApp = _currentUser.App ?? "cpm";
             var roleId = await _db.Roles
-                .Where(r => r.RoleName == step.ApproverRole)
+                .Where(r => r.RoleName == step.ApproverRole &&
+                    (r.App == currentApp || string.IsNullOrEmpty(r.App)) &&
+                    (r.Site == _currentUser.Site || string.IsNullOrEmpty(r.Site)))
                 .Select(r => (long?)r.Id)
                 .FirstOrDefaultAsync();
 
@@ -109,7 +116,7 @@ public class ApprovalNotificationService
         {
             foreach (var rule in step.Rules.Where(r => r.IsActive == true).OrderBy(r => r.Priority))
             {
-                if (rule.RuleType == "FIXED_USER" && long.TryParse(rule.RuleValue, out var userId))
+                if (rule.RuleType == ApprovalConstants.RuleType.FixedUser && long.TryParse(rule.RuleValue, out var userId))
                 {
                     var user = await _db.Users.FindAsync(userId);
                     if (!string.IsNullOrEmpty(user?.Email))
@@ -117,10 +124,13 @@ public class ApprovalNotificationService
                         emails.Add(user.Email);
                     }
                 }
-                else if (rule.RuleType == "FIXED_ROLE" && !string.IsNullOrEmpty(rule.RuleValue))
+                else if (rule.RuleType == ApprovalConstants.RuleType.FixedRole && !string.IsNullOrEmpty(rule.RuleValue))
                 {
+                    var currentApp = _currentUser.App ?? "cpm";
                     var roleId = await _db.Roles
-                        .Where(r => r.RoleName == rule.RuleValue)
+                        .Where(r => r.RoleName == rule.RuleValue &&
+                            (r.App == currentApp || string.IsNullOrEmpty(r.App)) &&
+                            (r.Site == _currentUser.Site || string.IsNullOrEmpty(r.Site)))
                         .Select(r => (long?)r.Id)
                         .FirstOrDefaultAsync();
 
@@ -139,15 +149,18 @@ public class ApprovalNotificationService
                         emails.AddRange(roleEmails);
                     }
                 }
-                else if (rule.RuleType == "ORG_TREE" && !string.IsNullOrEmpty(rule.RuleValue))
+                else if (rule.RuleType == ApprovalConstants.RuleType.OrgTree && !string.IsNullOrEmpty(rule.RuleValue))
                 {
                     if (!string.IsNullOrEmpty(rule.Fallback))
                     {
                         var fbParts = rule.Fallback.Split(':', 2);
                         if (fbParts.Length == 2 && fbParts[0] == "ROLE")
                         {
+                            var currentApp = _currentUser.App ?? "cpm";
                             var roleId = await _db.Roles
-                                .Where(r => r.RoleName == fbParts[1])
+                                .Where(r => r.RoleName == fbParts[1] &&
+                                    (r.App == currentApp || string.IsNullOrEmpty(r.App)) &&
+                                    (r.Site == _currentUser.Site || string.IsNullOrEmpty(r.Site)))
                                 .Select(r => (long?)r.Id)
                                 .FirstOrDefaultAsync();
 

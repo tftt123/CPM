@@ -15,7 +15,7 @@
         ref="formRef"
         class="slds-form"
       >
-        <el-form-item :label="t('customer.customerCode')" prop="customerCode" v-if="!isEdit">
+        <el-form-item :label="t('customer.customerCode')" prop="customerCode" v-if="!isEdit && isVisible('customerCode')">
           <el-input
             v-model="form.customerCode"
             :placeholder="t('common.pleaseInput')"
@@ -23,7 +23,7 @@
           />
         </el-form-item>
 
-        <el-form-item :label="t('customer.customerName')" prop="customerName">
+        <el-form-item :label="t('customer.customerName')" prop="customerName" v-if="isVisible('customerName')">
           <el-input
             v-model="form.customerName"
             :placeholder="t('common.pleaseInput')"
@@ -31,15 +31,35 @@
           />
         </el-form-item>
 
-        <el-form-item :label="t('customer.industry')">
-          <el-input
+        <el-form-item :label="t('customer.industry')" v-if="isVisible('industry')">
+          <GcSelect
             v-model="form.industry"
-            placeholder="Manufacturing / Technology / Finance"
-            :prefix-icon="Briefcase"
+            domain="INDUSTRY"
+            :placeholder="t('common.pleaseSelect')"
+            clearable
+            filterable
+            style="width: 100%"
+            :fallback="[
+              { code: 'AUTOMOTIVE', label: '汽车', tagType: 'info' },
+              { code: 'Data Storage', label: '数据存储', tagType: 'info' },
+              { code: 'Domestic Appliances', label: '家用电器', tagType: 'info' },
+              { code: 'HealthCare', label: '医疗保健', tagType: 'info' },
+              { code: 'Imaging and Printing', label: '影像与印刷', tagType: 'info' },
+              { code: 'Leisure', label: '休闲', tagType: 'info' },
+              { code: 'Machinery', label: '机械', tagType: 'info' },
+              { code: 'Others', label: '其他', tagType: 'info' }
+            ]"
           />
         </el-form-item>
 
-        <el-form-item :label="t('customer.contactName')">
+        <el-form-item :label="t('customer.currency')" v-if="isVisible('currency')">
+          <el-input
+            v-model="form.currency"
+            :placeholder="t('common.pleaseInput')"
+          />
+        </el-form-item>
+
+        <el-form-item :label="t('customer.contactName')" v-if="isVisible('contactName')">
           <el-input
             v-model="form.contactName"
             :placeholder="t('common.pleaseInput')"
@@ -65,7 +85,11 @@ import { ref, watch, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { customerApi } from '@/api/customer'
 import { useI18n } from '@/composables/useI18n'
-import { Document, OfficeBuilding, Briefcase, User } from '@element-plus/icons-vue'
+import { useFieldControl } from '@/composables/useFieldControl'
+import GcSelect from '@/components/GcSelect.vue'
+import { Document, OfficeBuilding, User } from '@element-plus/icons-vue'
+
+const { isVisible } = useFieldControl('Customer', 'CustomerForm')
 
 const props = defineProps<{ visible: boolean; data: any }>()
 const emit = defineEmits(['update:visible', 'success'])
@@ -79,7 +103,7 @@ const visible = computed({
 const isEdit = computed(() => !!props.data?.id)
 const formRef = ref()
 const submitting = ref(false)
-const form = ref({ customerCode: '', customerName: '', industry: '', contactName: '' })
+const form = ref({ customerCode: '', customerName: '', industry: '', currency: '', contactName: '' })
 
 const rules = {
   customerCode: [{ required: true, message: t('validation.required', { field: t('customer.customerCode') }), trigger: 'blur' }],
@@ -90,7 +114,7 @@ watch(() => props.data, (val) => {
   if (val) {
     form.value = { ...val }
   } else {
-    form.value = { customerCode: '', customerName: '', industry: '', contactName: '' }
+    form.value = { customerCode: '', customerName: '', industry: '', currency: '', contactName: '' }
   }
 }, { immediate: true })
 

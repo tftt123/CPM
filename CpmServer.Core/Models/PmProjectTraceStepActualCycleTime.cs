@@ -30,6 +30,9 @@ public class PmProjectTraceStepActualCycleTime
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
+    public string? Site { get; set; }
+    public string? App { get; set; }
+
     [ForeignKey("ProjectTraceStepId")]
     public PmProjectTraceStep? Step { get; set; }
 }

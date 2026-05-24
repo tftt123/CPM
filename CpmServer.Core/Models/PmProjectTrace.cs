@@ -42,6 +42,9 @@ public class PmProjectTrace
     /// <summary>状态: 0=草稿 1=进行中 2=已完成</summary>
     public int Status { get; set; } = 0;
 
+    public string? Site { get; set; }
+    public string? App { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
 

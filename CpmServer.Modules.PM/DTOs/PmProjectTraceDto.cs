@@ -104,6 +104,7 @@ public class PmProjectTraceUpdateRequest
 public class PmProjectTraceStepCycleTimeListItemDto
 {
     public long TraceId { get; set; }
+    public string? QuotationNo { get; set; }
     public string CustomerName { get; set; } = string.Empty;
     public string ProductCode { get; set; } = string.Empty;
     public string? ProductName { get; set; }
@@ -136,4 +137,30 @@ public class SubmitCycleTimeChangeRequest
 public class PmProjectTraceStepActualCycleTimeUpdateRequest
 {
     public List<PmProjectTraceStepActualCycleTimeDto> ActualCycleTimes { get; set; } = new();
+}
+
+public class PmStepCycleTimeChangeRequestDto
+{
+    public long Id { get; set; }
+    public long StepId { get; set; }
+    public long TraceId { get; set; }
+    public string? SubmitterName { get; set; }
+    public DateTime SubmittedAt { get; set; }
+    public int ApprovalStatus { get; set; }
+    public string? Remarks { get; set; }
+    public string? ProcessName { get; set; }
+    public string? CustomerName { get; set; }
+    public string? ProductCode { get; set; }
+    public string? ProductName { get; set; }
+    public decimal? CycleTime { get; set; }
+    public List<PmStepCycleTimeChangeDetailItemDto> Details { get; set; } = new();
+}
+
+public class PmStepCycleTimeChangeDetailItemDto
+{
+    public int ChangeType { get; set; }
+    public long? TargetRecordId { get; set; }
+    public DateTime RecordDate { get; set; }
+    public decimal? ActualCycleTime { get; set; }
+    public string? Remarks { get; set; }
 }

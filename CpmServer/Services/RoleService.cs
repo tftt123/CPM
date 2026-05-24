@@ -42,12 +42,19 @@ public class RoleService : IRoleService
         var role = await _db.Roles.FindAsync(id);
         if (role == null) return null;
 
+        var permissions = await _db.RolePermissions
+            .Where(rp => rp.RoleId == id && rp.IsActive)
+            .Select(rp => rp.PermissionCode)
+            .Distinct()
+            .ToListAsync();
+
         return new RoleDto
         {
             Id = role.Id,
             RoleCode = role.RoleCode,
             RoleName = role.RoleName,
-            Site = role.Site
+            Site = role.Site,
+            Permissions = permissions
         };
     }
 
@@ -91,6 +98,37 @@ public class RoleService : IRoleService
             throw new BusinessException("该角色已分配给用户，无法删除");
 
         _db.Roles.Remove(entity);
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task UpdateRolePermissionsAsync(long id, List<string> permissionCodes)
+    {
+        var role = await _db.Roles.FindAsync(id);
+        if (role == null) throw new BusinessException("角色不存在");
+
+        var site = _currentUser.Site;
+        var app = _currentUser.App;
+
+        // 删除该角色在当前 Site/App 下的旧权限
+        var existing = await _db.RolePermissions
+            .Where(rp => rp.RoleId == id && rp.App == app && rp.Site == site)
+            .ToListAsync();
+        _db.RolePermissions.RemoveRange(existing);
+
+        // 插入新权限
+        foreach (var code in permissionCodes.Distinct())
+        {
+            _db.RolePermissions.Add(new SysRolePermission
+            {
+                RoleId = id,
+                PermissionCode = code,
+                Site = site,
+                App = app,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+
         await _db.SaveChangesAsync();
     }
 }

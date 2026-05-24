@@ -1,10 +1,12 @@
 using CpmServer.Common;
+using CpmServer.Constants;
 using CpmServer.Data;
 using CpmServer.Models;
 using CpmServer.Modules.Approval.Contracts;
 using CpmServer.Modules.Approval.DTOs;
 using CpmServer.Modules.Quotation.Contracts;
 using CpmServer.Modules.Quotation.DTOs;
+using CpmServer.Modules.SequenceRule.Contracts;
 using CpmServer.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -16,14 +18,18 @@ public class QuotationService : IQuotationService
     private readonly CpmDbContext _db;
     private readonly ILogger<QuotationService> _logger;
     private readonly IApprovalService _approvalService;
+    private readonly ISequenceRuleService _sequenceRuleService;
     private readonly ICurrentUser _currentUser;
+    private readonly IGeneralizedCodeService _gc;
 
-    public QuotationService(CpmDbContext db, ILogger<QuotationService> logger, IApprovalService approvalService, ICurrentUser currentUser)
+    public QuotationService(CpmDbContext db, ILogger<QuotationService> logger, IApprovalService approvalService, ISequenceRuleService sequenceRuleService, ICurrentUser currentUser, IGeneralizedCodeService gc)
     {
         _db = db;
         _logger = logger;
         _approvalService = approvalService;
+        _sequenceRuleService = sequenceRuleService;
         _currentUser = currentUser;
+        _gc = gc;
     }
 
     #region 商机管理
@@ -35,10 +41,12 @@ public class QuotationService : IQuotationService
             .Include(o => o.Owner)
             .AsQueryable();
 
+        var currentApp = _currentUser.App ?? "cpm";
         if (!string.IsNullOrWhiteSpace(_currentUser.Site))
         {
             query = query.Where(o => o.Site == _currentUser.Site);
         }
+        query = query.Where(o => o.App == currentApp || string.IsNullOrEmpty(o.App));
 
         if (!string.IsNullOrEmpty(keyword))
         {
@@ -87,10 +95,12 @@ public class QuotationService : IQuotationService
             .Include(o => o.Owner)
             .Where(o => o.Id == id);
 
+        var currentApp = _currentUser.App ?? "cpm";
         if (!string.IsNullOrWhiteSpace(_currentUser.Site))
         {
             query = query.Where(o => o.Site == _currentUser.Site);
         }
+        query = query.Where(o => o.App == currentApp || string.IsNullOrEmpty(o.App));
 
         var o = await query.FirstOrDefaultAsync();
 
@@ -125,8 +135,8 @@ public class QuotationService : IQuotationService
             Title = dto.Title,
             ExpectedAmount = dto.ExpectedAmount,
             QuoteDeadline = dto.QuoteDeadline,
-            Stage = "NEW",
-            Status = 0,
+            Stage = QuotationConstants.OpportunityStage.New,
+            Status = QuotationConstants.Status.Draft,
             OwnerId = userId,
             Site = !string.IsNullOrWhiteSpace(dto.Site) ? dto.Site : _currentUser.Site,
             CreatedAt = DateTime.Now,
@@ -158,6 +168,8 @@ public class QuotationService : IQuotationService
     {
         var entity = await _db.Opportunities.FindAsync(id);
         if (entity == null) return;
+
+        await _gc.ValidateAsync("OPP_STAGE", stage, entity.Site, _currentUser.App ?? "cpm");
 
         entity.Stage = stage;
         entity.UpdatedAt = DateTime.Now;
@@ -237,13 +249,14 @@ public class QuotationService : IQuotationService
             {
                 Id = q.Id,
                 QuotationNo = q.QuotationNo,
+                RfqNo = q.RfqNo,
+                Title = q.Title,
                 OpportunityId = q.OpportunityId,
                 OpportunityTitle = q.Opportunity?.Title ?? string.Empty,
                 CustomerId = q.CustomerId,
                 CustomerName = q.Customer?.CustomerName ?? string.Empty,
+                CustomerCurrency = q.Customer?.Currency,
                 TotalAmount = q.TotalAmount,
-                PackagingCost = q.PackagingCost,
-                TransportCost = q.TransportCost,
                 CurrentStepId = q.CurrentStepId,
                 CurrentStepName = currentStepName,
                 Status = q.Status,
@@ -264,7 +277,10 @@ public class QuotationService : IQuotationService
                     Equipment = i.Equipment,
                     CycleTime = i.CycleTime,
                     HourlyRate = i.HourlyRate,
-                    Cost = i.Cost
+                    Cost = i.Cost,
+                    PackagingCost = i.PackagingCost,
+                    TransportCost = i.TransportCost,
+                    IsProcessRow = i.IsProcessRow
                 }).ToList() ?? new List<QuotationItemDto>()
             });
         }
@@ -300,13 +316,14 @@ public class QuotationService : IQuotationService
         {
             Id = q.Id,
             QuotationNo = q.QuotationNo,
+            RfqNo = q.RfqNo,
+            Title = q.Title,
             OpportunityId = q.OpportunityId,
             OpportunityTitle = q.Opportunity?.Title ?? string.Empty,
             CustomerId = q.CustomerId,
             CustomerName = q.Customer?.CustomerName ?? string.Empty,
+            CustomerCurrency = q.Customer?.Currency,
             TotalAmount = q.TotalAmount,
-            PackagingCost = q.PackagingCost,
-            TransportCost = q.TransportCost,
             CurrentStepId = q.CurrentStepId,
             CurrentStepName = currentStepName,
             Status = q.Status,
@@ -327,7 +344,10 @@ public class QuotationService : IQuotationService
                 Equipment = i.Equipment,
                 CycleTime = i.CycleTime,
                 HourlyRate = i.HourlyRate,
-                Cost = i.Cost
+                Cost = i.Cost,
+                PackagingCost = i.PackagingCost,
+                TransportCost = i.TransportCost,
+                IsProcessRow = i.IsProcessRow
             }).ToList()
         };
     }
@@ -341,20 +361,21 @@ public class QuotationService : IQuotationService
             throw new BusinessException("请至少添加一个有效的产品明细");
         }
 
-        var quotationNo = await GenerateQuotationNoAsync();
+        // 报价单号引用关联商机的 RFQ 编号
+        var opportunity = await _db.Opportunities.FindAsync(dto.OpportunityId);
+        var quotationNo = opportunity?.OpportunityNo ?? await GenerateQuotationNoAsync();
 
-        // 计算总金额
-        decimal lineTotal = validItems.Sum(i => i.LineAmount ?? 0);
-        decimal totalAmount = lineTotal + (dto.PackagingCost ?? 0) + (dto.TransportCost ?? 0);
+        // 计算总金额（行金额已包含包装和运输费）
+        decimal totalAmount = validItems.Sum(i => i.LineAmount ?? 0);
 
         var entity = new QuoQuotation
         {
             QuotationNo = quotationNo,
+            RfqNo = dto.RfqNo,
+            Title = dto.Title,
             OpportunityId = dto.OpportunityId,
             CustomerId = dto.CustomerId,
             TotalAmount = totalAmount,
-            PackagingCost = dto.PackagingCost,
-            TransportCost = dto.TransportCost,
             Status = 0,
             CreatedBy = userId,
             Site = !string.IsNullOrWhiteSpace(dto.Site) ? dto.Site : _currentUser.Site,
@@ -369,7 +390,7 @@ public class QuotationService : IQuotationService
         foreach (var item in validItems)
         {
             var cost = item.CycleTime.HasValue && item.HourlyRate.HasValue
-                ? item.CycleTime.Value * item.HourlyRate.Value
+                ? item.CycleTime.Value / 3600m * item.HourlyRate.Value
                 : item.Cost;
             _db.QuotationItems.Add(new QuoQuotationItem
             {
@@ -382,7 +403,10 @@ public class QuotationService : IQuotationService
                 Equipment = item.Equipment,
                 CycleTime = item.CycleTime,
                 HourlyRate = item.HourlyRate,
-                Cost = cost
+                Cost = cost,
+                PackagingCost = item.PackagingCost,
+                TransportCost = item.TransportCost,
+                IsProcessRow = item.IsProcessRow
             });
         }
 
@@ -418,9 +442,9 @@ public class QuotationService : IQuotationService
         }
 
         entity.OpportunityId = dto.OpportunityId;
+        entity.RfqNo = dto.RfqNo;
+        entity.Title = dto.Title;
         entity.CustomerId = dto.CustomerId;
-        entity.PackagingCost = dto.PackagingCost;
-        entity.TransportCost = dto.TransportCost;
         entity.UpdatedAt = DateTime.Now;
 
         // 过滤无效明细
@@ -430,12 +454,10 @@ public class QuotationService : IQuotationService
         _db.QuotationItems.RemoveRange(entity.Items);
 
         // 添加新明细
-        decimal lineTotal = 0;
         foreach (var item in validItems)
         {
-            lineTotal += item.LineAmount ?? 0;
             var cost = item.CycleTime.HasValue && item.HourlyRate.HasValue
-                ? item.CycleTime.Value * item.HourlyRate.Value
+                ? item.CycleTime.Value / 3600m * item.HourlyRate.Value
                 : item.Cost;
             _db.QuotationItems.Add(new QuoQuotationItem
             {
@@ -448,11 +470,14 @@ public class QuotationService : IQuotationService
                 Equipment = item.Equipment,
                 CycleTime = item.CycleTime,
                 HourlyRate = item.HourlyRate,
-                Cost = cost
+                Cost = cost,
+                PackagingCost = item.PackagingCost,
+                TransportCost = item.TransportCost,
+                IsProcessRow = item.IsProcessRow
             });
         }
 
-        entity.TotalAmount = lineTotal + (dto.PackagingCost ?? 0) + (dto.TransportCost ?? 0);
+        entity.TotalAmount = validItems.Sum(i => i.LineAmount ?? 0);
         await _db.SaveChangesAsync();
 
         // 关联附件
@@ -504,7 +529,7 @@ public class QuotationService : IQuotationService
 
         // 检查是否已有进行中的审批流程
         var existingInstance = await _approvalService.GetInstanceAsync("Quotation", quotationId);
-        if (existingInstance != null && existingInstance.Status == 0)
+        if (existingInstance != null && existingInstance.Status == ApprovalConstants.InstanceStatus.Active)
         {
             throw new InvalidOperationException("该报价单已有进行中的审批流程");
         }
@@ -513,7 +538,7 @@ public class QuotationService : IQuotationService
         var instance = await _approvalService.StartApprovalAsync(
             "Quotation", quotationId, "Quotation", quotation.Site, userId);
 
-        quotation.Status = 1; // 待评审
+        quotation.Status = QuotationConstants.Status.PendingReview; // 待评审
         quotation.CurrentStepId = instance.CurrentStepId;
         quotation.UpdatedAt = DateTime.Now;
 
@@ -562,18 +587,18 @@ public class QuotationService : IQuotationService
                 quotation.CurrentStepId = updatedInstance.CurrentStepId;
                 quotation.Status = updatedInstance.Status switch
                 {
-                    0 => 1, // 进行中 -> 待评审
-                    1 => 3, // 完成 -> 已发布
-                    2 => 0, // 驳回 -> 草稿
+                    ApprovalConstants.InstanceStatus.Active => QuotationConstants.Status.PendingReview, // 进行中 -> 待评审
+                    ApprovalConstants.InstanceStatus.Completed => QuotationConstants.Status.Issued, // 完成 -> 已发布
+                    ApprovalConstants.InstanceStatus.Rejected => QuotationConstants.Status.Draft, // 驳回 -> 草稿
                     _ => quotation.Status
                 };
 
-                if (updatedInstance.Status == 0)
+                if (updatedInstance.Status == ApprovalConstants.InstanceStatus.Active)
                 {
                     var currentStep = await _approvalService.GetCurrentStepAsync(updatedInstance.Id);
-                    if (currentStep?.StepType == "APPROVAL")
+                    if (currentStep?.StepType == ApprovalConstants.StepType.Approval)
                     {
-                        quotation.Status = 2; // 待审批
+                        quotation.Status = QuotationConstants.Status.PendingApproval; // 待审批
                     }
                 }
 
@@ -605,50 +630,12 @@ public class QuotationService : IQuotationService
 
     private async Task<string> GenerateOpportunityNoAsync()
     {
-        var dateStr = DateTime.Now.ToString("yyyyMMdd");
-        var prefix = $"OPP-{dateStr}-";
-
-        var lastNo = await _db.Opportunities
-            .Where(o => o.OpportunityNo.StartsWith(prefix))
-            .OrderByDescending(o => o.OpportunityNo)
-            .Select(o => o.OpportunityNo)
-            .FirstOrDefaultAsync();
-
-        int seq = 1;
-        if (!string.IsNullOrEmpty(lastNo))
-        {
-            var parts = lastNo.Split('-');
-            if (parts.Length >= 3 && int.TryParse(parts[2], out var lastSeq))
-            {
-                seq = lastSeq + 1;
-            }
-        }
-
-        return $"{prefix}{seq:D4}";
+        return await _sequenceRuleService.GenerateSequenceAsync("Opportunity", _currentUser.Site);
     }
 
     private async Task<string> GenerateQuotationNoAsync()
     {
-        var dateStr = DateTime.Now.ToString("yyyyMMdd");
-        var prefix = $"QUO-{dateStr}-";
-
-        var lastNo = await _db.Quotations
-            .Where(q => q.QuotationNo.StartsWith(prefix))
-            .OrderByDescending(q => q.QuotationNo)
-            .Select(q => q.QuotationNo)
-            .FirstOrDefaultAsync();
-
-        int seq = 1;
-        if (!string.IsNullOrEmpty(lastNo))
-        {
-            var parts = lastNo.Split('-');
-            if (parts.Length >= 3 && int.TryParse(parts[2], out var lastSeq))
-            {
-                seq = lastSeq + 1;
-            }
-        }
-
-        return $"{prefix}{seq:D4}";
+        return await _sequenceRuleService.GenerateSequenceAsync("Quotation", _currentUser.Site);
     }
 
     #endregion

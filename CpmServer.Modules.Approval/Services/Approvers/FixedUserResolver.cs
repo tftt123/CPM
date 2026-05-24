@@ -1,3 +1,4 @@
+using CpmServer.Constants;
 using CpmServer.Data;
 using CpmServer.Models;
 
@@ -8,7 +9,7 @@ namespace CpmServer.Modules.Approval.Services.Approvers;
 /// </summary>
 public class FixedUserResolver : IApproverResolver
 {
-    public string RuleType => "FIXED_USER";
+    public string RuleType => ApprovalConstants.RuleType.FixedUser;
 
     public Task<ApproverResult> ResolveAsync(SysApprovalRule rule, ApproverContext context, CpmDbContext db)
     {

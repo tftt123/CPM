@@ -1,4 +1,4 @@
-import { createApp } from 'vue'
+﻿import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
@@ -11,6 +11,8 @@ import en from 'element-plus/dist/locale/en.mjs'
 
 import App from './App.vue'
 import router from './router'
+import { useUiControlStore } from './stores/uiControl'
+import { useLocaleStore } from './stores/locale'
 
 const app = createApp(App)
 
@@ -23,6 +25,25 @@ const elementLocale = savedLocale === 'zh' ? zhCn : en
 
 app.use(createPinia())
 app.use(router)
-app.use(ElementPlus, { locale: elementLocale, zIndex: 3000 })
+
+// Initialize UI control settings
+const uiStore = useUiControlStore()
+uiStore.applyAll()
+
+// Load DB translations
+const localeStore = useLocaleStore()
+localeStore.loadDbMessages()
+
+app.use(ElementPlus, {
+  locale: elementLocale,
+  zIndex: 3000,
+  size: 'default',
+  button: {
+    autoInsertSpace: false,
+  },
+})
 
 app.mount('#app')
+
+
+

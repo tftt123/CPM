@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.26" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CpmServer.SharedKernel\CpmServer.SharedKernel.csproj" />
+    <ProjectReference Include="..\CpmServer.Core\CpmServer.Core.csproj" />
+  </ItemGroup>
+
+</Project>

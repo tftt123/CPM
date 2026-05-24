@@ -1,3 +1,4 @@
+using CpmServer.Authorization;
 using CpmServer.Common;
 using CpmServer.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -7,7 +8,7 @@ namespace CpmServer.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "ADMIN")]
+[Authorize(Policy = Policies.CanManageSystem)]
 public class EmailController : ControllerBase
 {
     private readonly IEmailService _emailService;
@@ -35,6 +36,20 @@ public class EmailController : ControllerBase
     public async Task<ApiResult> SendTestEmail([FromBody] TestEmailRequest dto)
     {
         await _emailService.SendTestEmailAsync(dto.ToAddress, dto.Subject, dto.Body);
+        return ApiResult.Success();
+    }
+
+    [HttpGet("templates")]
+    public async Task<ApiResult<List<EmailTemplateDto>>> GetTemplates()
+    {
+        var list = await _emailService.GetTemplatesAsync();
+        return ApiResult<List<EmailTemplateDto>>.Success(list);
+    }
+
+    [HttpPut("templates/{id:long}")]
+    public async Task<ApiResult> UpdateTemplate(long id, [FromBody] EmailTemplateDto dto)
+    {
+        await _emailService.UpdateTemplateAsync(id, dto);
         return ApiResult.Success();
     }
 }

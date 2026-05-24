@@ -21,6 +21,9 @@ public class PmProjectTraceStep
     /// <summary>工艺步骤名</summary>
     public string ProcessName { get; set; } = string.Empty;
 
+    /// <summary>设备/机器</summary>
+    public string? Equipment { get; set; }
+
     /// <summary>责任人</summary>
     public string? PersonInCharge { get; set; }
 
@@ -68,6 +71,9 @@ public class PmProjectTraceStep
 
     /// <summary>实际节拍历史记录</summary>
     public List<PmProjectTraceStepActualCycleTime> ActualCycleTimes { get; set; } = new();
+
+    public string? Site { get; set; }
+    public string? App { get; set; }
 
     [ForeignKey("ProjectTraceId")]
     public PmProjectTrace? ProjectTrace { get; set; }

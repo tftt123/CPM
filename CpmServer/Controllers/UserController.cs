@@ -1,3 +1,4 @@
+using CpmServer.Authorization;
 using CpmServer.Common;
 using CpmServer.DTOs.User;
 using CpmServer.Services;
@@ -9,7 +10,7 @@ namespace CpmServer.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "ADMIN")]
+[Authorize(Policy = Policies.CanManageSystem)]
 public class UserController : ControllerBase
 {
     private readonly IUserService _userService;

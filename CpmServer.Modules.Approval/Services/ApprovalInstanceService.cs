@@ -1,4 +1,5 @@
 using CpmServer.Common;
+using CpmServer.Constants;
 using CpmServer.Data;
 using CpmServer.Models;
 using CpmServer.Modules.Approval.Contracts;
@@ -18,7 +19,7 @@ public class ApprovalInstanceService : IApprovalInstanceService
     private readonly IEmailService _emailService;
     private readonly Dictionary<string, IApproverResolver> _resolvers;
     private readonly IEnumerable<IBusinessVariableProvider> _variableProviders;
-    private readonly ApprovalNotificationService _notificationService;
+    private readonly IApprovalNotificationService _notificationService;
 
     public ApprovalInstanceService(
         CpmDbContext db,
@@ -27,7 +28,7 @@ public class ApprovalInstanceService : IApprovalInstanceService
         IEmailService emailService,
         IEnumerable<IApproverResolver> resolvers,
         IEnumerable<IBusinessVariableProvider> variableProviders,
-        ApprovalNotificationService notificationService)
+        IApprovalNotificationService notificationService)
     {
         _db = db;
         _logger = logger;
@@ -40,10 +41,14 @@ public class ApprovalInstanceService : IApprovalInstanceService
 
     public async Task<SysApprovalInstance> StartApprovalAsync(string businessType, long businessId, string templateCode)
     {
+        var currentApp = _currentUser.App ?? "cpm";
+        var currentSite = _currentUser.Site;
         var template = await _db.ApprovalTemplates
             .Include(t => t.Steps)
             .ThenInclude(s => s.Rules)
-            .FirstOrDefaultAsync(t => t.TemplateCode == templateCode && t.IsActive == true);
+            .FirstOrDefaultAsync(t => t.TemplateCode == templateCode && t.IsActive == true &&
+                (t.App == currentApp || string.IsNullOrEmpty(t.App)) &&
+                (t.Site == currentSite || string.IsNullOrEmpty(t.Site)));
 
         if (template == null)
         {
@@ -66,11 +71,17 @@ public class ApprovalInstanceService : IApprovalInstanceService
 
     public async Task<SysApprovalInstance?> GetInstanceAsync(string businessType, long businessId)
     {
+        var currentApp = _currentUser.App ?? "cpm";
+        var currentSite = _currentUser.Site;
         return await _db.ApprovalInstances
             .Include(i => i.Template)
             .Include(i => i.Records)
             .Include(i => i.Tasks)
-            .FirstOrDefaultAsync(i => i.BusinessType == businessType && i.BusinessId == businessId);
+            .FirstOrDefaultAsync(i =>
+                i.BusinessType == businessType &&
+                i.BusinessId == businessId &&
+                (i.App == currentApp || string.IsNullOrEmpty(i.App)) &&
+                (i.Site == currentSite || string.IsNullOrEmpty(i.Site)));
     }
 
     public async Task<List<ApprovalForecastStepDto>> ForecastApprovalAsync(string moduleType, string businessType, long businessId, long submitterId)
@@ -95,7 +106,7 @@ public class ApprovalInstanceService : IApprovalInstanceService
 
         foreach (var step in steps)
         {
-            if (step.StepMode == "START" || step.StepMode == "END" || step.StepMode == "CC")
+            if (step.StepMode == ApprovalConstants.StepMode.Start || step.StepMode == ApprovalConstants.StepMode.End || step.StepMode == ApprovalConstants.StepMode.Cc)
                 continue;
 
             var approverResults = await ResolveApproversAsync(step, submitterId, variables);
@@ -150,11 +161,15 @@ public class ApprovalInstanceService : IApprovalInstanceService
     public async Task ScanTimeoutTasksAsync()
     {
         var now = DateTime.UtcNow;
+        var currentApp = _currentUser.App ?? "cpm";
+        var currentSite = _currentUser.Site;
         var timeoutTasks = await _db.ApprovalInstanceTasks
             .Include(t => t.Instance)
             .ThenInclude(i => i!.Template)
             .Include(t => t.Assignee)
-            .Where(t => t.Status == 0 && t.DueDate != null && t.DueDate < now)
+            .Where(t => t.Status == ApprovalConstants.TaskStatus.Pending && t.DueDate != null && t.DueDate < now &&
+                (t.App == currentApp || string.IsNullOrEmpty(t.App)) &&
+                (t.Site == currentSite || string.IsNullOrEmpty(t.Site)))
             .ToListAsync();
 
         foreach (var task in timeoutTasks)
@@ -171,7 +186,7 @@ public class ApprovalInstanceService : IApprovalInstanceService
                         .FirstOrDefault(s => s.Id == task.StepId)?.StepName ?? "未知步骤";
                     variables["DueDate"] = task.DueDate?.ToString("yyyy-MM-dd HH:mm") ?? "";
 
-                    await _emailService.SendEmailByTemplateAsync("APPROVAL_TIMEOUT", variables, task.Assignee.Email);
+                    await _emailService.SendEmailByTemplateAsync(EmailTemplateConstants.ApprovalTimeout, variables, task.Assignee.Email);
                 }
 
                 task.Status = 3;
@@ -192,10 +207,12 @@ public class ApprovalInstanceService : IApprovalInstanceService
 
     private async Task<SysApprovalTemplate?> FindBestTemplateAsync(string moduleType, string? site)
     {
+        var currentApp = _currentUser.App ?? "cpm";
         var templates = await _db.ApprovalTemplates
             .Include(t => t.Steps)
             .ThenInclude(s => s.Rules)
-            .Where(t => t.ModuleType == moduleType && t.IsActive == true)
+            .Where(t => t.ModuleType == moduleType && t.IsActive == true &&
+                (t.App == currentApp || string.IsNullOrEmpty(t.App)))
             .OrderBy(t => t.Site == null ? 1 : 0)
             .ThenByDescending(t => t.IsDefault)
             .ThenBy(t => t.CreatedAt)
@@ -234,6 +251,7 @@ public class ApprovalInstanceService : IApprovalInstanceService
 
         var variables = await GetBusinessVariablesAsync(businessType, businessId);
 
+        var currentApp = _currentUser.App ?? "cpm";
         var instance = new SysApprovalInstance
         {
             TemplateId = template.Id,
@@ -242,6 +260,7 @@ public class ApprovalInstanceService : IApprovalInstanceService
             CurrentStepId = firstStep.Id,
             CurrentStepOrder = firstStep.StepOrder,
             Site = businessSite ?? template.Site ?? _currentUser.Site,
+            App = currentApp,
             Status = 0,
             SubmitterId = submitterId,
             Variables = System.Text.Json.JsonSerializer.Serialize(variables),
@@ -251,7 +270,7 @@ public class ApprovalInstanceService : IApprovalInstanceService
         _db.ApprovalInstances.Add(instance);
         await _db.SaveChangesAsync();
 
-        if (firstStep.StepMode == "START")
+        if (firstStep.StepMode == ApprovalConstants.StepMode.Start)
         {
             _logger.LogInformation("流程 START 节点启动，自动跳过: InstanceId={InstanceId}", instance.Id);
             var secondStep = steps.Skip(1).FirstOrDefault();
@@ -278,13 +297,13 @@ public class ApprovalInstanceService : IApprovalInstanceService
 
     internal async Task CreateStepTasksAsync(SysApprovalInstance instance, SysApprovalStep step, long submitterId, Dictionary<string, string> variables)
     {
-        if (step.StepMode == "START")
+        if (step.StepMode == ApprovalConstants.StepMode.Start)
         {
             _logger.LogInformation("开始节点跳过: InstanceId={InstanceId}, Step={StepName}", instance.Id, step.StepName);
             return;
         }
 
-        if (step.StepMode == "END")
+        if (step.StepMode == ApprovalConstants.StepMode.End)
         {
             _logger.LogInformation("结束节点: InstanceId={InstanceId}, Step={StepName}", instance.Id, step.StepName);
             instance.Status = 1;
@@ -295,7 +314,7 @@ public class ApprovalInstanceService : IApprovalInstanceService
             return;
         }
 
-        if (step.StepMode == "CC")
+        if (step.StepMode == ApprovalConstants.StepMode.Cc)
         {
             _logger.LogInformation("抄送节点: InstanceId={InstanceId}, Step={StepName}", instance.Id, step.StepName);
             return;
@@ -323,6 +342,8 @@ public class ApprovalInstanceService : IApprovalInstanceService
                 AssigneeRole = approver.RoleCode,
                 Status = 0,
                 DueDate = dueDate,
+                Site = instance.Site,
+                App = instance.App,
                 CreatedAt = DateTime.UtcNow
             };
             _db.ApprovalInstanceTasks.Add(task);

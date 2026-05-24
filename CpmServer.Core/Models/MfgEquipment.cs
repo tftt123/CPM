@@ -19,6 +19,7 @@ public class MfgEquipment
     public string? Description { get; set; }
 
     public string? Site { get; set; }
+    public string? App { get; set; }
 
     public string? Model { get; set; }
 

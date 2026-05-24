@@ -4,6 +4,7 @@ using CpmServer.Models;
 using CpmServer.Modules.Approval.Contracts;
 using CpmServer.Modules.PM.Contracts;
 using CpmServer.Modules.PM.DTOs;
+using CpmServer.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace CpmServer.Modules.PM.Services;
@@ -12,16 +13,27 @@ public class PmProjectTraceService : IPmProjectTraceService
 {
     private readonly CpmDbContext _db;
     private readonly IApprovalService _approvalService;
+    private readonly ICurrentUser _currentUser;
+    private readonly IGeneralizedCodeService _gc;
 
-    public PmProjectTraceService(CpmDbContext db, IApprovalService approvalService)
+    public PmProjectTraceService(CpmDbContext db, IApprovalService approvalService, ICurrentUser currentUser, IGeneralizedCodeService gc)
     {
         _db = db;
         _approvalService = approvalService;
+        _currentUser = currentUser;
+        _gc = gc;
     }
 
     public async Task<PmProjectTraceListResponse> GetListAsync(string? keyword, int? status, int page, int pageSize)
     {
         var query = _db.ProjectTraces.AsQueryable();
+
+        var currentApp = _currentUser.App ?? "cpm";
+        if (!string.IsNullOrWhiteSpace(_currentUser.Site))
+        {
+            query = query.Where(t => t.Site == _currentUser.Site);
+        }
+        query = query.Where(t => t.App == currentApp || string.IsNullOrEmpty(t.App));
 
         if (!string.IsNullOrWhiteSpace(keyword))
         {
@@ -66,8 +78,14 @@ public class PmProjectTraceService : IPmProjectTraceService
     {
         var query = _db.ProjectTraceSteps
             .Include(s => s.ProjectTrace)
+                .ThenInclude(t => t!.Quotation)
             .Include(s => s.ActualCycleTimes)
             .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(_currentUser.Site))
+        {
+            query = query.Where(s => s.Site == _currentUser.Site);
+        }
 
         if (!string.IsNullOrWhiteSpace(keyword))
         {
@@ -87,7 +105,7 @@ public class PmProjectTraceService : IPmProjectTraceService
             .ToDictionaryAsync(x => x.StepId, x => x.Count);
 
         var steps = await query
-            .OrderBy(s => s.ProjectTraceId)
+            .OrderByDescending(s => s.ProjectTrace!.Quotation!.QuotationNo)
             .ThenBy(s => s.StepOrder)
             .ToListAsync();
 
@@ -100,7 +118,8 @@ public class PmProjectTraceService : IPmProjectTraceService
             return new PmProjectTraceStepCycleTimeListItemDto
             {
                 TraceId = s.ProjectTraceId,
-                CustomerName = s.ProjectTrace!.CustomerName ?? string.Empty,
+                QuotationNo = s.ProjectTrace!.Quotation?.QuotationNo,
+                CustomerName = s.ProjectTrace.CustomerName ?? string.Empty,
                 ProductCode = s.ProjectTrace.ProductCode ?? string.Empty,
                 ProductName = s.ProjectTrace.ProductName,
                 StepId = s.Id,
@@ -139,6 +158,7 @@ public class PmProjectTraceService : IPmProjectTraceService
             SubmitterName = submitterName,
             SubmittedAt = DateTime.UtcNow,
             ApprovalStatus = 0,
+            Site = _currentUser.Site,
             Details = changes.Select(c => new PmStepCycleTimeChangeDetail
             {
                 ChangeType = c.ChangeType,
@@ -146,7 +166,8 @@ public class PmProjectTraceService : IPmProjectTraceService
                 RecordDate = c.RecordDate,
                 ActualCycleTime = c.ActualCycleTime,
                 Remarks = c.Remarks,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                Site = _currentUser.Site
             }).ToList(),
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -215,6 +236,7 @@ public class PmProjectTraceService : IPmProjectTraceService
                             ActualCycleTime = detail.ActualCycleTime,
                             Remarks = detail.Remarks,
                             Status = 0,
+                            Site = step.Site,
                             CreatedAt = DateTime.UtcNow,
                             UpdatedAt = DateTime.UtcNow
                         });
@@ -247,6 +269,7 @@ public class PmProjectTraceService : IPmProjectTraceService
                             ActualCycleTime = detail.ActualCycleTime,
                             Remarks = detail.Remarks,
                             Status = 0,
+                            Site = step.Site,
                             CreatedAt = DateTime.UtcNow,
                             UpdatedAt = DateTime.UtcNow
                         });
@@ -284,9 +307,52 @@ public class PmProjectTraceService : IPmProjectTraceService
         await _db.SaveChangesAsync();
     }
 
+    public async Task<PmStepCycleTimeChangeRequestDto?> GetChangeRequestDetailAsync(long requestId)
+    {
+        var request = await _db.StepCycleTimeChangeRequests
+            .Include(r => r.Details)
+            .Include(r => r.Step)
+                .ThenInclude(s => s!.ProjectTrace)
+            .FirstOrDefaultAsync(r => r.Id == requestId);
+
+        if (request == null) return null;
+
+        return new PmStepCycleTimeChangeRequestDto
+        {
+            Id = request.Id,
+            StepId = request.StepId,
+            TraceId = request.TraceId,
+            SubmitterName = request.SubmitterName,
+            SubmittedAt = request.SubmittedAt,
+            ApprovalStatus = request.ApprovalStatus,
+            Remarks = request.Remarks,
+            ProcessName = request.Step?.ProcessName,
+            CustomerName = request.Step?.ProjectTrace?.CustomerName,
+            ProductCode = request.Step?.ProjectTrace?.ProductCode,
+            ProductName = request.Step?.ProjectTrace?.ProductName,
+            CycleTime = request.Step?.CycleTime,
+            Details = request.Details.Select(d => new PmStepCycleTimeChangeDetailItemDto
+            {
+                ChangeType = d.ChangeType,
+                TargetRecordId = d.TargetRecordId,
+                RecordDate = d.RecordDate,
+                ActualCycleTime = d.ActualCycleTime,
+                Remarks = d.Remarks
+            }).ToList()
+        };
+    }
+
     public async Task<PmProjectTraceDetailDto?> GetDetailAsync(long id)
     {
-        var trace = await _db.ProjectTraces
+        var query = _db.ProjectTraces.AsQueryable();
+        var currentApp = _currentUser.App ?? "cpm";
+        if (!string.IsNullOrWhiteSpace(_currentUser.Site))
+        {
+            query = query.Where(t => t.Site == _currentUser.Site);
+        }
+        query = query.Where(t => t.App == currentApp || string.IsNullOrEmpty(t.App));
+
+        var trace = await query
             .Include(t => t.Steps.OrderBy(s => s.StepOrder))
                 .ThenInclude(s => s.ActualCycleTimes.OrderBy(a => a.RecordDate))
             .Include(t => t.Customer)
@@ -344,6 +410,8 @@ public class PmProjectTraceService : IPmProjectTraceService
 
     public async Task<long> CreateAsync(PmProjectTraceCreateRequest dto)
     {
+        await _gc.ValidateAsync("PM_TRACE_STATUS", dto.Status.ToString(), _currentUser.Site, _currentUser.App ?? "cpm");
+
         var entity = new PmProjectTrace
         {
             QuotationId = dto.QuotationId,
@@ -356,6 +424,7 @@ public class PmProjectTraceService : IPmProjectTraceService
             ProjectStartDate = dto.ProjectStartDate,
             DisplayWeeks = dto.DisplayWeeks,
             Status = dto.Status,
+            Site = _currentUser.Site,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             Steps = dto.Steps.Select((s, i) => new PmProjectTraceStep
@@ -377,11 +446,13 @@ public class PmProjectTraceService : IPmProjectTraceService
                 ActualDurationDays = s.ActualDurationDays,
                 ActualPlanDurationDays = s.ActualPlanDurationDays,
                 ActualEndDate = s.ActualEndDate,
+                Site = _currentUser.Site,
                 ActualCycleTimes = s.ActualCycleTimes.Select(a => new PmProjectTraceStepActualCycleTime
                 {
                     RecordDate = a.RecordDate,
                     ActualCycleTime = a.ActualCycleTime,
                     Remarks = a.Remarks,
+                    Site = _currentUser.Site,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 }).ToList()
@@ -395,12 +466,22 @@ public class PmProjectTraceService : IPmProjectTraceService
 
     public async Task UpdateAsync(long id, PmProjectTraceUpdateRequest dto)
     {
-        var trace = await _db.ProjectTraces
+        var query = _db.ProjectTraces.AsQueryable();
+        var currentApp = _currentUser.App ?? "cpm";
+        if (!string.IsNullOrWhiteSpace(_currentUser.Site))
+        {
+            query = query.Where(t => t.Site == _currentUser.Site);
+        }
+        query = query.Where(t => t.App == currentApp || string.IsNullOrEmpty(t.App));
+
+        var trace = await query
             .Include(t => t.Steps)
                 .ThenInclude(s => s.ActualCycleTimes)
             .FirstOrDefaultAsync(t => t.Id == id);
 
         if (trace == null) throw new BusinessException("Record not found");
+
+        await _gc.ValidateAsync("PM_TRACE_STATUS", dto.Status.ToString(), trace.Site, _currentUser.App ?? "cpm");
 
         trace.CustomerName = dto.CustomerName;
         trace.ProductCode = dto.ProductCode;
@@ -466,6 +547,7 @@ public class PmProjectTraceService : IPmProjectTraceService
                     ActualDurationDays = stepDto.ActualDurationDays,
                     ActualPlanDurationDays = stepDto.ActualPlanDurationDays,
                     ActualEndDate = stepDto.ActualEndDate,
+                    Site = _currentUser.Site,
                     ActualCycleTimes = new List<PmProjectTraceStepActualCycleTime>()
                 };
                 trace.Steps.Add(newStep);
@@ -477,7 +559,15 @@ public class PmProjectTraceService : IPmProjectTraceService
 
     public async Task DeleteAsync(long id)
     {
-        var trace = await _db.ProjectTraces
+        var query = _db.ProjectTraces.AsQueryable();
+        var currentApp = _currentUser.App ?? "cpm";
+        if (!string.IsNullOrWhiteSpace(_currentUser.Site))
+        {
+            query = query.Where(t => t.Site == _currentUser.Site);
+        }
+        query = query.Where(t => t.App == currentApp || string.IsNullOrEmpty(t.App));
+
+        var trace = await query
             .Include(t => t.Steps)
             .FirstOrDefaultAsync(t => t.Id == id);
 

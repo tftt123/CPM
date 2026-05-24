@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="page-container">
     <!-- Page Header -->
     <div class="page-header-section">
@@ -10,7 +10,7 @@
           </div>
         </template>
         <template #extra>
-          <el-button type="primary" :icon="Plus" @click="handleAdd">
+          <el-button v-if="userStore.hasPermission('products.manage')" type="primary" :icon="Plus" @click="handleAdd">
             {{ t('common.add') }}
           </el-button>
         </template>
@@ -20,7 +20,7 @@
     <!-- Search Area -->
     <div class="search-area">
       <el-form :model="query" inline class="search-form">
-        <el-form-item :label="t('common.search')">
+        <el-form-item>
           <el-input
             v-model="query.keyword"
             :placeholder="t('common.pleaseInput')"
@@ -38,14 +38,14 @@
 
     <!-- Data Table -->
     <div class="content-card" style="padding: 0;">
-      <el-table :data="tableData" v-loading="loading" stripe style="width: 100%">
+      <el-table border :data="tableData" v-loading="loading" stripe style="width: 100%">
         <el-table-column type="index" label="#" width="50" align="center" />
-        <el-table-column prop="productCode" :label="t('product.productCode')" width="200">
+        <el-table-column v-if="isVisible('productCode')" prop="productCode" :label="t('product.productCode')" width="200">
           <template #default="{ row }">
             <span class="code-link">{{ row.productCode }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="productName" :label="t('product.productName')" min-width="180">
+        <el-table-column v-if="isVisible('productName')" prop="productName" :label="t('product.productName')" min-width="180">
           <template #default="{ row }">
             <div class="product-name-cell">
               <el-avatar :size="28" :icon="Box" class="product-avatar" />
@@ -53,12 +53,12 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="material" :label="t('product.material')" width="120">
+        <el-table-column v-if="isVisible('material')" prop="material" :label="t('product.material')" min-width="120">
           <template #default="{ row }">
             <span class="badge badge-success">{{ row.material || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="surfaceTreatment" :label="t('product.surfaceTreatment')" width="140">
+        <el-table-column v-if="isVisible('surfaceTreatment')" prop="surfaceTreatment" :label="t('product.surfaceTreatment')" width="140">
           <template #default="{ row }">
             <div class="surface-cell">
               <el-icon size="14"><Brush /></el-icon>
@@ -66,7 +66,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column :label="t('common.action')" width="150" align="right" fixed="right">
+        <el-table-column :label="t('common.action')" min-width="150" align="right" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" :icon="Edit" @click="handleEdit(row)">
               {{ t('common.edit') }}
@@ -79,7 +79,6 @@
       </el-table>
 
       <div class="table-footer">
-        <span class="table-info">{{ t('common.total') }} {{ total }}</span>
         <el-pagination
           v-model:current-page="query.pageNum"
           v-model:page-size="query.pageSize"
@@ -88,6 +87,7 @@
           :page-sizes="[10, 20, 50]"
           @change="loadData"
         />
+        <span class="table-info">{{ t('common.total') }} {{ total }}</span>
       </div>
     </div>
 
@@ -105,6 +105,8 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { productApi } from '@/api/product'
 import ProductForm from './ProductForm.vue'
 import { useI18n } from '@/composables/useI18n'
+import { useFieldControl } from '@/composables/useFieldControl'
+import { useUserStore } from '@/stores/user'
 import {
   Plus,
   Search,
@@ -116,6 +118,8 @@ import {
 } from '@element-plus/icons-vue'
 
 const { t } = useI18n()
+const userStore = useUserStore()
+const { isVisible } = useFieldControl('Product', 'ProductList')
 const loading = ref(false)
 const dialogVisible = ref(false)
 const editData = ref<any>(null)
@@ -251,8 +255,9 @@ onMounted(loadData)
 
 .table-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
+  gap: var(--slds-spacing-lg);
   padding: var(--slds-spacing-md) var(--slds-spacing-lg);
   border-top: 1px solid var(--slds-border-color-light);
 }

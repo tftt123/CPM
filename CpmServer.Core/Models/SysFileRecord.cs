@@ -26,6 +26,7 @@ public class SysFileRecord
     public long? BusinessId { get; set; }
 
     public string? Site { get; set; }
+    public string? App { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 }

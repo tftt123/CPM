@@ -21,6 +21,7 @@ public class SysUser
     public string? AvatarUrl { get; set; }
     public long? DeptId { get; set; }
     public string? Site { get; set; }
+    public string? App { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime UpdatedAt { get; set; } = DateTime.Now;

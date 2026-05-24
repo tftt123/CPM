@@ -13,11 +13,13 @@ public class EmailService : IEmailService
 {
     private readonly CpmDbContext _db;
     private readonly ILogger<EmailService> _logger;
+    private readonly ICurrentUser _currentUser;
 
-    public EmailService(CpmDbContext db, ILogger<EmailService> logger)
+    public EmailService(CpmDbContext db, ILogger<EmailService> logger, ICurrentUser currentUser)
     {
         _db = db;
         _logger = logger;
+        _currentUser = currentUser;
     }
 
     public async Task SendEmailAsync(string toAddress, string subject, string body)
@@ -64,8 +66,16 @@ public class EmailService : IEmailService
 
     public async Task SendEmailByTemplateAsync(string templateCode, Dictionary<string, string> variables, string toAddress)
     {
-        var template = await _db.EmailTemplates
-            .FirstOrDefaultAsync(t => t.TemplateCode == templateCode && t.IsActive);
+        var templateQuery = _db.EmailTemplates
+            .Where(t => t.TemplateCode == templateCode && t.IsActive)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(_currentUser.Site))
+        {
+            templateQuery = templateQuery.Where(t => t.Site == _currentUser.Site);
+        }
+
+        var template = await templateQuery.FirstOrDefaultAsync();
 
         if (template == null)
         {
@@ -87,8 +97,16 @@ public class EmailService : IEmailService
 
     public async Task<EmailConfigDto?> GetActiveConfigAsync()
     {
-        var config = await _db.EmailConfigs
+        var query = _db.EmailConfigs
             .Where(c => c.IsActive)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(_currentUser.Site))
+        {
+            query = query.Where(c => c.Site == _currentUser.Site);
+        }
+
+        var config = await query
             .OrderBy(c => c.Id)
             .FirstOrDefaultAsync();
 
@@ -136,7 +154,8 @@ public class EmailService : IEmailService
                 FromName = dto.FromName,
                 FromAddress = dto.FromAddress,
                 EnableSsl = dto.EnableSsl,
-                IsActive = dto.IsActive
+                IsActive = dto.IsActive,
+                Site = _currentUser.Site
             });
         }
 
@@ -145,7 +164,14 @@ public class EmailService : IEmailService
 
     public async Task<List<EmailTemplateDto>> GetTemplatesAsync()
     {
-        return await _db.EmailTemplates
+        var query = _db.EmailTemplates.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(_currentUser.Site))
+        {
+            query = query.Where(t => t.Site == _currentUser.Site);
+        }
+
+        return await query
             .OrderBy(t => t.TemplateCode)
             .Select(t => new EmailTemplateDto
             {
@@ -188,7 +214,8 @@ public class EmailService : IEmailService
             Body = body.Length > 2000 ? body[..2000] : body,
             Status = status,
             ErrorMessage = error,
-            SentAt = status == 1 ? DateTime.Now : null
+            SentAt = status == 1 ? DateTime.Now : null,
+            Site = _currentUser.Site
         });
         await _db.SaveChangesAsync();
     }

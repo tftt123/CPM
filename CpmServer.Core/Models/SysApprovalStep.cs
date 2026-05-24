@@ -37,6 +37,7 @@ public class SysApprovalStep
     public long? NextStepId { get; set; }
     public bool IsActive { get; set; } = true;
     public string? Site { get; set; }
+    public string? App { get; set; }
 
     /// <summary>
     /// 驳回行为：REJECT_AND_CLOSE / REJECT_TO_PREV / REJECT_TO_STEP / REJECT_TO_START

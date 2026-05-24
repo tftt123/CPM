@@ -49,6 +49,12 @@ public class SysApprovalInstanceTask
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime? CompletedAt { get; set; }
 
+    [StringLength(64)]
+    public string? Site { get; set; }
+
+    [StringLength(64)]
+    public string? App { get; set; }
+
     [ForeignKey("InstanceId")]
     public SysApprovalInstance? Instance { get; set; }
 

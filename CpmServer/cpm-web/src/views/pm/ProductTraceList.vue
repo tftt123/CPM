@@ -1,8 +1,8 @@
-<template>
+﻿<template>
   <div class="page-container">
     <div class="page-header">
       <h2>{{ t('pmTrace.pageTitle') }}</h2>
-      <el-button type="primary" @click="handleCreate">
+      <el-button v-if="userStore.hasPermission('pm.manage')" type="primary" @click="handleCreate">
         <el-icon><Plus /></el-icon>
         {{ t('common.new') }}
       </el-button>
@@ -10,15 +10,17 @@
 
     <el-card class="search-card">
       <el-form :inline="true" :model="searchForm">
-        <el-form-item :label="t('common.keyword')">
+        <el-form-item>
           <el-input v-model="searchForm.keyword" :placeholder="t('pmTrace.searchPlaceholder')" clearable />
         </el-form-item>
         <el-form-item :label="t('common.status')">
-          <el-select v-model="searchForm.status" clearable style="width: 120px">
-            <el-option :label="t('pmTrace.statusDraft')" :value="0" />
-            <el-option :label="t('pmTrace.statusRunning')" :value="1" />
-            <el-option :label="t('pmTrace.statusCompleted')" :value="2" />
-          </el-select>
+          <GcSelect
+            v-model="searchForm.status"
+            domain="PM_TRACE_STATUS"
+            clearable
+            style="width: 120px"
+            :fallback="statusFallback"
+          />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="loadData">
@@ -29,27 +31,27 @@
       </el-form>
     </el-card>
 
-    <el-table :data="tableData" v-loading="loading" stripe>
-      <el-table-column prop="customerName" :label="t('pmTrace.customer')" min-width="140" />
-      <el-table-column prop="productCode" :label="t('pmTrace.partNo')" min-width="140" />
-      <el-table-column prop="productName" :label="t('pmTrace.productName')" min-width="160" />
-      <el-table-column prop="plannedQty" :label="t('pmTrace.plannedQty')" width="100" align="center" />
-      <el-table-column prop="projectStartDate" :label="t('pmTrace.startDate')" width="120">
+    <el-table border :data="tableData" v-loading="loading" stripe>
+      <el-table-column v-if="isVisible('customerName')" prop="customerName" :label="t('pmTrace.customer')" min-width="140" />
+      <el-table-column v-if="isVisible('productCode')" prop="productCode" :label="t('pmTrace.partNo')" min-width="140" />
+      <el-table-column v-if="isVisible('productName')" prop="productName" :label="t('pmTrace.productName')" min-width="160" />
+      <el-table-column v-if="isVisible('plannedQty')" prop="plannedQty" :label="t('pmTrace.plannedQty')" min-width="100" align="center" />
+      <el-table-column v-if="isVisible('projectStartDate')" prop="projectStartDate" :label="t('pmTrace.startDate')" min-width="120">
         <template #default="{ row }">
           {{ formatDate(row.projectStartDate) }}
         </template>
       </el-table-column>
-      <el-table-column prop="status" :label="t('common.status')" width="100">
+      <el-table-column v-if="isVisible('status')" prop="status" :label="t('common.status')" min-width="100">
         <template #default="{ row }">
           <el-tag :type="statusType(row.status)">{{ statusLabel(row.status) }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column :label="t('common.action')" width="180" fixed="right">
+      <el-table-column :label="t('common.action')" min-width="180" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="handleEdit(row)">
+          <el-button link type="primary" size="small" :icon="Edit" @click="handleEdit(row)">
             {{ t('common.edit') }}
           </el-button>
-          <el-button link type="danger" @click="handleDelete(row)">
+          <el-button link type="danger" size="small" :icon="Delete" @click="handleDelete(row)">
             {{ t('common.delete') }}
           </el-button>
         </template>
@@ -72,13 +74,20 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Search } from '@element-plus/icons-vue'
+import { Plus, Search, Edit, Delete } from '@element-plus/icons-vue'
 import { useI18n } from '@/composables/useI18n'
+import { useFieldControl } from '@/composables/useFieldControl'
+import { useUserStore } from '@/stores/user'
+import { useGeneralizedCode, type GcOption } from '@/composables/useGeneralizedCode'
+import GcSelect from '@/components/GcSelect.vue'
 import { getTraceList, deleteTrace } from '@/api/pmProjectTrace'
 import type { PmProjectTrace } from '@/api/pmProjectTrace'
 
 const router = useRouter()
 const { t } = useI18n()
+const userStore = useUserStore()
+const { isVisible } = useFieldControl('PM', 'ProductTraceList')
+const { getOptions } = useGeneralizedCode()
 
 const loading = ref(false)
 const tableData = ref<PmProjectTrace[]>([])
@@ -86,6 +95,13 @@ const searchForm = reactive({
   keyword: '',
   status: undefined as number | undefined,
 })
+const statusOptions = ref<GcOption[]>([])
+
+const statusFallback = [
+  { code: '0', label: t('pmTrace.statusDraft'), tagType: 'info' },
+  { code: '1', label: t('pmTrace.statusRunning'), tagType: 'warning' },
+  { code: '2', label: t('pmTrace.statusCompleted'), tagType: 'success' }
+]
 const pagination = reactive({
   page: 1,
   pageSize: 20,
@@ -97,22 +113,14 @@ function formatDate(date?: string) {
   return new Date(date).toLocaleDateString()
 }
 
+const getStatusOption = (status: number) => statusOptions.value.find(o => o.value === String(status))
+
 function statusType(status: number) {
-  switch (status) {
-    case 0: return 'info'
-    case 1: return 'warning'
-    case 2: return 'success'
-    default: return 'info'
-  }
+  return getStatusOption(status)?.tagType || 'info'
 }
 
 function statusLabel(status: number) {
-  switch (status) {
-    case 0: return t('pmTrace.statusDraft')
-    case 1: return t('pmTrace.statusRunning')
-    case 2: return t('pmTrace.statusCompleted')
-    default: return '-'
-  }
+  return getStatusOption(status)?.label || '-'
 }
 
 async function loadData() {
@@ -152,7 +160,10 @@ async function handleDelete(row: PmProjectTrace) {
   }
 }
 
-onMounted(loadData)
+onMounted(async () => {
+  statusOptions.value = await getOptions('PM_TRACE_STATUS', statusFallback)
+  loadData()
+})
 </script>
 
 <style scoped>

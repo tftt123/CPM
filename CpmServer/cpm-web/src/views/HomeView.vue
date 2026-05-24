@@ -4,14 +4,11 @@
     <div class="welcome-section">
       <div class="welcome-content">
         <h1 class="welcome-title">
-          {{ t('layout.appName') }}, {{ userStore.userInfo?.realName || userStore.userInfo?.username || t('common.user') }}
+          {{ t('app.cpm') }}, {{ userStore.userInfo?.realName || userStore.userInfo?.username || t('common.user') }}
         </h1>
         <p class="welcome-subtitle">{{ t('login.desc') }}</p>
       </div>
       <div class="welcome-actions">
-        <el-button type="primary" :icon="Plus" @click="$router.push('/customer')">
-          {{ t('common.add') }}
-        </el-button>
         <el-button :icon="Refresh" @click="refreshData">
           {{ t('common.refresh') }}
         </el-button>
@@ -20,59 +17,43 @@
 
     <!-- Stats Cards -->
     <div class="stats-grid">
+      <div class="stat-card dashboard-stat stat-clickable" @click="$router.push('/approval/center')">
+        <div class="stat-icon" style="background: var(--cpm-error-bg); color: var(--cpm-error);">
+          <el-icon size="24"><Timer /></el-icon>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value" style="color: var(--cpm-error);">{{ stats.pending }}</div>
+          <div class="stat-label">{{ t('common.pending') }}</div>
+        </div>
+      </div>
+
       <div class="stat-card dashboard-stat">
-        <div class="stat-icon" style="background: #F0F8FF; color: #0176D3;">
+        <div class="stat-icon" style="background: var(--cpm-info-bg); color: var(--cpm-info);">
           <el-icon size="24"><UserFilled /></el-icon>
         </div>
         <div class="stat-info">
           <div class="stat-value">{{ stats.customers }}</div>
           <div class="stat-label">{{ t('nav.customer') }}</div>
         </div>
-        <div class="stat-trend trend-up">
-          <el-icon><ArrowUp /></el-icon>
-          <span>+12%</span>
-        </div>
       </div>
 
       <div class="stat-card dashboard-stat">
-        <div class="stat-icon" style="background: #EDF7EE; color: #2E844A;">
+        <div class="stat-icon" style="background: var(--cpm-success-bg); color: var(--cpm-success);">
           <el-icon size="24"><Box /></el-icon>
         </div>
         <div class="stat-info">
-          <div class="stat-value" style="color: var(--slds-success);">{{ stats.products }}</div>
+          <div class="stat-value" style="color: var(--cpm-success);">{{ stats.products }}</div>
           <div class="stat-label">{{ t('nav.product') }}</div>
-        </div>
-        <div class="stat-trend trend-up">
-          <el-icon><ArrowUp /></el-icon>
-          <span>+8%</span>
         </div>
       </div>
 
       <div class="stat-card dashboard-stat">
-        <div class="stat-icon" style="background: #FEF3E8; color: #E67A1F;">
+        <div class="stat-icon" style="background: var(--cpm-warning-bg); color: var(--cpm-warning);">
           <el-icon size="24"><TrendCharts /></el-icon>
         </div>
         <div class="stat-info">
-          <div class="stat-value" style="color: var(--slds-warning);">{{ stats.deals }}</div>
+          <div class="stat-value" style="color: var(--cpm-warning);">{{ stats.deals }}</div>
           <div class="stat-label">{{ t('nav.salesReport') }}</div>
-        </div>
-        <div class="stat-trend trend-down">
-          <el-icon><ArrowDown /></el-icon>
-          <span>-3%</span>
-        </div>
-      </div>
-
-      <div class="stat-card dashboard-stat">
-        <div class="stat-icon" style="background: #FCEEED; color: #C23A31;">
-          <el-icon size="24"><Timer /></el-icon>
-        </div>
-        <div class="stat-info">
-          <div class="stat-value" style="color: var(--slds-error);">{{ stats.pending }}</div>
-          <div class="stat-label">{{ t('common.pending') }}</div>
-        </div>
-        <div class="stat-trend trend-up">
-          <el-icon><ArrowUp /></el-icon>
-          <span>+5</span>
         </div>
       </div>
     </div>
@@ -89,25 +70,25 @@
         </div>
         <div class="action-grid">
           <div class="action-item" @click="$router.push('/customer')">
-            <div class="action-icon" style="background: #F0F8FF; color: #0176D3;">
+            <div class="action-icon" style="background: var(--cpm-info-bg); color: var(--cpm-info);">
               <el-icon size="20"><UserFilled /></el-icon>
             </div>
             <span class="action-label">{{ t('nav.customer') }}</span>
           </div>
           <div class="action-item" @click="$router.push('/product')">
-            <div class="action-icon" style="background: #EDF7EE; color: #2E844A;">
+            <div class="action-icon" style="background: var(--cpm-success-bg); color: var(--cpm-success);">
               <el-icon size="20"><Box /></el-icon>
             </div>
             <span class="action-label">{{ t('nav.product') }}</span>
           </div>
           <div class="action-item">
-            <div class="action-icon" style="background: #FEF3E8; color: #E67A1F;">
+            <div class="action-icon" style="background: var(--cpm-warning-bg); color: var(--cpm-warning);">
               <el-icon size="20"><Document /></el-icon>
             </div>
             <span class="action-label">{{ t('nav.salesReport') }}</span>
           </div>
           <div class="action-item">
-            <div class="action-icon" style="background: #FCEEED; color: #C23A31;">
+            <div class="action-icon" style="background: var(--cpm-error-bg); color: var(--cpm-error);">
               <el-icon size="20"><Setting /></el-icon>
             </div>
             <span class="action-label">{{ t('common.systemSettings') }}</span>
@@ -146,22 +127,22 @@
       </div>
       <div class="status-grid">
         <div class="status-item">
-          <el-icon size="18" color="#2E844A"><CircleCheckFilled /></el-icon>
+          <el-icon size="18" color="var(--cpm-success)"><CircleCheckFilled /></el-icon>
           <span class="status-label">{{ t('common.backendService') }}</span>
           <span class="status-value status-online">{{ t('common.running') }}</span>
         </div>
         <div class="status-item">
-          <el-icon size="18" color="#2E844A"><CircleCheckFilled /></el-icon>
+          <el-icon size="18" color="var(--cpm-success)"><CircleCheckFilled /></el-icon>
           <span class="status-label">{{ t('common.databaseConnection') }}</span>
           <span class="status-value status-online">{{ t('common.connected') }}</span>
         </div>
         <div class="status-item">
-          <el-icon size="18" color="#0176D3"><InfoFilled /></el-icon>
+          <el-icon size="18" color="var(--cpm-info)"><InfoFilled /></el-icon>
           <span class="status-label">{{ t('common.systemVersion') }}</span>
           <span class="status-value">v1.0.0</span>
         </div>
         <div class="status-item">
-          <el-icon size="18" color="#0176D3"><Calendar /></el-icon>
+          <el-icon size="18" color="var(--cpm-info)"><Calendar /></el-icon>
           <span class="status-label">{{ t('common.currentDate') }}</span>
           <span class="status-value">{{ currentDate }}</span>
         </div>
@@ -174,6 +155,7 @@
 import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import request from '@/api/request'
+import { getMyPendingTasks } from '@/api/approval'
 import { useI18n } from '@/composables/useI18n'
 import {
   Plus,
@@ -206,23 +188,24 @@ const stats = ref({
 })
 
 const recentActivities = ref([
-  { text: 'New customer "Huawei Technologies"', time: '2 hours ago', color: '#0176D3' },
-  { text: 'Updated product "SUS304 Stainless Steel Sheet"', time: '4 hours ago', color: '#2E844A' },
-  { text: 'Deleted customer "Test Customer 001"', time: 'Yesterday', color: '#C23A31' },
-  { text: 'System backup completed', time: 'Yesterday', color: '#706E6B' },
-  { text: 'New product "AL6061 Aluminum Profile"', time: '3 days ago', color: '#0176D3' }
+  { text: 'New customer "Huawei Technologies"', time: '2 hours ago', color: 'var(--cpm-info)' },
+  { text: 'Updated product "SUS304 Stainless Steel Sheet"', time: '4 hours ago', color: 'var(--cpm-success)' },
+  { text: 'Deleted customer "Test Customer 001"', time: 'Yesterday', color: 'var(--cpm-error)' },
+  { text: 'System backup completed', time: 'Yesterday', color: 'var(--cpm-text-muted)' },
+  { text: 'New product "AL6061 Aluminum Profile"', time: '3 days ago', color: 'var(--cpm-info)' }
 ])
 
 const refreshData = async () => {
   try {
-    const [customerRes, productRes] = await Promise.all([
+    const [customerRes, productRes, taskRes] = await Promise.all([
       request.get('/customer/list', { params: { pageNum: 1, pageSize: 1 } }),
-      request.get('/product/list', { params: { pageNum: 1, pageSize: 1 } })
+      request.get('/product/list', { params: { pageNum: 1, pageSize: 1 } }),
+      getMyPendingTasks()
     ])
     stats.value.customers = customerRes?.data?.total || 0
     stats.value.products = productRes?.data?.total || 0
     stats.value.deals = 0
-    stats.value.pending = 0
+    stats.value.pending = taskRes?.data?.length || 0
   } catch (e) {
     console.log('Dashboard data load failed:', e)
   }
@@ -235,54 +218,66 @@ onMounted(() => {
 
 <style scoped>
 .dashboard {
-  padding: var(--slds-spacing-lg);
+  padding: var(--cpm-space-6);
 }
 
 .welcome-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--slds-spacing-xl);
-  padding-bottom: var(--slds-spacing-lg);
-  border-bottom: 1px solid var(--slds-border-color);
+  margin-bottom: var(--cpm-space-8);
+  padding-bottom: var(--cpm-space-6);
+  border-bottom: 1px solid var(--cpm-border);
 }
 
 .welcome-title {
-  font-size: 28px;
+  font-size: var(--cpm-text-display);
   font-weight: 700;
-  color: var(--slds-text-primary);
-  margin: 0 0 4px;
+  color: var(--cpm-text-primary);
+  margin: 0 0 var(--cpm-space-1);
+  letter-spacing: -0.5px;
+  line-height: 1.2;
 }
 
 .welcome-subtitle {
-  font-size: var(--slds-font-size-md);
-  color: var(--slds-text-secondary);
+  font-size: var(--cpm-text-body);
+  color: var(--cpm-text-secondary);
   margin: 0;
 }
 
 .welcome-actions {
   display: flex;
-  gap: var(--slds-spacing-sm);
+  gap: var(--cpm-space-2);
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: var(--slds-spacing-md);
-  margin-bottom: var(--slds-spacing-lg);
+  gap: var(--cpm-space-4);
+  margin-bottom: var(--cpm-space-6);
 }
 
 .dashboard-stat {
   display: flex;
   align-items: center;
-  gap: var(--slds-spacing-md);
-  padding: var(--slds-spacing-lg);
+  gap: var(--cpm-space-4);
+  padding: var(--cpm-space-6);
+}
+
+.stat-clickable {
+  cursor: pointer;
+  transition: transform var(--cpm-duration-normal) var(--cpm-easing-default), box-shadow var(--cpm-duration-normal) var(--cpm-easing-default);
+}
+
+.stat-clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--cpm-shadow-md);
 }
 
 .stat-icon {
   width: 48px;
   height: 48px;
-  border-radius: 12px;
+  border-radius: var(--cpm-radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -297,52 +292,52 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 2px;
-  font-size: 12px;
+  font-size: var(--cpm-text-small);
   font-weight: 600;
   padding: 2px 8px;
-  border-radius: 12px;
+  border-radius: var(--cpm-radius-full);
 }
 
 .trend-up {
-  background: #EDF7EE;
-  color: var(--slds-success);
+  background: var(--cpm-success-bg);
+  color: var(--cpm-success);
 }
 
 .trend-down {
-  background: #FCEEED;
-  color: var(--slds-error);
+  background: var(--cpm-error-bg);
+  color: var(--cpm-error);
 }
 
 .dashboard-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--slds-spacing-md);
-  margin-bottom: var(--slds-spacing-lg);
+  gap: var(--cpm-space-4);
+  margin-bottom: var(--cpm-space-6);
 }
 
 .content-card {
-  background: var(--slds-bg-card);
-  border-radius: var(--slds-border-radius);
-  border: 1px solid var(--slds-border-color-light);
-  box-shadow: var(--slds-shadow-card);
-  padding: var(--slds-spacing-lg);
+  background: var(--cpm-bg-card);
+  border-radius: var(--cpm-radius-md);
+  border: 1px solid var(--cpm-border-light);
+  box-shadow: var(--cpm-shadow-sm);
+  padding: var(--cpm-space-6);
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--slds-spacing-md);
+  margin-bottom: var(--cpm-space-4);
 }
 
 .card-title {
-  font-size: var(--slds-font-size-md);
+  font-size: var(--cpm-text-body);
   font-weight: 600;
-  color: var(--slds-text-primary);
+  color: var(--cpm-text-primary);
   margin: 0;
   display: flex;
   align-items: center;
-  gap: var(--slds-spacing-sm);
+  gap: var(--cpm-space-2);
 }
 
 .view-all {
@@ -353,51 +348,51 @@ onMounted(() => {
 .action-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--slds-spacing-md);
+  gap: var(--cpm-space-4);
 }
 
 .action-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--slds-spacing-sm);
-  padding: var(--slds-spacing-lg);
-  border-radius: var(--slds-border-radius);
+  gap: var(--cpm-space-2);
+  padding: var(--cpm-space-6);
+  border-radius: var(--cpm-radius-md);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background var(--cpm-duration-normal) var(--cpm-easing-default);
   border: 1px solid transparent;
 }
 
 .action-item:hover {
-  background: var(--slds-bg-hover);
-  border-color: var(--slds-border-color-light);
+  background: var(--cpm-bg-hover);
+  border-color: var(--cpm-border-light);
 }
 
 .action-icon {
   width: 44px;
   height: 44px;
-  border-radius: 12px;
+  border-radius: var(--cpm-radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .action-label {
-  font-size: var(--slds-font-size-sm);
+  font-size: var(--cpm-text-small);
   font-weight: 500;
-  color: var(--slds-text-secondary);
+  color: var(--cpm-text-secondary);
 }
 
 .activity-list {
   display: flex;
   flex-direction: column;
-  gap: var(--slds-spacing-md);
+  gap: var(--cpm-space-4);
 }
 
 .activity-item {
   display: flex;
   align-items: flex-start;
-  gap: var(--slds-spacing-sm);
+  gap: var(--cpm-space-2);
 }
 
 .activity-dot {
@@ -413,50 +408,50 @@ onMounted(() => {
 }
 
 .activity-text {
-  font-size: var(--slds-font-size-md);
-  color: var(--slds-text-primary);
+  font-size: var(--cpm-text-body);
+  color: var(--cpm-text-primary);
   margin: 0 0 2px;
   line-height: 1.4;
 }
 
 .activity-time {
-  font-size: 12px;
-  color: var(--slds-text-secondary);
+  font-size: var(--cpm-text-small);
+  color: var(--cpm-text-secondary);
 }
 
 .system-status {
-  margin-top: var(--slds-spacing-lg);
+  margin-top: var(--cpm-space-6);
 }
 
 .status-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: var(--slds-spacing-lg);
+  gap: var(--cpm-space-6);
 }
 
 .status-item {
   display: flex;
   align-items: center;
-  gap: var(--slds-spacing-sm);
-  padding: var(--slds-spacing-md);
-  background: var(--slds-bg-page);
-  border-radius: var(--slds-border-radius);
+  gap: var(--cpm-space-2);
+  padding: var(--cpm-space-4);
+  background: var(--cpm-bg-page);
+  border-radius: var(--cpm-radius-md);
 }
 
 .status-label {
-  font-size: var(--slds-font-size-sm);
-  color: var(--slds-text-secondary);
+  font-size: var(--cpm-text-small);
+  color: var(--cpm-text-secondary);
   flex: 1;
 }
 
 .status-value {
-  font-size: var(--slds-font-size-sm);
+  font-size: var(--cpm-text-small);
   font-weight: 600;
-  color: var(--slds-text-primary);
+  color: var(--cpm-text-primary);
 }
 
 .status-online {
-  color: var(--slds-success);
+  color: var(--cpm-success);
 }
 
 @media (max-width: 1200px) {
@@ -478,7 +473,7 @@ onMounted(() => {
   .welcome-section {
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--slds-spacing-md);
+    gap: var(--cpm-space-4);
   }
   .status-grid {
     grid-template-columns: 1fr;

@@ -9,7 +9,7 @@
           </div>
         </template>
         <template #extra>
-          <el-button type="primary" :icon="Promotion" @click="handleSubmit" v-if="detail?.status === 0">
+          <el-button type="primary" :icon="Promotion" @click="handleSubmit" v-if="detail?.status === 0 && userStore.hasPermission('quotations.manage')">
             {{ t('quotation.submitApproval') }}
           </el-button>
           <el-button type="success" :icon="CircleCheck" @click="showApproveDialog('APPROVE')" v-if="canApprove">
@@ -18,17 +18,27 @@
           <el-button type="danger" :icon="CircleClose" @click="showApproveDialog('REJECT')" v-if="canReject">
             {{ t('quotation.reject') }}
           </el-button>
+          <el-button
+            link
+            type="primary"
+            size="small"
+            :icon="View"
+            @click="showForecast"
+            :loading="forecastLoading"
+          >
+            {{ t('quotation.forecast') || '审批预测' }}
+          </el-button>
         </template>
       </el-page-header>
     </div>
 
     <div class="detail-grid" v-loading="loading">
-      <!-- Left: Quotation Info -->
+      <!-- Left: Quotation Info + Product Groups -->
       <div class="detail-left">
         <div class="content-card info-card">
           <div class="card-header">
             <el-icon size="18"><Document /></el-icon>
-            <span>{{ t('common.detail') }}</span>
+            <span>{{ detail?.opportunityTitle || t('common.detail') }}</span>
           </div>
           <div class="info-grid">
             <div class="info-item">
@@ -40,8 +50,8 @@
               <div class="info-value">{{ detail?.customerName }}</div>
             </div>
             <div class="info-item">
-              <div class="info-label">{{ t('opportunity.title') }}</div>
-              <div class="info-value">{{ detail?.opportunityTitle }}</div>
+              <div class="info-label">{{ t('customer.currency') }}</div>
+              <div class="info-value">{{ detail?.customerCurrency || '-' }}</div>
             </div>
             <div class="info-item">
               <div class="info-label">{{ t('common.status') }}</div>
@@ -50,10 +60,6 @@
                   {{ getStatusLabel(detail?.status) }}
                 </el-tag>
               </div>
-            </div>
-            <div class="info-item">
-              <div class="info-label">{{ t('quotation.totalAmount') }}</div>
-              <div class="info-value amount">¥{{ detail?.totalAmount?.toLocaleString() || '0.00' }}</div>
             </div>
             <div class="info-item">
               <div class="info-label">{{ t('common.user') }}</div>
@@ -66,119 +72,103 @@
           </div>
         </div>
 
+        <!-- Product Groups: grouped card style -->
         <div class="content-card items-card">
           <div class="card-header">
             <el-icon size="18"><Tickets /></el-icon>
             <span>{{ t('quotation.items') }}</span>
           </div>
-          <el-table :data="detail?.items" size="small">
-            <el-table-column type="index" label="#" width="50" align="center" />
-            <el-table-column prop="productName" :label="t('quotation.productName')" min-width="140" />
-            <el-table-column prop="qty" :label="t('quotation.qty')" width="60" align="center" />
-            <el-table-column prop="unitPrice" :label="t('quotation.unitPrice')" width="100" align="right">
-              <template #default="{ row }">
-                ¥{{ row.unitPrice?.toFixed(2) }}
-              </template>
-            </el-table-column>
-            <el-table-column prop="lineAmount" :label="t('quotation.lineAmount')" width="100" align="right">
-              <template #default="{ row }">
-                <span class="amount">¥{{ row.lineAmount?.toFixed(2) }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column prop="processType" label="加工类型" width="90" />
-            <el-table-column prop="equipmentType" label="设备类型" width="90" />
-            <el-table-column prop="equipment" label="设备" width="100" />
-            <el-table-column prop="cycleTime" :label="t('quotation.cycleTime')" width="80" align="right">
-              <template #default="{ row }">
-                {{ row.cycleTime?.toFixed(4) || '-' }}
-              </template>
-            </el-table-column>
-            <el-table-column prop="hourlyRate" label="小时费率" width="90" align="right">
-              <template #default="{ row }">
-                {{ row.hourlyRate?.toFixed(4) || '-' }}
-              </template>
-            </el-table-column>
-            <el-table-column prop="cost" label="成本" width="100" align="right">
-              <template #default="{ row }">
-                <span class="cost">¥{{ row.cost?.toFixed(4) || '0.0000' }}</span>
-              </template>
-            </el-table-column>
-          </el-table>
-          <div class="items-total">
-            <span>{{ t('common.total') }}：</span>
-            <span class="total-amount">¥{{ detail?.totalAmount?.toFixed(2) || '0.00' }}</span>
-            <span style="margin-left: 24px;">成本合计：</span>
-            <span class="total-cost">¥{{ totalItemCost.toFixed(4) }}</span>
-          </div>
-        </div>
-      </div>
 
-      <!-- Right: Approval Flow -->
-      <div class="detail-right">
-        <div class="content-card approval-card">
-          <div class="card-header" style="justify-content: space-between;">
-            <div style="display: flex; align-items: center; gap: var(--slds-spacing-sm);">
-              <el-icon size="18"><Timer /></el-icon>
-              <span>{{ t('quotation.approvalFlow') }}</span>
-            </div>
-            <el-button
-              link
-              type="primary"
-              size="small"
-              :icon="View"
-              @click="showForecast"
-              :loading="forecastLoading"
-            >
-              {{ t('quotation.forecast') || '审批预测' }}
-            </el-button>
-          </div>
-
-          <!-- Approval Steps -->
-          <div class="approval-steps" v-if="approvalSteps.length > 0">
+          <div class="product-groups" v-if="productGroups.length > 0">
             <div
-              v-for="(step, index) in approvalSteps"
-              :key="step.id"
-              class="approval-step"
-              :class="{ 'is-current': step.isCurrent, 'is-completed': step.isCompleted }"
+              v-for="(group, groupIndex) in productGroups"
+              :key="group.productId || groupIndex"
+              class="product-group"
             >
-              <div class="step-icon">
-                <el-icon v-if="step.isCompleted" size="20" color="#2E844A"><CircleCheck /></el-icon>
-                <el-icon v-else-if="step.isCurrent" size="20" color="#0176D3"><Timer /></el-icon>
-                <span v-else class="step-number">{{ index + 1 }}</span>
+              <!-- Group Header: Product Name + Qty -->
+              <div class="group-header">
+                <div class="group-product">
+                  <el-icon size="16"><Box /></el-icon>
+                  <span v-if="isVisible('productName')" class="group-product-name">{{ group.productName }}</span>
+                  <el-tag size="small" type="info">x{{ group.qty }}</el-tag>
+                </div>
+                <div class="group-summary">
+                  <span class="group-cost">{{ t('quotation.packaging') }}: {{ formatCurrency(group.packagingCost) }}</span>
+                  <span class="group-cost">{{ t('quotation.transport') }}: {{ formatCurrency(group.transportCost) }}</span>
+                  <span class="group-cost">{{ t('quotation.processingFee') }}: {{ formatCurrency(group.processCost) }}</span>
+                  <span class="group-amount">{{ formatCurrency(group.lineAmount) }}</span>
+                </div>
               </div>
-              <div class="step-content">
-                <div class="step-name">{{ step.stepName }}</div>
-                <div class="step-meta">
-                  <span class="step-type">{{ getStepTypeLabel(step.stepType) }}</span>
-                  <span class="step-approver" v-if="step.approverUserName">
-                    {{ step.approverUserName }}
-                  </span>
-                  <span class="step-role" v-else-if="step.approverRole">
-                    {{ step.approverRole }}
-                  </span>
+
+              <!-- Process Table -->
+              <div class="group-table">
+                <div class="group-table-header">
+                  <span v-if="isVisible('processType')" class="th">{{ t('quotation.processType') }}</span>
+                  <span v-if="isVisible('equipmentType')" class="th">{{ t('quotation.equipmentType') }}</span>
+                  <span v-if="isVisible('equipment')" class="th">{{ t('quotation.equipment') }}</span>
+                  <span v-if="isVisible('cycleTime')" class="th" align="right">{{ t('quotation.cycleTime') }}</span>
+                  <span v-if="isVisible('hourlyRate')" class="th" align="right">{{ t('quotation.hourlyRate') }}</span>
+                  <span class="th" align="right">{{ t('quotation.processingFee') }}</span>
+                  <span class="th" align="right">{{ t('quotation.lineAmount') }}</span>
+                </div>
+                <div
+                  v-for="(process, pIdx) in group.processes"
+                  :key="process.id || pIdx"
+                  class="group-table-row"
+                  :class="{ 'is-master': pIdx === 0 }"
+                >
+                  <span v-if="isVisible('processType')" class="td">{{ process.processType || '-' }}</span>
+                  <span v-if="isVisible('equipmentType')" class="td">{{ process.equipmentType || '-' }}</span>
+                  <span v-if="isVisible('equipment')" class="td">{{ process.equipment || '-' }}</span>
+                  <span v-if="isVisible('cycleTime')" class="td" align="right">{{ process.cycleTime != null ? Math.round(process.cycleTime) : '-' }}</span>
+                  <span v-if="isVisible('hourlyRate')" class="td" align="right">{{ process.hourlyRate?.toFixed(2) || '-' }}</span>
+                  <span class="td cost" align="right">{{ formatCurrency(process.cost || 0) }}</span>
+                  <span class="td amount" align="right">{{ formatCurrency(process.lineAmount || 0) }}</span>
                 </div>
               </div>
             </div>
           </div>
           <el-empty v-else :description="t('common.noData')" />
 
-          <!-- Approval Records -->
-          <div class="approval-records" v-if="approvalRecords.length > 0">
-            <div class="records-title">{{ t('quotation.approvalRecords') }}</div>
-            <div class="record-list">
-              <div v-for="record in approvalRecords" :key="record.id" class="record-item">
-                <div class="record-header">
-                  <span class="record-step">{{ record.stepName }}</span>
-                  <el-tag :type="record.action === 'APPROVE' ? 'success' : record.action === 'REJECT' ? 'danger' : 'info'" size="small">
-                    {{ getActionLabel(record.action) }}
-                  </el-tag>
-                </div>
-                <div class="record-body">
-                  <span class="record-approver">{{ record.approverName }}</span>
-                  <span class="record-comment" v-if="record.comment">：{{ record.comment }}</span>
-                </div>
-                <div class="record-time">{{ formatDateTime(record.createdAt) }}</div>
-              </div>
+          <!-- Grand Total -->
+          <div class="items-total" v-if="productGroups.length > 0">
+            <div class="total-final">
+              <span>{{ t('quotation.totalAmount') }}: </span>
+              <span class="total-amount">{{ formatCurrency(detail?.totalAmount || 0) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Attachments -->
+        <div class="content-card" v-if="detail?.fileIds?.length">
+          <div class="card-header">
+            <el-icon size="18"><Paperclip /></el-icon>
+            <span>{{ t('quotation.attachments') }}</span>
+          </div>
+          <div class="attachments-list">
+            <div v-for="fileId in detail.fileIds" :key="fileId" class="attachment-item">
+              <el-icon size="16"><Document /></el-icon>
+              <span class="attachment-name">{{ fileId }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Approval Flow -->
+        <!-- Approval Records -->
+        <div class="content-card approval-card" v-if="approvalRecords.length > 0">
+          <div class="card-header">
+            <el-icon size="18"><List /></el-icon>
+            <span>{{ t('quotation.approvalRecords') }}</span>
+          </div>
+          <div class="record-list">
+            <div v-for="record in approvalRecords" :key="record.id" class="record-item">
+              <div class="record-step">{{ record.stepName }}</div>
+              <div class="record-approver">{{ record.approverName }}</div>
+              <div class="record-comment" v-if="record.comment">{{ record.comment }}</div>
+              <div class="record-time">{{ formatDateTime(record.createdAt) }}</div>
+              <el-tag :type="record.action === 'APPROVE' ? 'success' : record.action === 'REJECT' ? 'danger' : 'info'" size="small">
+                {{ getActionLabel(record.action) }}
+              </el-tag>
             </div>
           </div>
         </div>
@@ -203,7 +193,7 @@
             />
           </el-form-item>
           <el-form-item :label="t('quotation.totalAmount')" v-if="approveAction === 'APPROVE' && isReviewStep">
-            <div class="info-value amount">¥{{ detail?.totalAmount?.toLocaleString() || '0.00' }}</div>
+            <div class="info-value amount">{{ formatCurrency(detail?.totalAmount || 0) }}</div>
           </el-form-item>
         </el-form>
       </div>
@@ -264,6 +254,10 @@ import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { quotationApi } from '@/api/quotation'
 import { useI18n } from '@/composables/useI18n'
+import { useFieldControl } from '@/composables/useFieldControl'
+import { useUserStore } from '@/stores/user'
+import { useGeneralizedCode, type GcOption } from '@/composables/useGeneralizedCode'
+import { groupQuotationItems, type ProductGroup } from '@/composables/useQuotationGroups'
 import {
   Document,
   Tickets,
@@ -273,11 +267,17 @@ import {
   Promotion,
   View,
   User,
-  UserFilled
+  UserFilled,
+  Box,
+  Paperclip,
+  List
 } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const { t } = useI18n()
+const userStore = useUserStore()
+const { isVisible, load: loadFieldConfig } = useFieldControl('Quotation', 'QuotationDetail')
+const { getOptions } = useGeneralizedCode()
 const loading = ref(false)
 const detail = ref<any>(null)
 const approvalSteps = ref<any[]>([])
@@ -285,10 +285,41 @@ const approvalRecords = ref<any[]>([])
 const canApprove = ref(false)
 const canReject = ref(false)
 const isReviewStep = ref(false)
+const statusOptions = ref<GcOption[]>([])
 
-const totalItemCost = computed(() => {
-  return (detail.value?.items || []).reduce((sum: number, item: any) => sum + (item.cost || 0), 0)
+const statusFallback = [
+  { code: '0', label: t('quotation.draft'), tagType: 'info' },
+  { code: '1', label: t('quotation.pendingReview'), tagType: 'warning' },
+  { code: '2', label: t('quotation.pendingApproval'), tagType: 'warning' },
+  { code: '3', label: t('quotation.issued'), tagType: 'success' },
+  { code: '9', label: t('quotation.completed'), tagType: 'success' }
+]
+
+/** 产品分组数据 */
+const productGroups = computed<ProductGroup[]>(() => {
+  if (!detail.value?.items) return []
+  return groupQuotationItems(detail.value.items)
 })
+
+/** 总工艺数 */
+const totalProcessCount = computed(() =>
+  productGroups.value.reduce((sum, g) => sum + g.processes.length, 0)
+)
+
+/** 总包装费 */
+const totalPackagingCost = computed(() =>
+  productGroups.value.reduce((sum, g) => sum + g.packagingCost, 0)
+)
+
+/** 总运输费 */
+const totalTransportCost = computed(() =>
+  productGroups.value.reduce((sum, g) => sum + g.transportCost, 0)
+)
+
+/** 货币格式化 */
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY' }).format(value)
+}
 
 const forecastDialogVisible = ref(false)
 const forecastLoading = ref(false)
@@ -299,20 +330,14 @@ const approveAction = ref('APPROVE')
 const approveLoading = ref(false)
 const approveForm = ref({ comment: '', reviewCost: undefined as number | undefined })
 
-const getStatusType = (status?: number) => {
-  const map: Record<number, any> = { 0: 'info', 1: 'warning', 2: 'warning', 3: 'success', 9: 'success' }
-  return map[status ?? -1] || 'info'
+const getStatusOption = (status?: number) => statusOptions.value.find(o => o.value === String(status))
+
+function getStatusType(status?: number) {
+  return getStatusOption(status)?.tagType || 'info'
 }
 
-const getStatusLabel = (status?: number) => {
-  const map: Record<number, string> = {
-    0: t('quotation.draft'),
-    1: t('quotation.pendingReview'),
-    2: t('quotation.pendingApproval'),
-    3: t('quotation.issued'),
-    9: t('quotation.completed')
-  }
-  return map[status ?? -1] || t('common.noData')
+function getStatusLabel(status?: number) {
+  return getStatusOption(status)?.label || t('common.noData')
 }
 
 const getStepTypeLabel = (type: string) => {
@@ -344,6 +369,7 @@ const formatDateTime = (date: string) => {
 const loadDetail = async () => {
   loading.value = true
   try {
+    await loadFieldConfig()
     const id = Number(route.params.id)
     const res = await quotationApi.getById(id)
     detail.value = res.data
@@ -415,7 +441,10 @@ const showForecast = async () => {
   }
 }
 
-onMounted(loadDetail)
+onMounted(async () => {
+  statusOptions.value = await getOptions('QUO_STATUS', statusFallback)
+  loadDetail()
+})
 </script>
 
 <style scoped>
@@ -451,7 +480,7 @@ onMounted(loadDetail)
 
 .detail-grid {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
+  grid-template-columns: 1fr;
   gap: var(--slds-spacing-lg);
 }
 
@@ -475,10 +504,17 @@ onMounted(loadDetail)
   color: var(--slds-text-primary);
 }
 
+.items-count {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--slds-text-secondary);
+  font-weight: 400;
+}
+
 .info-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--slds-spacing-md);
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
   padding: var(--slds-spacing-lg);
 }
 
@@ -492,8 +528,7 @@ onMounted(loadDetail)
   font-size: 12px;
   color: var(--slds-text-secondary);
   font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .info-value {
@@ -514,18 +549,150 @@ onMounted(loadDetail)
   color: var(--slds-brand-primary);
 }
 
-.items-card {
-  padding-bottom: var(--slds-spacing-md);
+/* Product Group Styles */
+.product-groups {
+  padding: var(--slds-spacing-md) var(--slds-spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--slds-spacing-lg);
 }
 
+.product-group {
+  border: 1px solid var(--slds-border-color-light);
+  border-radius: var(--slds-border-radius);
+  overflow: hidden;
+}
+
+.group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--slds-spacing-md) var(--slds-spacing-lg);
+  background: #FAFBFC;
+  border-bottom: 1px solid var(--slds-border-color-light);
+}
+
+.group-product {
+  display: flex;
+  align-items: center;
+  gap: var(--slds-spacing-sm);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--slds-text-primary);
+}
+
+.group-product-name {
+  color: var(--slds-brand-primary);
+}
+
+.group-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--slds-spacing-md);
+  font-size: 13px;
+}
+
+.group-cost {
+  color: var(--slds-text-secondary);
+}
+
+.group-amount {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--slds-brand-primary);
+}
+
+/* Group Table */
+.group-table {
+  width: 100%;
+}
+
+.group-table-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 80px 80px 90px 90px;
+  gap: 8px;
+  padding: 8px var(--slds-spacing-lg);
+  background: #F5F7FA;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--slds-text-secondary);
+  border-bottom: 1px solid var(--slds-border-color-light);
+}
+
+.group-table-header .th {
+  white-space: nowrap;
+}
+
+.group-table-header .th[align="right"] {
+  text-align: right;
+}
+
+.group-table-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 80px 80px 90px 90px;
+  gap: 8px;
+  padding: 10px var(--slds-spacing-lg);
+  font-size: 13px;
+  color: var(--slds-text-primary);
+  border-bottom: 1px solid var(--slds-border-color-light);
+  transition: background 0.15s ease;
+}
+
+.group-table-row:last-child {
+  border-bottom: none;
+}
+
+.group-table-row:hover {
+  background: #FAFBFC;
+}
+
+.group-table-row.is-master {
+  background: #FFF8F0;
+}
+
+.group-table-row .td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.group-table-row .td[align="right"] {
+  text-align: right;
+}
+
+.group-table-row .td.cost {
+  color: var(--slds-brand-primary);
+  font-weight: 600;
+}
+
+.group-table-row .td.amount {
+  font-weight: 700;
+  color: var(--slds-text-primary);
+}
+
+/* Items Total */
 .items-total {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   padding: var(--slds-spacing-md) var(--slds-spacing-lg);
   border-top: 1px solid var(--slds-border-color-light);
   font-size: 14px;
   color: var(--slds-text-secondary);
+}
+
+.total-breakdown {
+  display: flex;
+  gap: var(--slds-spacing-lg);
+}
+
+.extra-cost-label {
+  font-size: 13px;
+  color: var(--slds-text-secondary);
+}
+
+.total-final {
+  font-size: 14px;
 }
 
 .total-amount {
@@ -535,22 +702,25 @@ onMounted(loadDetail)
   margin-left: 8px;
 }
 
-.amount {
-  font-weight: 600;
+/* Attachments */
+.attachments-list {
+  padding: var(--slds-spacing-md) var(--slds-spacing-lg);
+}
+
+.attachment-item {
+  display: flex;
+  align-items: center;
+  gap: var(--slds-spacing-sm);
+  padding: var(--slds-spacing-sm) 0;
+  font-size: 13px;
+  color: var(--slds-text-secondary);
+}
+
+.attachment-name {
   color: var(--slds-text-primary);
 }
 
-.cost {
-  font-weight: 600;
-  color: var(--slds-error);
-}
-
-.total-cost {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--slds-error);
-}
-
+/* Approval */
 .approval-card {
   padding-bottom: var(--slds-spacing-lg);
 }
@@ -630,24 +800,26 @@ onMounted(loadDetail)
 }
 
 .records-title {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--slds-text-primary);
-  margin-bottom: var(--slds-spacing-md);
-  padding-top: var(--slds-spacing-md);
-  border-top: 1px solid var(--slds-border-color-light);
+  padding: var(--slds-spacing-md) var(--slds-spacing-lg);
 }
 
 .record-list {
   display: flex;
   flex-direction: column;
   gap: var(--slds-spacing-md);
+  padding: 0 var(--slds-spacing-lg) var(--slds-spacing-md);
 }
 
 .record-item {
+  display: flex;
+  align-items: center;
+  gap: 60px;
   background: #FAFBFC;
   border-radius: var(--slds-border-radius);
-  padding: var(--slds-spacing-md);
+  padding: var(--slds-spacing-md) var(--slds-spacing-lg);
   border-left: 3px solid var(--slds-border-color);
 }
 
@@ -659,38 +831,30 @@ onMounted(loadDetail)
   border-left-color: var(--slds-error);
 }
 
-.record-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-}
-
 .record-step {
   font-size: 13px;
   font-weight: 600;
   color: var(--slds-text-primary);
-}
-
-.record-body {
-  font-size: 13px;
-  color: var(--slds-text-secondary);
-  margin-bottom: 4px;
+  min-width: 80px;
 }
 
 .record-approver {
+  font-size: 13px;
   font-weight: 600;
   color: var(--slds-text-primary);
 }
 
 .record-comment {
+  font-size: 13px;
   color: var(--slds-text-secondary);
+  flex: 1;
 }
 
 .record-time {
   font-size: 11px;
   color: var(--slds-text-secondary);
   opacity: 0.7;
+  white-space: nowrap;
 }
 
 .dialog-body {
@@ -766,6 +930,26 @@ onMounted(loadDetail)
 @media (max-width: 1024px) {
   .detail-grid {
     grid-template-columns: 1fr;
+  }
+
+  .group-table-header,
+  .group-table-row {
+    grid-template-columns: 1fr 1fr 1fr 70px 70px 80px 80px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .group-table-header,
+  .group-table-row {
+    grid-template-columns: 1fr 1fr 80px 80px;
+  }
+
+  .group-table-header .th:nth-child(3),
+  .group-table-header .th:nth-child(4),
+  .group-table-row .td:nth-child(3),
+  .group-table-row .td:nth-child(4) {
+    display: none;
   }
 }
 </style>
