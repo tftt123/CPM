@@ -6,7 +6,7 @@ using System.Text;
 
 namespace CpmServer.Common;
 
-public class JwtHelper
+public class JwtHelper : IJwtHelper
 {
     private readonly JwtSettings _settings;
 

@@ -16,6 +16,7 @@ public class FieldControlService : IFieldControlService
     }
 
     private string? CurrentSite => _currentUser.Site;
+    private string? CurrentApp => _currentUser.App ?? "cpm";
 
     // 后端硬编码的模块列表
     private static readonly List<string> Modules = new()
@@ -46,8 +47,10 @@ public class FieldControlService : IFieldControlService
     public async Task<List<SysFieldControl>> GetFieldsAsync(string moduleCode, string pageCode, string? site = null)
     {
         var effectiveSite = site ?? CurrentSite;
+        var effectiveApp = CurrentApp;
         var query = _db.FieldControls
-            .Where(f => f.ModuleCode == moduleCode && f.PageCode == pageCode);
+            .Where(f => f.ModuleCode == moduleCode && f.PageCode == pageCode &&
+                (f.App == effectiveApp || string.IsNullOrEmpty(f.App)));
 
         if (!string.IsNullOrEmpty(effectiveSite))
             query = query.Where(f => f.Site == effectiveSite);
@@ -64,10 +67,12 @@ public class FieldControlService : IFieldControlService
         string moduleCode, string pageCode, List<FieldInitDto> fields, string? site = null)
     {
         var effectiveSite = site ?? CurrentSite;
+        var effectiveApp = CurrentApp;
 
         // Check if already initialized
         var existingCount = await _db.FieldControls
             .Where(f => f.ModuleCode == moduleCode && f.PageCode == pageCode)
+            .Where(f => f.App == effectiveApp || string.IsNullOrEmpty(f.App))
             .Where(f => string.IsNullOrEmpty(effectiveSite) ? string.IsNullOrEmpty(f.Site) : f.Site == effectiveSite)
             .CountAsync();
 
@@ -91,6 +96,7 @@ public class FieldControlService : IFieldControlService
                 IsRequired = field.DefaultRequired,
                 SortOrder = sort++,
                 Site = effectiveSite,
+                App = effectiveApp,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             });
@@ -104,6 +110,7 @@ public class FieldControlService : IFieldControlService
     public async Task UpdateBatchAsync(List<SysFieldControl> fields, string? site = null)
     {
         var effectiveSite = site ?? CurrentSite;
+        var effectiveApp = CurrentApp;
 
         foreach (var field in fields)
         {
@@ -112,6 +119,7 @@ public class FieldControlService : IFieldControlService
                     f.ModuleCode == field.ModuleCode &&
                     f.PageCode == field.PageCode &&
                     f.FieldCode == field.FieldCode &&
+                    (f.App == effectiveApp || string.IsNullOrEmpty(f.App)) &&
                     (f.Site == effectiveSite || (string.IsNullOrEmpty(f.Site) && string.IsNullOrEmpty(effectiveSite))));
 
             if (existing != null)

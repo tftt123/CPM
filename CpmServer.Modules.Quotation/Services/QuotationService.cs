@@ -1,4 +1,5 @@
 using CpmServer.Common;
+using CpmServer.Constants;
 using CpmServer.Data;
 using CpmServer.Models;
 using CpmServer.Modules.Approval.Contracts;
@@ -40,10 +41,12 @@ public class QuotationService : IQuotationService
             .Include(o => o.Owner)
             .AsQueryable();
 
+        var currentApp = _currentUser.App ?? "cpm";
         if (!string.IsNullOrWhiteSpace(_currentUser.Site))
         {
             query = query.Where(o => o.Site == _currentUser.Site);
         }
+        query = query.Where(o => o.App == currentApp || string.IsNullOrEmpty(o.App));
 
         if (!string.IsNullOrEmpty(keyword))
         {
@@ -92,10 +95,12 @@ public class QuotationService : IQuotationService
             .Include(o => o.Owner)
             .Where(o => o.Id == id);
 
+        var currentApp = _currentUser.App ?? "cpm";
         if (!string.IsNullOrWhiteSpace(_currentUser.Site))
         {
             query = query.Where(o => o.Site == _currentUser.Site);
         }
+        query = query.Where(o => o.App == currentApp || string.IsNullOrEmpty(o.App));
 
         var o = await query.FirstOrDefaultAsync();
 
@@ -130,8 +135,8 @@ public class QuotationService : IQuotationService
             Title = dto.Title,
             ExpectedAmount = dto.ExpectedAmount,
             QuoteDeadline = dto.QuoteDeadline,
-            Stage = "NEW",
-            Status = 0,
+            Stage = QuotationConstants.OpportunityStage.New,
+            Status = QuotationConstants.Status.Draft,
             OwnerId = userId,
             Site = !string.IsNullOrWhiteSpace(dto.Site) ? dto.Site : _currentUser.Site,
             CreatedAt = DateTime.Now,
@@ -524,7 +529,7 @@ public class QuotationService : IQuotationService
 
         // 检查是否已有进行中的审批流程
         var existingInstance = await _approvalService.GetInstanceAsync("Quotation", quotationId);
-        if (existingInstance != null && existingInstance.Status == 0)
+        if (existingInstance != null && existingInstance.Status == ApprovalConstants.InstanceStatus.Active)
         {
             throw new InvalidOperationException("该报价单已有进行中的审批流程");
         }
@@ -533,7 +538,7 @@ public class QuotationService : IQuotationService
         var instance = await _approvalService.StartApprovalAsync(
             "Quotation", quotationId, "Quotation", quotation.Site, userId);
 
-        quotation.Status = 1; // 待评审
+        quotation.Status = QuotationConstants.Status.PendingReview; // 待评审
         quotation.CurrentStepId = instance.CurrentStepId;
         quotation.UpdatedAt = DateTime.Now;
 
@@ -582,18 +587,18 @@ public class QuotationService : IQuotationService
                 quotation.CurrentStepId = updatedInstance.CurrentStepId;
                 quotation.Status = updatedInstance.Status switch
                 {
-                    0 => 1, // 进行中 -> 待评审
-                    1 => 3, // 完成 -> 已发布
-                    2 => 0, // 驳回 -> 草稿
+                    ApprovalConstants.InstanceStatus.Active => QuotationConstants.Status.PendingReview, // 进行中 -> 待评审
+                    ApprovalConstants.InstanceStatus.Completed => QuotationConstants.Status.Issued, // 完成 -> 已发布
+                    ApprovalConstants.InstanceStatus.Rejected => QuotationConstants.Status.Draft, // 驳回 -> 草稿
                     _ => quotation.Status
                 };
 
-                if (updatedInstance.Status == 0)
+                if (updatedInstance.Status == ApprovalConstants.InstanceStatus.Active)
                 {
                     var currentStep = await _approvalService.GetCurrentStepAsync(updatedInstance.Id);
-                    if (currentStep?.StepType == "APPROVAL")
+                    if (currentStep?.StepType == ApprovalConstants.StepType.Approval)
                     {
-                        quotation.Status = 2; // 待审批
+                        quotation.Status = QuotationConstants.Status.PendingApproval; // 待审批
                     }
                 }
 

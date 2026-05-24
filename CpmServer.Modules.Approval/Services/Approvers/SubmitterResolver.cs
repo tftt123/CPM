@@ -1,3 +1,4 @@
+using CpmServer.Constants;
 using CpmServer.Data;
 using CpmServer.Models;
 
@@ -9,7 +10,7 @@ namespace CpmServer.Modules.Approval.Services.Approvers;
 /// </summary>
 public class SubmitterResolver : IApproverResolver
 {
-    public string RuleType => "SUBMITTER";
+    public string RuleType => ApprovalConstants.RuleType.Submitter;
 
     public Task<ApproverResult> ResolveAsync(SysApprovalRule rule, ApproverContext context, CpmDbContext db)
     {

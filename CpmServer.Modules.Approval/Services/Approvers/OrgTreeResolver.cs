@@ -1,3 +1,4 @@
+using CpmServer.Constants;
 using CpmServer.Data;
 using CpmServer.Models;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +11,7 @@ namespace CpmServer.Modules.Approval.Services.Approvers;
 /// </summary>
 public class OrgTreeResolver : IApproverResolver
 {
-    public string RuleType => "ORG_TREE";
+    public string RuleType => ApprovalConstants.RuleType.OrgTree;
 
     public async Task<ApproverResult> ResolveAsync(SysApprovalRule rule, ApproverContext context, CpmDbContext db)
     {

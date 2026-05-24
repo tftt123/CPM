@@ -17,10 +17,10 @@ public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
     private readonly IQadAuthService _qadAuth;
-    private readonly JwtHelper _jwt;
+    private readonly IJwtHelper _jwt;
     private readonly CpmDbContext _db;
 
-    public AuthController(IAuthService authService, IQadAuthService qadAuth, JwtHelper jwt, CpmDbContext db)
+    public AuthController(IAuthService authService, IQadAuthService qadAuth, IJwtHelper jwt, CpmDbContext db)
     {
         _authService = authService;
         _qadAuth = qadAuth;

@@ -12,16 +12,18 @@ namespace CpmServer.Modules.Approval.Controllers;
 public class ApprovalController : ControllerBase
 {
     private readonly IApprovalService _approvalService;
+    // Policy key shared with CpmServer.Program.cs authorization setup
+    private const string CanManageApprovalTemplates = "CanManageApprovalTemplates";
 
     public ApprovalController(IApprovalService approvalService)
     {
         _approvalService = approvalService;
     }
 
-    #region 审批模板管理（ADMIN 权限）
+    #region 审批模板管理（RBAC 权限）
 
     [HttpGet("templates")]
-    [Authorize(Roles = "ADMIN")]
+    [Authorize(Policy = CanManageApprovalTemplates)]
     public async Task<ApiResult<List<ApprovalTemplateDto>>> GetTemplates([FromQuery] string? moduleType)
     {
         var result = await _approvalService.GetTemplatesAsync(moduleType);
@@ -29,7 +31,7 @@ public class ApprovalController : ControllerBase
     }
 
     [HttpGet("templates/{id}")]
-    [Authorize(Roles = "ADMIN")]
+    [Authorize(Policy = CanManageApprovalTemplates)]
     public async Task<ApiResult<ApprovalTemplateDto?>> GetTemplateById(long id)
     {
         var result = await _approvalService.GetTemplateByIdAsync(id);
@@ -37,7 +39,7 @@ public class ApprovalController : ControllerBase
     }
 
     [HttpPost("templates")]
-    [Authorize(Roles = "ADMIN")]
+    [Authorize(Policy = CanManageApprovalTemplates)]
     public async Task<ApiResult<long>> CreateTemplate([FromBody] ApprovalTemplateDto dto)
     {
         var id = await _approvalService.CreateTemplateAsync(dto);
@@ -45,7 +47,7 @@ public class ApprovalController : ControllerBase
     }
 
     [HttpPut("templates/{id}")]
-    [Authorize(Roles = "ADMIN")]
+    [Authorize(Policy = CanManageApprovalTemplates)]
     public async Task<ApiResult> UpdateTemplate(long id, [FromBody] ApprovalTemplateDto dto)
     {
         await _approvalService.UpdateTemplateAsync(id, dto);
@@ -53,7 +55,7 @@ public class ApprovalController : ControllerBase
     }
 
     [HttpDelete("templates/{id}")]
-    [Authorize(Roles = "ADMIN")]
+    [Authorize(Policy = CanManageApprovalTemplates)]
     public async Task<ApiResult> DeleteTemplate(long id)
     {
         await _approvalService.DeleteTemplateAsync(id);

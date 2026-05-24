@@ -134,11 +134,9 @@ router.beforeEach((to) => {
   }
   if (to.meta.permission && token) {
     const userInfo = getCachedUserInfo()
-    const roles = userInfo?.roles || []
     const permissions = userInfo?.permissions || []
     const required = to.meta.permission as string
-    const isAdmin = roles.some((r: string) => r.toUpperCase() === 'ADMIN')
-    if (!isAdmin && !permissions.includes(required)) {
+    if (!permissions.includes(required)) {
       return '/home'
     }
   }

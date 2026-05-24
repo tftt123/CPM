@@ -1,4 +1,5 @@
-﻿using CpmServer.Data;
+﻿using CpmServer.Constants;
+using CpmServer.Data;
 using CpmServer.Models;
 using CpmServer.Modules.Approval.Contracts;
 using Microsoft.EntityFrameworkCore;
@@ -21,24 +22,24 @@ public class QuotationBusinessStatusUpdater : IBusinessStatusUpdater
         var quotation = await _db.Quotations.FindAsync(businessId);
         if (quotation == null) return;
 
-        if (approvalStatus == 1)
+        if (approvalStatus == ApprovalConstants.InstanceStatus.Completed)
         {
-            quotation.Status = 3;
+            quotation.Status = QuotationConstants.Status.Issued;
             await CreateProjectTraceAsync(quotation);
         }
-        else if (approvalStatus == 2)
+        else if (approvalStatus == ApprovalConstants.InstanceStatus.Rejected)
         {
-            quotation.Status = 0;
+            quotation.Status = QuotationConstants.Status.Draft;
         }
         else
         {
             if (currentStepId.HasValue)
             {
                 var step = await _db.ApprovalSteps.FindAsync(currentStepId.Value);
-                if (step?.StepType == "REVIEW")
-                    quotation.Status = 1;
-                else if (step?.StepType == "APPROVAL")
-                    quotation.Status = 2;
+                if (step?.StepType == ApprovalConstants.StepType.Review)
+                    quotation.Status = QuotationConstants.Status.PendingReview;
+                else if (step?.StepType == ApprovalConstants.StepType.Approval)
+                    quotation.Status = QuotationConstants.Status.PendingApproval;
             }
         }
 

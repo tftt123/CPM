@@ -46,7 +46,7 @@ Template → Steps → Rules → Conditions. Supports SEQUENTIAL, PARALLEL, PARA
 7. **New enum → GeneralizedCode.** Via `GcSelect` with `fallback`. No hardcoded `el-option` lists.
 8. **Site/App fields on new entities.** Always add both; filter queries accordingly.
 9. **Intranet deployment.** Avoid hard external CDN dependencies; keep system font fallbacks.
-10. **Auth:** JWT in `localStorage.token`; default admin `admin`/`123456`.
+10. **Auth:** JWT in `localStorage.token`. Seed admin password from `SeedData:AdminPassword` config; skip seeding if not set.
 
 ---
 
@@ -66,6 +66,7 @@ Template → Steps → Rules → Conditions. Supports SEQUENTIAL, PARALLEL, PARA
 | Field registry | `cpm-web/src/config/field-registry.ts` |
 | GcSelect | `cpm-web/src/components/GcSelect.vue` |
 | Composables | `cpm-web/src/composables/useGeneralizedCode.ts`, `useFieldControl.ts`, `useI18n.ts` |
+| Constants | `CpmServer.SharedKernel/Constants/ApprovalConstants.cs`, `QuotationConstants.cs`, `EmailTemplateConstants.cs` |
 
 ---
 

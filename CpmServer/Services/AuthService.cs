@@ -11,9 +11,9 @@ namespace CpmServer.Services;
 public class AuthService : IAuthService
 {
     private readonly CpmDbContext _db;
-    private readonly JwtHelper _jwt;
+    private readonly IJwtHelper _jwt;
 
-    public AuthService(CpmDbContext db, JwtHelper jwt)
+    public AuthService(CpmDbContext db, IJwtHelper jwt)
     {
         _db = db;
         _jwt = jwt;

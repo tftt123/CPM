@@ -1,3 +1,4 @@
+using CpmServer.Constants;
 using CpmServer.Data;
 using CpmServer.Models;
 using CpmServer.Modules.Approval.Contracts;
@@ -29,12 +30,14 @@ public class ApprovalTaskService : IApprovalTaskService
             .Select(ur => ur.RoleId)
             .ToListAsync();
 
+        var currentApp = _currentUser.App ?? "cpm";
         var userRoleNames = await _db.Roles
-            .Where(r => userRoleIds.Contains(r.Id) && (r.Site == _currentUser.Site || string.IsNullOrEmpty(r.Site)))
+            .Where(r => userRoleIds.Contains(r.Id) &&
+                (r.App == currentApp || string.IsNullOrEmpty(r.App)) &&
+                (r.Site == _currentUser.Site || string.IsNullOrEmpty(r.Site)))
             .Select(r => r.RoleName)
             .ToListAsync();
 
-        var currentApp = _currentUser.App ?? "cpm";
         var currentSite = _currentUser.Site;
 
         var tasks = await _db.ApprovalInstanceTasks
@@ -42,7 +45,7 @@ public class ApprovalTaskService : IApprovalTaskService
             .ThenInclude(i => i!.Template)
             .ThenInclude(t => t!.Steps)
             .Include(t => t.Assignee)
-            .Where(t => t.Status == 0 &&
+            .Where(t => t.Status == ApprovalConstants.TaskStatus.Pending &&
                 (t.App == currentApp || string.IsNullOrEmpty(t.App)) &&
                 (t.Site == currentSite || string.IsNullOrEmpty(t.Site)) &&
                 (t.AssigneeId == userId || (t.AssigneeRole != null && userRoleNames.Contains(t.AssigneeRole))))
@@ -103,6 +106,16 @@ public class ApprovalTaskService : IApprovalTaskService
 
     public async Task<List<ApprovalTaskDto>> GetInstanceTasksAsync(long instanceId)
     {
+        var currentApp = _currentUser.App ?? "cpm";
+        var currentSite = _currentUser.Site;
+
+        // Verify instance ownership before returning tasks
+        var instance = await _db.ApprovalInstances
+            .FirstOrDefaultAsync(i => i.Id == instanceId);
+        if (instance == null) return new List<ApprovalTaskDto>();
+        if (!string.IsNullOrEmpty(instance.App) && instance.App != currentApp) return new List<ApprovalTaskDto>();
+        if (!string.IsNullOrEmpty(instance.Site) && instance.Site != currentSite) return new List<ApprovalTaskDto>();
+
         var tasks = await _db.ApprovalInstanceTasks
             .Include(t => t.Instance)
             .ThenInclude(i => i!.Template)
@@ -116,6 +129,16 @@ public class ApprovalTaskService : IApprovalTaskService
 
     public async Task<List<ApprovalRecordDto>> GetApprovalRecordsAsync(long instanceId)
     {
+        var currentApp = _currentUser.App ?? "cpm";
+        var currentSite = _currentUser.Site;
+
+        // Verify instance ownership before returning records
+        var instance = await _db.ApprovalInstances
+            .FirstOrDefaultAsync(i => i.Id == instanceId);
+        if (instance == null) return new List<ApprovalRecordDto>();
+        if (!string.IsNullOrEmpty(instance.App) && instance.App != currentApp) return new List<ApprovalRecordDto>();
+        if (!string.IsNullOrEmpty(instance.Site) && instance.Site != currentSite) return new List<ApprovalRecordDto>();
+
         return await _db.ApprovalRecords
             .Where(r => r.InstanceId == instanceId)
             .OrderBy(r => r.CreatedAt)
@@ -162,20 +185,25 @@ public class ApprovalTaskService : IApprovalTaskService
 
     public async Task<bool> CanUserApproveAsync(long instanceId, long userId)
     {
+        var currentApp = _currentUser.App ?? "cpm";
+        var currentSite = _currentUser.Site;
+
         var instance = await _db.ApprovalInstances
             .Include(i => i.Template)
             .ThenInclude(t => t!.Steps)
             .Include(i => i.Tasks)
             .FirstOrDefaultAsync(i => i.Id == instanceId);
 
-        if (instance == null || instance.Status != 0) return false;
+        if (instance == null || instance.Status != ApprovalConstants.InstanceStatus.Active) return false;
+        if (!string.IsNullOrEmpty(instance.App) && instance.App != currentApp) return false;
+        if (!string.IsNullOrEmpty(instance.Site) && instance.Site != currentSite) return false;
 
         var currentStep = instance.Template?.Steps
             .FirstOrDefault(s => s.Id == instance.CurrentStepId);
 
         if (currentStep == null) return false;
 
-        var pendingTasks = instance.Tasks.Where(t => t.StepId == currentStep.Id && t.Status == 0).ToList();
+        var pendingTasks = instance.Tasks.Where(t => t.StepId == currentStep.Id && t.Status == ApprovalConstants.TaskStatus.Pending).ToList();
         if (pendingTasks.Any())
         {
             var directTask = pendingTasks.FirstOrDefault(t => t.AssigneeId == userId);

@@ -115,11 +115,14 @@ builder.Services.AddDbContext<CpmDbContext>(options =>
 
 
 // CORS - 允许 Vue 前端访问
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? new[] { "http://localhost:5173" };
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowVueApp", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -127,7 +130,7 @@ builder.Services.AddCors(options =>
 
 // JWT 配置
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
-builder.Services.AddSingleton<JwtHelper>();
+builder.Services.AddSingleton<IJwtHelper, JwtHelper>();
 
 // JWT 认证
 var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>()!;
@@ -182,18 +185,12 @@ builder.Services.AddScoped<IProductService, ProductService>();
 // P3 - 报价流程服务
 builder.Services.AddScoped<IEmailService, EmailService>();
 
-// Approval 模块 - 拆分后的专用服务
-builder.Services.AddScoped<ApprovalTemplateService>();
-builder.Services.AddScoped<ApprovalInstanceService>();
-builder.Services.AddScoped<ApprovalTaskService>();
-builder.Services.AddScoped<ApprovalActionService>();
-builder.Services.AddScoped<ApprovalNotificationService>();
-
-// Approval 模块 - 接口注册（facade 保持向后兼容）
+// Approval 模块 - 接口注册
 builder.Services.AddScoped<IApprovalTemplateService, ApprovalTemplateService>();
 builder.Services.AddScoped<IApprovalInstanceService, ApprovalInstanceService>();
 builder.Services.AddScoped<IApprovalTaskService, ApprovalTaskService>();
 builder.Services.AddScoped<IApprovalActionService, ApprovalActionService>();
+builder.Services.AddScoped<IApprovalNotificationService, ApprovalNotificationService>();
 builder.Services.AddScoped<IApprovalService, ApprovalService>();
 builder.Services.AddScoped<IModuleTypeConfigService, ModuleTypeConfigService>();
 builder.Services.AddScoped<IQuotationService, QuotationService>();
@@ -279,19 +276,23 @@ using (var scope = app.Services.CreateScope())
         Cron.MinuteInterval(5));
 }
 
-// 种子数据：自动创建 admin / 123456 账号
-using (var scope = app.Services.CreateScope())
+// 种子数据：自动创建 admin 账号（密码从配置读取，未配置则跳过）
+var defaultAdminPassword = builder.Configuration["SeedData:AdminPassword"];
+if (!string.IsNullOrEmpty(defaultAdminPassword))
 {
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<CpmDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    var seedSite = builder.Configuration["SeedData:AdminSite"] ?? "NT01";
 
     if (!db.Users.Any(u => u.Username == "admin"))
     {
         var admin = new SysUser
         {
             Username = "admin",
-            Password = BCrypt.Net.BCrypt.HashPassword("123456"),
+            Password = BCrypt.Net.BCrypt.HashPassword(defaultAdminPassword),
             RealName = "管理员",
-            Site = "NT01",
+            Site = seedSite,
             IsActive = true,
             CreatedAt = DateTime.Now,
             UpdatedAt = DateTime.Now
@@ -299,11 +300,10 @@ using (var scope = app.Services.CreateScope())
         db.Users.Add(admin);
         db.SaveChanges();
 
-        // 确保 ADMIN 角色存在
         var adminRole = db.Roles.FirstOrDefault(r => r.RoleCode == "ADMIN");
         if (adminRole == null)
         {
-            adminRole = new SysRole { RoleCode = "ADMIN", RoleName = "系统管理员", Site = "NT01" };
+            adminRole = new SysRole { RoleCode = "ADMIN", RoleName = "系统管理员", Site = seedSite };
             db.Roles.Add(adminRole);
             db.SaveChanges();
         }
@@ -311,17 +311,17 @@ using (var scope = app.Services.CreateScope())
         db.UserRoles.Add(new SysUserRole { UserId = admin.Id, RoleId = adminRole.Id });
         db.SaveChanges();
 
-        // 添加用户 Site 权限
-        db.UserSites.Add(new SysUserSite { UserId = admin.Id, Site = "NT01" });
+        db.UserSites.Add(new SysUserSite { UserId = admin.Id, Site = seedSite });
         db.SaveChanges();
+
+        logger.LogInformation("Seed admin user created for site {Site}", seedSite);
     }
     else
     {
-        // 为已有 admin 用户补充 Site 权限
         var admin = db.Users.First(u => u.Username == "admin");
         if (!db.UserSites.Any(us => us.UserId == admin.Id))
         {
-            db.UserSites.Add(new SysUserSite { UserId = admin.Id, Site = admin.Site ?? "NT01" });
+            db.UserSites.Add(new SysUserSite { UserId = admin.Id, Site = admin.Site ?? seedSite });
             db.SaveChanges();
         }
     }

@@ -28,10 +28,12 @@ public class PmProjectTraceService : IPmProjectTraceService
     {
         var query = _db.ProjectTraces.AsQueryable();
 
+        var currentApp = _currentUser.App ?? "cpm";
         if (!string.IsNullOrWhiteSpace(_currentUser.Site))
         {
             query = query.Where(t => t.Site == _currentUser.Site);
         }
+        query = query.Where(t => t.App == currentApp || string.IsNullOrEmpty(t.App));
 
         if (!string.IsNullOrWhiteSpace(keyword))
         {
@@ -343,10 +345,12 @@ public class PmProjectTraceService : IPmProjectTraceService
     public async Task<PmProjectTraceDetailDto?> GetDetailAsync(long id)
     {
         var query = _db.ProjectTraces.AsQueryable();
+        var currentApp = _currentUser.App ?? "cpm";
         if (!string.IsNullOrWhiteSpace(_currentUser.Site))
         {
             query = query.Where(t => t.Site == _currentUser.Site);
         }
+        query = query.Where(t => t.App == currentApp || string.IsNullOrEmpty(t.App));
 
         var trace = await query
             .Include(t => t.Steps.OrderBy(s => s.StepOrder))
@@ -463,10 +467,12 @@ public class PmProjectTraceService : IPmProjectTraceService
     public async Task UpdateAsync(long id, PmProjectTraceUpdateRequest dto)
     {
         var query = _db.ProjectTraces.AsQueryable();
+        var currentApp = _currentUser.App ?? "cpm";
         if (!string.IsNullOrWhiteSpace(_currentUser.Site))
         {
             query = query.Where(t => t.Site == _currentUser.Site);
         }
+        query = query.Where(t => t.App == currentApp || string.IsNullOrEmpty(t.App));
 
         var trace = await query
             .Include(t => t.Steps)
@@ -554,10 +560,12 @@ public class PmProjectTraceService : IPmProjectTraceService
     public async Task DeleteAsync(long id)
     {
         var query = _db.ProjectTraces.AsQueryable();
+        var currentApp = _currentUser.App ?? "cpm";
         if (!string.IsNullOrWhiteSpace(_currentUser.Site))
         {
             query = query.Where(t => t.Site == _currentUser.Site);
         }
+        query = query.Where(t => t.App == currentApp || string.IsNullOrEmpty(t.App));
 
         var trace = await query
             .Include(t => t.Steps)
